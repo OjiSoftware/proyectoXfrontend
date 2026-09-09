@@ -1,0 +1,1 @@
+Aca van todo lo que sea estructura repetida, basicamente diseños repetidos

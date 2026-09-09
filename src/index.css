@@ -1,0 +1,43 @@
+@import url("https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap");
+@import "tailwindcss";
+@import "flowbite";
+
+@layer base {
+  body {
+    font-family: "Inter", sans-serif;
+  }
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-poppins: "Poppins", sans-serif;
+  --font-domine: "Domine", serif;
+  --font-serif: "Domine", serif;
+  --font-heading: "Poppins", sans-serif;
+
+  --color-primary: #EDC062;
+  --color-secondary: #9E9494;
+  --color-dark: #1A2D2A;
+  --color-accent: #FAD390;
+  --color-surface: #F8F8F8;
+}
+
+/* Custom Scrollbar for Dark UI */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
