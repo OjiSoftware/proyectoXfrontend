@@ -11,10 +11,12 @@ const mockItem = {
         name: 'Producto de Prueba',
         price: 1000,
         stock: 5,
-        imageUrl: ''
+        imageUrl: '',
+        description: 'Descripción de prueba',
+        subCategoryId: 1,
+        showingInCatalog: true
     },
     quantity: 2
-
 }
 
 describe('CartRow', () => {
