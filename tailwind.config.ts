@@ -15,6 +15,7 @@ const config: Config = {
             serif: ['Domine', 'serif'],
             domine: ['Domine', 'serif'],
             poppins: ['Poppins', 'sans-serif'],
+            fredoka: ['Fredoka', 'Poppins', 'sans-serif'],
         },
         extend: {
             colors: {
@@ -24,6 +25,10 @@ const config: Config = {
                 accent: "#FAD390", // Soft Gold
             },
             keyframes: {
+                float: {
+                    "0%, 100%": { transform: "translateY(0)" },
+                    "50%": { transform: "translateY(-12px)" },
+                },
                 "fade-in": {
                     "0%": { opacity: "0", transform: "scale(0.95)" },
                     "100%": { opacity: "1", transform: "scale(1)" },

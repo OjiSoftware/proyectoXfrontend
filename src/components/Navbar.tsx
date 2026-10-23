@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import logo from '@/assets/logo_elementAll.png';
+import logo from '@/assets/logo_upalele.PNG';
 import SearchBar from '@/components/SearchBar';
 import { catalogApi } from '@/services/CatalogService';
 import { Product } from '@/types/product.types';
@@ -93,12 +93,16 @@ const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <nav className="w-full bg-white relative z-30 border-b-10 border-[#f5f6f8] font-domine">
+      {/* Barra de anuncio */}
+      <div className="w-full bg-[#1E8A90] text-white text-center text-xs md:text-sm font-medium font-fredoka py-2 px-4 tracking-wide">
+        🚚 Envíos a todo el país <span className="text-[#FFE600] font-semibold">·</span> Todo para tu bebé en un solo lugar
+      </div>
+      <nav className="w-full bg-white relative z-30 border-b border-gray-200 font-fredoka">
         <div className="max-w-[1187px] mx-auto px-4 py-3 md:pt-2! md:pb-2!">
           <div className="flex items-center md:items-start! justify-between gap-4 md:gap-8">
             {/* Botón Menú Móvil */}
             <button
-              className="md:hidden text-white p-1"
+              className="md:hidden text-[#1E8A90] p-1"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <svg
@@ -126,14 +130,14 @@ const Navbar: React.FC<NavbarProps> = ({
               <img
                 src={logo}
                 alt="Logo"
-                className="h-12 md:hidden object-contain my-1"
+                className="h-12 md:hidden object-contain my-1 rounded-lg"
                 onClick={() => (window.location.href = '/')}
                 style={{ cursor: 'pointer' }}
               />
               <img
                 src={logo}
                 alt="Logo"
-                className="hidden md:block h-26 object-contain "
+                className="hidden md:block h-20 object-contain rounded-xl"
                 onClick={() => (window.location.href = '/')}
                 style={{ cursor: 'pointer' }}
               />
@@ -148,7 +152,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 value={search}
                 onChange={handleSearchChange}
                 onSubmit={handleSearchSubmit}
-                placeholder="Buscá anteojos, marcas, lentes..."
+                placeholder="Buscá pañales, toallitas, productos..."
                 containerClassName="w-full mb-3"
                 inputClassName="
                                 bg-[#f5f6f8]
@@ -233,14 +237,14 @@ const Navbar: React.FC<NavbarProps> = ({
               <div className="flex w-full justify-between text-[13px]  subpixel-antialiased font-medium font-sans uppercase tracking-[0.2rem] mt-2">
                 <a
                   href="/"
-                  className={`transition-colors ${location.pathname === '/' ? 'text-[#f9c72a]' : 'text-[#1A2D2A] hover:text-[#f9c72a]'}`}
+                  className={`transition-colors ${location.pathname === '/' ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`}
                 >
                   Inicio
                 </a>
                 <NavLink
                   to="/nosotros"
                   className={({ isActive }) =>
-                    `transition-colors ${isActive ? 'text-[#f9c72a]' : 'text-[#1A2D2A] hover:text-[#f9c72a]'}`
+                    `transition-colors ${isActive ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`
                   }
                 >
                   Nosotros
@@ -248,14 +252,14 @@ const Navbar: React.FC<NavbarProps> = ({
                 <NavLink
                   to="/contacto"
                   className={({ isActive }) =>
-                    `transition-colors ${isActive ? 'text-[#f9c72a]' : 'text-[#1A2D2A] hover:text-[#f9c72a]'}`
+                    `transition-colors ${isActive ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`
                   }
                 >
                   Contacto
                 </NavLink>
                 <a
                   href="/catalogo"
-                  className={`transition-colors ${location.pathname.startsWith('/catalogo') ? 'text-[#f9c72a]' : 'text-[#1A2D2A] hover:text-[#f9c72a]'}`}
+                  className={`transition-colors ${location.pathname.startsWith('/catalogo') ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`}
                 >
                   Tienda
                 </a>
@@ -278,7 +282,7 @@ const Navbar: React.FC<NavbarProps> = ({
               {/* Carrito mobile */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="md:hidden h-5 w-5 text-white"
+                className="md:hidden h-5 w-5 text-[#1E8A90]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -293,7 +297,7 @@ const Navbar: React.FC<NavbarProps> = ({
               {/* Carrito desktop */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="hidden md:block h-7 w-7 text-[#1A2D2A]"
+                className="hidden md:block h-7 w-7 text-[#1E8A90]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -334,7 +338,7 @@ const Navbar: React.FC<NavbarProps> = ({
               )}
 
               {/* Badge de cantidad (totalItems) */}
-              <span className="md:mt-3 absolute -top-2 -right-2.5 bg-[#f5f6f8] text-[#1A2D2A] font-sans text-[10px] font-bold h-4 w-4 md:h-5 md:w-5 flex items-center justify-center rounded-full ">
+              <span className="md:mt-3 absolute -top-2 -right-2.5 bg-[#FFE600] text-[#1A2D2A] font-sans text-[10px] font-bold h-4 w-4 md:h-5 md:w-5 flex items-center justify-center rounded-full ">
                 {totalItems}
               </span>
             </div>
@@ -346,18 +350,18 @@ const Navbar: React.FC<NavbarProps> = ({
               value={search}
               onChange={handleSearchChange}
               onSubmit={handleSearchSubmit}
-              placeholder="Buscá anteojos..."
+              placeholder="Buscá pañales, toallitas..."
               inputClassName="
-                            bg-[#82C355]
-                            text-white
-                            placeholder:text-green-100
+                            bg-[#f1f5f5]
+                            text-[#1A2D2A]
+                            placeholder:text-gray-500
                             border-none
                             py-2
                             h-auto
                             text-xs
                             font-sans
                         "
-              iconClassName="text-white/80"
+              iconClassName="text-[#1E8A90]"
             />
 
             {isDropdownOpen && (
@@ -431,7 +435,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Menú Mobile */}
         {isMenuOpen && (
-          <div className="md:hidden bg-[#EDC062] border-t border-[#D4AC58]">
+          <div className="md:hidden bg-[#2BAAB0] border-t border-white/30">
             <div className="flex flex-col p-4 space-y-4 text-[12px] font-bold font-sans uppercase tracking-widest">
               <a
                 href="/"
@@ -466,6 +470,20 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
         )}
+        {/* Sub-navegación de categorías (estilo Babylist) */}
+        <div className="w-full border-t border-gray-100 bg-white">
+          <div className="max-w-[1187px] mx-auto px-4 flex gap-6 overflow-x-auto whitespace-nowrap py-2.5 text-[13px] font-medium text-gray-700 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+            {['Pañales', 'Toallitas', 'Baño e Higiene', 'Cuidado del Bebé', 'Alimentación', 'Ofertas'].map((c) => (
+              <a
+                key={c}
+                href={`/catalogo?search=${encodeURIComponent(c)}`}
+                className="hover:text-[#1E8A90] hover:underline decoration-[#FFE600] decoration-2 underline-offset-8 transition-colors"
+              >
+                {c}
+              </a>
+            ))}
+          </div>
+        </div>
       </nav>
 
       {/* FAB carrito - solo mobile */}
