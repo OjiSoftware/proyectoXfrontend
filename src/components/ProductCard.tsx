@@ -94,7 +94,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                 <Link to={`/producto/${product.id}`}>
                     <h3
                         title={product.name}
-                        className="text-[#1A2D2A] font-fredoka text-sm md:text-base font-bold leading-snug tracking-tight hover:text-[#1E8A90] transition-colors line-clamp-2"
+                        className="text-[#1A2D2A] font-nunito text-sm md:text-base font-bold leading-snug tracking-tight hover:text-[#1E8A90] transition-colors line-clamp-2"
                     >
                         {product.name}
                     </h3>
@@ -116,13 +116,13 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
             {/* Precio - mobile */}
             <div className="md:hidden mt-3 mb-2 flex flex-col">
-                <p className="text-[#1E8A90] font-fredoka font-bold text-lg tracking-tight leading-none">
+                <p className="text-[#1E8A90] font-nunito font-bold text-lg tracking-tight leading-none">
                     {formatPrice(product.price)}
                 </p>
             </div>
             {/* Precio - desktop */}
             <div className="hidden md:flex mt-4 mb-3 flex-col">
-                <p className="text-[#1E8A90] font-fredoka font-bold text-xl tracking-tight leading-none">
+                <p className="text-[#1E8A90] font-nunito font-bold text-xl tracking-tight leading-none">
                     {formatPrice(product.price)}
                 </p>
             </div>

@@ -170,15 +170,15 @@ export default function ProductDetailPage() {
 
           {/* RIGHT COLUMN: Info */}
           <div className="w-full md:w-1/2 flex flex-col justify-center">
-            <h1 className="text-2xl md:text-3xl text-[#1A2D2A] font-bold tracking-tight mb-1">
+            <h1 className="text-2xl md:text-3xl text-[#1A2D2A] font-bold font-nunito tracking-tight mb-1">
               {product.name}
             </h1>
-            <div className="text-xl text-[#1A2D2A] mb-1">
+            {/* <div className="text-xl text-[#1A2D2A] font-nunito font-bold mb-1">
               {product.unit}
-            </div>
+            </div> */}
 
             <div className="flex items-end gap-3 my-3">
-              <div className="text-[#EDC062] font-black text-2xl md:text-3xl">
+              <div className="text-[#1A2D2A] font-black text-2xl md:text-3xl">
                 {formatPrice(product.price)}
               </div>
             </div>
@@ -199,14 +199,14 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {product.description && (
+            {/* {product.description && (
               <div className="mt-3 mb-5">
                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Descripción</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {product.description}
                 </p>
               </div>
-            )}
+            )} */}
 
             <hr className="my-2 border-gray-100" />
 
@@ -269,7 +269,7 @@ export default function ProductDetailPage() {
 
               {/* Add Button */}
               <button
-                className={`relative w-full h-10 ${isAdding ? "bg-[#FAD390]" : "bg-[#EDC062] hover:bg-[#FAD390]"} text-[#1A2D2A] rounded-lg flex items-center justify-center text-base font-bold transition-colors ${isAdding || maxAvailable <= 0 ? "cursor-not-allowed opacity-70" : "cursor-pointer"} overflow-hidden shadow-sm`}
+                className={`relative w-full h-10 ${isAdding ? "bg-[#1A2D2A]" : "bg-[#1E8A90] hover:bg-[#3b4b5e]"} text-[#1A2D2A] rounded-lg flex items-center justify-center text-base font-bold transition-colors ${isAdding || maxAvailable <= 0 ? "cursor-not-allowed opacity-70" : "cursor-pointer"} overflow-hidden shadow-sm`}
                 onClick={handleAddToCart}
                 disabled={isAdding || maxAvailable <= 0}
               >
@@ -304,7 +304,7 @@ export default function ProductDetailPage() {
               <hr className="my-1 border-gray-200" />
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-[#1A2D2A]">Subtotal Final <span className="text-sm font-normal text-gray-500">({productQuantity + quantityInCart} unid.)</span></span>
-                <span className="text-2xl font-black text-[#EDC062]">
+                <span className="text-2xl font-black text-[#1E8A90]">
                   {formatPrice(product.price * (productQuantity + quantityInCart))}
                 </span>
               </div>
