@@ -180,13 +180,13 @@ function CheckoutButton({
       ) : (
         <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-500 bg-gray-50/50 p-4 rounded-xl border border-gray-200">
           {disabled ? (
-            <div className="text-center py-4 text-gray-500 font-lato">
+            <div className="text-center py-4 text-gray-500 font-nunito">
               <LockKeyhole className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <p>El tiempo para pagar ha expirado.</p>
             </div>
           ) : (
             <>
-              <p className="text-sm text-gray-500 text-center mb-3 font-lato">
+              <p className="text-sm text-gray-500 text-center mb-3 font-nunito">
                 Elegí tu método de pago preferido en:
               </p>
               <Wallet initialization={{ preferenceId }} />

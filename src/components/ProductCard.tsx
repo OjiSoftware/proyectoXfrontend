@@ -86,7 +86,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             <div className="grow flex flex-col justify-start mt-1">
                 {/* Marca (Confianza) */}
                 {product.brand && (
-                    <span className="hidden md:block md:text-[10px] mt-2 text-gray-400 font-sans font-bold uppercase tracking-widest mb-1">
+                    <span className="hidden md:block md:text-[11px] mt-2 text-gray-400 font-nunito font-semibold uppercase tracking-wider mb-1">
                         {product.brand.name}
                     </span>
                 )}
@@ -94,7 +94,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                 <Link to={`/producto/${product.id}`}>
                     <h3
                         title={product.name}
-                        className="text-[#1A2D2A] font-sans md:text-[15px] text-[13px] font-bold leading-snug tracking-tight hover:text-[#1E8A90] transition-colors"
+                        className="text-[#1A2D2A] font-fredoka text-sm md:text-base font-bold leading-snug tracking-tight hover:text-[#1E8A90] transition-colors line-clamp-2"
                     >
                         {product.name}
                     </h3>
@@ -102,13 +102,13 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
                 {/* Badge de empaque - mobile */}
                 {product.unit && (
-                    <div className="md:hidden mt-2 text-[10px] font-bold text-[#1E8A90] bg-[#D5F3F4] px-2 py-0.5 rounded-md w-fit border border-[#2BAAB0]/30 uppercase tracking-wide">
+                    <div className="md:hidden mt-2 text-[10px] font-bold font-nunito text-[#1E8A90] bg-[#D5F3F4] px-2 py-0.5 rounded-md w-fit border border-[#2BAAB0]/30 uppercase tracking-wide">
                         {product.unit}
                     </div>
                 )}
                 {/* Badge de empaque - desktop */}
                 {product.unit && (
-                    <div className="hidden md:block mt-2 text-[11px] font-bold text-[#1E8A90] bg-[#D5F3F4] px-2.5 py-1 rounded-md w-fit border border-[#2BAAB0]/30 uppercase tracking-wide">
+                    <div className="hidden md:block mt-2 text-[11px] font-bold font-nunito text-[#1E8A90] bg-[#D5F3F4] px-2.5 py-1 rounded-md w-fit border border-[#2BAAB0]/30 uppercase tracking-wide">
                         {product.unit}
                     </div>
                 )}
@@ -116,13 +116,13 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
             {/* Precio - mobile */}
             <div className="md:hidden mt-3 mb-2 flex flex-col">
-                <p className="text-[#1E8A90] font-sans font-extrabold text-[17px] tracking-tight leading-none">
+                <p className="text-[#1E8A90] font-fredoka font-bold text-lg tracking-tight leading-none">
                     {formatPrice(product.price)}
                 </p>
             </div>
             {/* Precio - desktop */}
             <div className="hidden md:flex mt-4 mb-3 flex-col">
-                <p className="text-[#1E8A90] font-sans font-extrabold text-[22px] tracking-tight leading-none">
+                <p className="text-[#1E8A90] font-fredoka font-bold text-xl tracking-tight leading-none">
                     {formatPrice(product.price)}
                 </p>
             </div>

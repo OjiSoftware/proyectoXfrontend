@@ -114,7 +114,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#F8F8F8] font-domine">
+    <div className="flex flex-col min-h-screen w-full bg-[#F8F8F8] font-nunito text-[#1A2D2A]">
       {/* Navbar */}
       <Navbar search="" setSearch={() => { }} />
 

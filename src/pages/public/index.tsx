@@ -43,7 +43,7 @@ export default function HomePage() {
     const goSearch = (term: string) => navigate(`/catalogo?search=${encodeURIComponent(term)}`);
 
     return (
-        <div className="flex flex-col min-h-screen w-full bg-white font-fredoka text-[#1A2D2A]">
+        <div className="flex flex-col min-h-screen w-full bg-white font-nunito text-[#1A2D2A]">
             <Navbar search={search} setSearch={setSearch} />
 
             {/* Hero: banner principal + dos banners secundarios (estilo Babylist) */}

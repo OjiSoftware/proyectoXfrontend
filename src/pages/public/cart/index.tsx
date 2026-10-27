@@ -15,18 +15,18 @@ export default function CartPage() {
     // Si el carrito está vacío, mostramos el estado inicial
     if (cart.length === 0) {
         return (
-            <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] font-domine">
+            <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] font-nunito text-[#1A2D2A]">
                 <Navbar search={search} setSearch={setSearch} />
                 <div className="flex-grow flex items-center justify-center p-8">
                     <div className="text-center bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-md w-full">
-                        <h2 className="text-2xl font-bold mb-4 font-lato text-[#2f3027]">
+                        <h2 className="text-2xl font-bold mb-3 font-fredoka text-[#1A2D2A]">
                             Tu carrito está vacío
                         </h2>
-                        <p className="text-gray-600 mb-6">
-                            Agrega productos desde la tienda para comenzar.
+                        <p className="text-gray-600 mb-6 text-sm md:text-base font-nunito">
+                            Agregá productos desde la tienda para comenzar.
                         </p>
                         <button
-                            className="px-6 py-2 bg-[#16a34a] text-white font-semibold rounded-lg hover:bg-[#15803d] transition w-full cursor-pointer"
+                            className="px-6 py-2.5 bg-[#1E8A90] hover:bg-[#2BAAB0] text-white font-bold rounded-xl transition w-full cursor-pointer text-sm shadow-sm"
                             onClick={() => navigate("/catalogo")}
                         >
                             Explorar tienda
@@ -39,7 +39,7 @@ export default function CartPage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] border-b border-gray-200 font-domine">
+        <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] border-b border-gray-200 font-nunito text-[#1A2D2A]">
             <Navbar search={search} setSearch={setSearch} />
 
             <div className="w-full max-w-[1187px] mx-auto py-6 flex-grow px-2 sm:px-4">
@@ -47,14 +47,14 @@ export default function CartPage() {
                 <div className="mb-2">
                     <button
                         onClick={() => navigate("/catalogo")}
-                        className="md:text-sm text-xs font-medium text-[#16a34a] hover:text-[#15803d] flex items-center gap-1 cursor-pointer transition-colors"
+                        className="md:text-sm text-xs font-semibold text-[#1E8A90] hover:text-[#2BAAB0] flex items-center gap-1 cursor-pointer transition-colors"
                     >
                         <ChevronLeftIcon className="md:w-4 md:h-4 w-3 h-3" />
                         Volver a la tienda
                     </button>
                 </div>
 
-                <h1 className="text-[0.9srem] lg:text-[1.2rem] font-bold font-poppins text-[#2f3027] text-left leading-tight pb-4 px-1">
+                <h1 className="text-2xl md:text-3xl font-bold font-fredoka text-[#1A2D2A] text-left leading-tight pb-4 px-1">
                     Tu carrito de compras
                 </h1>
 
@@ -65,7 +65,7 @@ export default function CartPage() {
                     </div>
 
                     {/* Resumen de orden */}
-                    <div className="flex-[0_0_100%] lg:flex-[1_1_30%] bg-white rounded-2xl max-sm:rounded-none shadow-sm border border-gray-200 max-sm:border-x-0 p-5 sticky top-8 flex flex-col gap-3 font-lato w-full">
+                    <div className="flex-[0_0_100%] lg:flex-[1_1_30%] bg-white rounded-2xl max-sm:rounded-none shadow-sm border border-gray-200 max-sm:border-x-0 p-5 sticky top-8 flex flex-col gap-3 font-nunito w-full">
                         <div className="flex flex-col gap-2 pb-3 border-b border-gray-100">
                             <div className="flex justify-between items-center text-sm text-gray-600">
                                 <span>Subtotal ({totalItems} artículos):</span>

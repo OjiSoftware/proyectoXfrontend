@@ -183,7 +183,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         <div className="bg-gray-100 p-2 rounded-full text-gray-500 group-hover:bg-[#FAD390] group-hover:text-[#1A2D2A] transition-colors">
                           <MagnifyingGlassIcon className="w-4 h-4" />
                         </div>
-                        <span className="font-medium text-gray-700 font-sans text-[14px] truncate max-w-[450px]">
+                        <span className="font-semibold text-gray-700 font-nunito text-sm truncate max-w-[450px]">
                           {p.name}
                         </span>
                       </div>

@@ -20,7 +20,7 @@ const CartRow: React.FC<CartRowProps> = ({ item }) => {
         "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg";
 
     return (
-        <div className="p-4 bg-white hover:bg-gray-50 transition-colors font-lato border-b border-gray-100 last:border-b-0 relative">
+        <div className="p-4 bg-white hover:bg-gray-50 transition-colors font-nunito border-b border-gray-100 last:border-b-0 relative">
             {/* Grid Principal: Se añade min-w-0 para permitir que el contenido se encoja */}
             <div className="flex flex-col sm:grid sm:grid-cols-[4fr_1.5fr_1.2fr_1.5fr_24px] gap-4 sm:items-center">
                 {/* Columna 1: Contenedor de Imagen y Título */}

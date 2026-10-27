@@ -46,7 +46,7 @@ const SimilarProducts: React.FC<Props> = ({ currentProductId, subCategoryId }) =
   return (
     <div className="mt-10 md:mt-16 w-full">
 
-      <h2 className="border-t border-[#9E9494]/30 pt-4 text-lg md:text-2xl font-bold font-montserrat text-[#1A2D2A] text-center md:mb-8 mb-4">
+      <h2 className="border-t border-gray-200 pt-6 text-xl md:text-2xl font-bold font-fredoka text-[#1A2D2A] text-center md:mb-8 mb-4">
         Otros clientes también vieron
       </h2>
 

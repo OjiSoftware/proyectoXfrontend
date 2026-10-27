@@ -9,7 +9,7 @@ interface CartTableProps {
 const CartTable: React.FC<CartTableProps> = ({ cart }) => {
     return (
         <div className="flex flex-col w-full [zoom:0.9] lg:[zoom:1]">
-            <div className="hidden sm:grid grid-cols-[4fr_1.5fr_1.2fr_1.5fr_24px] gap-4 p-4 border-b border-gray-200 text-[11px] lg:text-xs font-bold text-gray-400 tracking-wider items-center font-lato">
+            <div className="hidden sm:grid grid-cols-[4fr_1.5fr_1.2fr_1.5fr_24px] gap-4 p-4 border-b border-gray-200 text-[11px] lg:text-xs font-bold text-gray-400 tracking-wider items-center font-nunito">
                 <div className="uppercase">Producto</div>
                 <div className="uppercase text-center">Precio Unitario</div>
                 <div className="uppercase text-center">Cantidad</div>

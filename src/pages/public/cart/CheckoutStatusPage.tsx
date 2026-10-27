@@ -157,11 +157,11 @@ export default function CheckoutStatus() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] font-domine">
+    <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] font-nunito text-[#1A2D2A]">
       <Navbar search={search} setSearch={setSearch} />
 
       <div className="flex-grow flex items-center justify-center p-4">
-        <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-gray-200 max-w-lg w-full text-center font-lato animate-in fade-in zoom-in duration-500">
+        <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-gray-200 max-w-lg w-full text-center font-nunito animate-in fade-in zoom-in duration-500">
           <div className="flex justify-center mb-6">
             <StatusIcon
               className={`w-24 h-24 ${iconColor}`}
@@ -169,8 +169,8 @@ export default function CheckoutStatus() {
             />
           </div>
 
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">{title}</h1>
-          <p className="text-gray-600 text-[1.05rem] mb-8 leading-relaxed">
+          <h1 className="text-2xl md:text-3xl font-bold font-fredoka text-[#1A2D2A] mb-3">{title}</h1>
+          <p className="text-gray-600 text-base mb-8 leading-relaxed font-nunito">
             {message}
           </p>
 

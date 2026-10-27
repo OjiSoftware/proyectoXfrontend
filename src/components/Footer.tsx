@@ -4,10 +4,8 @@ import logo from "@/assets/logo_upalele.PNG";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="w-full mt-auto font-domine">
-
-
-      <div className="bg-[#1E8A90] text-white pt-10 pb-6 w-full subpixel-antialiased border-t-8 border-[#FFE600] font-fredoka">
+    <footer className="w-full mt-auto font-nunito">
+      <div className="bg-[#1E8A90] text-white pt-10 pb-6 w-full subpixel-antialiased border-t-8 border-[#FFE600]">
         <div className="w-full max-[1187px]:px-6 max-w-[1187px] mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="flex flex-col items-start gap-3">

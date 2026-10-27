@@ -285,21 +285,21 @@ export default function CheckoutPage() {
   const timerTheme = getTimerTheme(timeLeft);
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] border-b border-gray-200 font-domine">
+    <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] border-b border-gray-200 font-nunito text-[#1A2D2A]">
       <Navbar search={search} setSearch={setSearch} />
 
       <div className="w-full max-w-[1187px] mx-auto py-6 flex-grow px-2 sm:px-4">
         <div className="mb-2">
           <button
             onClick={() => navigate('/cart')}
-            className="text-sm px-2 py-1 -ml-2 mb-3 font-medium text-[#16a34a] hover:text-[#15803d] flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-sm px-2 py-1 -ml-2 mb-3 font-semibold text-[#1E8A90] hover:text-[#2BAAB0] flex items-center gap-1 cursor-pointer transition-colors"
           >
             <ChevronLeftIcon className="w-4 h-4" />
             Volver al carrito
           </button>
         </div>
 
-        <h1 className="text-[1.1rem] lg:text-[1.2rem] font-bold font-poppins text-[#2f3027] text-left leading-tight pb-4 px-1">
+        <h1 className="text-2xl md:text-3xl font-bold font-fredoka text-[#1A2D2A] text-left leading-tight pb-4 px-1">
           Finalizar compra
         </h1>
 
@@ -309,7 +309,7 @@ export default function CheckoutPage() {
             {!isDataConfirmed ? (
               <form
                 onSubmit={handleConfirmData}
-                className="flex flex-col gap-6 font-lato"
+                className="flex flex-col gap-6 font-nunito"
               >
                 {/* SECCIÓN 1: Datos Personales */}
                 <div>
@@ -686,7 +686,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* DERECHA: Resumen de orden estático */}
-          <div className="flex-[0_0_100%] lg:flex-[1_1_30%] bg-white rounded-2xl max-sm:rounded-none shadow-sm border border-gray-200 max-sm:border-x-0 p-5 sticky top-8 flex flex-col gap-3 font-lato w-full">
+          <div className="flex-[0_0_100%] lg:flex-[1_1_30%] bg-white rounded-2xl max-sm:rounded-none shadow-sm border border-gray-200 max-sm:border-x-0 p-5 sticky top-8 flex flex-col gap-3 font-nunito w-full">
             <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-3 mb-1">
               Resumen de tu pedido
             </h3>

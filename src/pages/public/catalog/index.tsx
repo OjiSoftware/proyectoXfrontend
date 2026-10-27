@@ -111,7 +111,7 @@ export default function CatalogPage() {
 
     // ---------------- UI ----------------
     return (
-        <div className="flex flex-col min-h-screen w-full bg-[#F8F8F8] font-domine">
+        <div className="flex flex-col min-h-screen w-full bg-[#F8F8F8] font-nunito text-[#1A2D2A]">
             {/* Navbar con búsqueda */}
             <Navbar search={search} setSearch={setSearch} />
 

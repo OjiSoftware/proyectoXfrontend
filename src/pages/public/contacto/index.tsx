@@ -13,7 +13,7 @@ export default function ContactoPage() {
   const address = "Sucursal Centro: Av. Corrientes 1234, CABA.";
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#f5f6f8] font-domine">
+    <div className="flex flex-col min-h-screen w-full bg-[#f5f6f8] font-nunito text-[#1A2D2A]">
       <Navbar search={search} setSearch={setSearch} />
 
       {/* Contenedor principal con márgenes centrado al estilo del catalog */}
@@ -23,10 +23,10 @@ export default function ContactoPage() {
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8 sm:p-12 md:p-16 w-full flex-1 flex flex-col justify-center relative overflow-hidden">
 
           <div className="relative z-10 w-full flex flex-col items-start lg:block [zoom:0.9] lg:[zoom:1]">
-            <h1 className="text-[2rem] md:text-[3rem] font-bold mb-4 text-[#1A2D2A] leading-tight text-left tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 font-fredoka text-[#1A2D2A] leading-tight text-left tracking-tight">
               Contactanos
             </h1>
-            <p className="text-[#3b4b5e] mb-12 text-[15px] md:text-[17px] leading-relaxed text-left max-w-2xl">
+            <p className="text-gray-600 mb-10 text-base md:text-lg leading-relaxed text-left max-w-2xl font-nunito">
               Estamos acá para ayudarte. Si tenés consultas sobre tus anteojos de receta, envíos o necesitás asesoramiento estético, no dudes en escribirnos.
             </p>
 
