@@ -53,7 +53,7 @@ export function CategorySidebar({ onSelectSubCategory, onSelectBrand, onClearFil
                     className="lg:hidden flex items-center justify-between cursor-pointer "
                     onClick={() => setIsMobileExpanded(!isMobileExpanded)}
                 >
-                    <h2 className="text-[12px] text-[#1A2D2A] font-bold uppercase tracking-[0.1rem]">
+                    <h2 className="text-[12px] text-darker font-bold font-lato uppercase tracking-[0.1rem]">
                         Filtrar Categorías
                     </h2>
                     {isMobileExpanded ? (
@@ -68,14 +68,14 @@ export function CategorySidebar({ onSelectSubCategory, onSelectBrand, onClearFil
                     {/* Botón "Ver Todo" integrado dentro de la card */}
                     <button
                         onClick={onClearFilters}
-                        className="w-full lg:mt-0 mb-6 mt-4 py-2 px-4 bg-[#EDC062] hover:bg-[#FAD390] text-[#1A2D2A] text-xs subpixel-antialiased font-bold uppercase tracking-[0.1rem] rounded-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95"
+                        className="w-full lg:mt-0 mb-6 mt-4 py-2 px-4 bg-[#4caf50] hover:bg-[#8bc34a] text-white text-xs subpixel-antialiased font-bold font-lato uppercase tracking-[0.1rem] rounded-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95"
                     >
                         MOSTRAR TODO
                     </button>
 
                     {/* SECCIÓN DE CATEGORÍAS */}
                     <div className="mb-8">
-                        <h2 className="hidden lg:block text-[13px] text-[#1A2D2A] subpixel-antialiased font-bold uppercase tracking-[0.1rem] mb-4">
+                        <h2 className="hidden lg:block text-[13px] text-darker subpixel-antialiased font-bold font-lato uppercase tracking-[0.1rem] mb-4">
                             Categorías
                         </h2>
 
@@ -89,13 +89,13 @@ export function CategorySidebar({ onSelectSubCategory, onSelectBrand, onClearFil
                                             className="flex items-center justify-between mb-3 cursor-pointer group"
                                             onClick={() => toggleCategory(cat.id)}
                                         >
-                                            <h3 className="text-gray-500 font-semibold text-sm group-hover:text-[#EDC062] transition-colors">
+                                            <h3 className="text-gray-500 font-semibold text-sm font-lato group-hover:text-[#4caf50] transition-colors">
                                                 {cat.name}
                                             </h3>
                                             {isExpanded ? (
-                                                <ChevronUpIcon className="h-4 w-4 text-gray-400 group-hover:text-[#EDC062]" />
+                                                <ChevronUpIcon className="h-4 w-4 text-gray-400 group-hover:text-[#4caf50]" />
                                             ) : (
-                                                <ChevronDownIcon className="h-4 w-4 text-gray-400 group-hover:text-[#EDC062]" />
+                                                <ChevronDownIcon className="h-4 w-4 text-gray-400 group-hover:text-[#4caf50]" />
                                             )}
                                         </div>
 
@@ -105,7 +105,7 @@ export function CategorySidebar({ onSelectSubCategory, onSelectBrand, onClearFil
                                                     <li
                                                         key={sub.id}
                                                         onClick={() => onSelectSubCategory(sub.id, sub.name, cat.name)}
-                                                        className={`text-sm cursor-pointer transition-all duration-200 ${selectedSubCategory === sub.id ? 'text-[#D4AC58] font-bold' : 'text-gray-400 hover:text-[#EDC062]'}`}
+                                                        className={`text-sm font-lato cursor-pointer transition-all duration-200 ${selectedSubCategory === sub.id ? 'text-[#4caf50] font-bold' : 'text-gray-400 hover:text-[#4caf50]'}`}
                                                     >
                                                         {sub.name}
                                                     </li>
@@ -127,13 +127,13 @@ export function CategorySidebar({ onSelectSubCategory, onSelectBrand, onClearFil
                             className="flex items-center justify-between mb-4 cursor-pointer group"
                             onClick={() => setBrandsExpanded(!brandsExpanded)}
                         >
-                            <h2 className="text-[13px] text-[#1A2D2A] subpixel-antialiased font-bold uppercase tracking-[0.1rem]">
+                            <h2 className="text-[13px] text-darker subpixel-antialiased font-bold font-lato uppercase tracking-[0.1rem]">
                                 Nuestras Marcas
                             </h2>
                             {brandsExpanded ? (
-                                <ChevronUpIcon className="h-5 w-5 text-gray-400 group-hover:text-[#EDC062]" />
+                                <ChevronUpIcon className="h-5 w-5 text-gray-400 group-hover:text-[#4caf50]" />
                             ) : (
-                                <ChevronDownIcon className="h-5 w-5 text-gray-400 group-hover:text-[#EDC062]" />
+                                <ChevronDownIcon className="h-5 w-5 text-gray-400 group-hover:text-[#4caf50]" />
                             )}
                         </div>
                         {brandsExpanded && (
@@ -142,7 +142,7 @@ export function CategorySidebar({ onSelectSubCategory, onSelectBrand, onClearFil
                                     <li
                                         key={brand.id}
                                         onClick={() => onSelectBrand(brand.id, brand.name)}
-                                        className={`px-2 py-0.5 text-sm cursor-pointer transition-colors ${selectedBrand === brand.id ? 'text-[#D4AC58] font-bold' : 'text-gray-400 hover:text-[#EDC062]'}`}
+                                        className={`px-2 py-0.5 text-sm font-lato cursor-pointer transition-colors ${selectedBrand === brand.id ? 'text-[#4caf50] font-bold' : 'text-gray-400 hover:text-[#4caf50]'}`}
                                     >
                                         • {brand.name}
                                     </li>
