@@ -19,10 +19,10 @@ const config: Config = {
         },
         extend: {
             colors: {
-                primary: "#EDC062", // Gold
-                secondary: "#9E9494", // Taupe
+                primary: "#2BAAB0", // Cyan
+                secondary: "#1A2D2A", // Deep Charcoal
                 dark: "#1A2D2A", // Deep Charcoal
-                accent: "#FAD390", // Soft Gold
+                accent: "#ffc400ff", // Gold
             },
             keyframes: {
                 float: {
