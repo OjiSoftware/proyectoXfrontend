@@ -45,6 +45,7 @@ import CheckoutPage from "@/pages/public/cart/CheckoutPage";
 import CheckoutStatus from "@/pages/public/cart/CheckoutStatusPage";
 
 import ContactoPage from "@/pages/public/contacto";
+import NosotrosPage from "@/pages/public/nosotros";
 import ArrepentimientoPage from "@/pages/public/legal/ArrepentimientoPage";
 import LibroQuejasPage from "@/pages/public/legal/LibroQuejasPage";
 import TerminosPage from "@/pages/public/legal/TerminosPage";
@@ -59,6 +60,9 @@ export const AppRoutes = () => {
 
                 {/* HOME */}
                 <Route path="/" element={<HomePage />} />
+
+                {/* Nosotros */}
+                <Route path="/nosotros" element={<NosotrosPage />} />
 
                 {/* Contacto */}
                 <Route path="/contacto" element={<ContactoPage />} />

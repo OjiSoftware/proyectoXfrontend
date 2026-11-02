@@ -51,17 +51,17 @@ export default function CatalogPage() {
         let filtered = catProducts;
 
         if (search.trim() !== '') {
-          const searchTerms = search.toLowerCase().trim().split(/\s+/);
+            const searchTerms = search.toLowerCase().trim().split(/\s+/);
 
-          filtered = filtered.filter((p) => {
-            const searchableText = `
+            filtered = filtered.filter((p) => {
+                const searchableText = `
                     ${p.name}
                     ${p.subCategory?.name || ''}
                     ${p.subCategory?.category?.name || ''}
                 `.toLowerCase();
 
-            return searchTerms.every((term) => searchableText.includes(term));
-          });
+                return searchTerms.every((term) => searchableText.includes(term));
+            });
         }
 
         if (selectedSubCategory !== null) {
@@ -118,7 +118,7 @@ export default function CatalogPage() {
             <div className="w-full max-[1187px]:px-4 max-w-[1187px] mx-auto md:py-6 py-5 flex-grow">
                 <div className="flex justify-between items-center mb-6">
                     <div className="text-[#9E9494] md:text-sm text-[12px] flex items-center gap-1.5 flex-wrap">
-                        <span className="hover:text-gray-600 cursor-pointer transition-colors" onClick={handleClearFilters}>ElementAll</span>
+                        <span className="hover:text-gray-600 cursor-pointer transition-colors" onClick={handleClearFilters}>Upa Lelé</span>
                         {(selectedCatName || selectedBrandName) && <span>/</span>}
                         {selectedCatName && (
                             <>
@@ -133,9 +133,10 @@ export default function CatalogPage() {
                         )}
                     </div>
 
-                    <button 
+                    {/* Botón Filtros (solo visible en mobile) */}
+                    <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className="flex items-center gap-2 border border-gray-200 bg-white shadow-sm px-4 py-2 rounded-xl text-sm font-bold text-[#1A2D2A] hover:border-[#EDC062] hover:bg-gray-50 transition-all cursor-pointer"
+                        className="md:hidden flex items-center gap-2 border border-gray-200 bg-white shadow-sm px-4 py-2 rounded-xl text-sm font-bold text-[#1A2D2A] hover:border-[#EDC062] hover:bg-gray-50 transition-all cursor-pointer"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
@@ -144,22 +145,20 @@ export default function CatalogPage() {
                     </button>
                 </div>
 
-                <div className="flex flex-col gap-6 relative">
-                    {/* FILTROS DESPLEGABLES */}
-                    {showFilters && (
-                        <div className="w-full md:absolute md:right-0 md:top-0 md:z-30 md:w-80 md:-mt-4 origin-top-right">
-                            <CategorySidebar
-                                onSelectSubCategory={handleSelectSubCategory}
-                                onSelectBrand={handleSelectBrand}
-                                onClearFilters={handleClearFilters}
-                                selectedSubCategory={selectedSubCategory}
-                                selectedBrand={selectedBrand}
-                            />
-                        </div>
-                    )}
-                    
+                <div className="flex flex-col md:flex-row items-start gap-6">
+                    {/* FILTROS (Fijo / lateral a la izquierda en desktop, desplegable en mobile) */}
+                    <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 shrink-0`}>
+                        <CategorySidebar
+                            onSelectSubCategory={handleSelectSubCategory}
+                            onSelectBrand={handleSelectBrand}
+                            onClearFilters={handleClearFilters}
+                            selectedSubCategory={selectedSubCategory}
+                            selectedBrand={selectedBrand}
+                        />
+                    </div>
+
                     {/* PRODUCTOS */}
-                    <div className="w-full flex-1 flex flex-col gap-6">
+                    <div className="w-full flex-1 flex flex-col gap-6 min-w-0">
                         {isLoading ? (
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 flex-1 flex items-center justify-center">
                                 <div className="animate-spin h-8 w-8 text-[#EDC062] rounded-full border-4 border-t-transparent border-[#FAD390]" />
@@ -172,10 +171,10 @@ export default function CatalogPage() {
                             </div>
                         ) : (
                             <>
-                                {/* Contenedor Transparente para los Productos para un look más Premium/Minimalista */}
+                                {/* Contenedor de Productos */}
                                 <div className="w-full h-fit">
-                                    {/* GRID - FULL WIDTH */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                                    {/* GRID */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                                         {currentProducts.map((product) => (
                                             <ProductCard
                                                 key={product.id}
@@ -195,7 +194,6 @@ export default function CatalogPage() {
                             </>
                         )}
                     </div>
-
                 </div>
             </div>
 

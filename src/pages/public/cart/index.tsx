@@ -26,7 +26,7 @@ export default function CartPage() {
                             Agregá productos desde la tienda para comenzar.
                         </p>
                         <button
-                            className="px-6 py-2.5 bg-[#1E8A90] hover:bg-[#2BAAB0] text-white font-bold rounded-xl transition w-full cursor-pointer text-sm shadow-sm"
+                            className="px-6 py-2.5 bg-[#37b9c7] hover:bg-[#2BAAB0] text-white font-bold rounded-xl transition w-full cursor-pointer text-sm shadow-sm"
                             onClick={() => navigate("/catalogo")}
                         >
                             Explorar tienda
@@ -47,7 +47,7 @@ export default function CartPage() {
                 <div className="mb-2">
                     <button
                         onClick={() => navigate("/catalogo")}
-                        className="md:text-sm text-xs font-semibold text-[#1E8A90] hover:text-[#2BAAB0] flex items-center gap-1 cursor-pointer transition-colors"
+                        className="md:text-sm text-xs font-semibold text-[#37b9c7] hover:text-[#2BAAB0] flex items-center gap-1 cursor-pointer transition-colors"
                     >
                         <ChevronLeftIcon className="md:w-4 md:h-4 w-3 h-3" />
                         Volver a la tienda

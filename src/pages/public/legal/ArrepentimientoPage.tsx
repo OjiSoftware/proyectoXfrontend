@@ -28,21 +28,21 @@ export default function ArrepentimientoPage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-lg w-full font-nunito">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Nombre y Apellido *</label>
-                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" placeholder="Ej: Juan Pérez" />
+                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" placeholder="Ej: Juan Pérez" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Email de contacto *</label>
-                <input type="email" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" placeholder="tuemail@ejemplo.com" />
+                <input type="email" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" placeholder="tuemail@ejemplo.com" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Número de Pedido/Orden *</label>
-                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" placeholder="Ej: ORD-12345" />
+                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" placeholder="Ej: ORD-12345" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Motivo (Opcional)</label>
-                <textarea rows={4} className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" placeholder="Escriba aquí los motivos (opcional)..."></textarea>
+                <textarea rows={4} className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" placeholder="Escriba aquí los motivos (opcional)..."></textarea>
               </div>
-              <button type="submit" className="mt-4 bg-[#1E8A90] hover:bg-[#2BAAB0] text-white font-bold py-3 px-6 rounded-xl transition-colors w-max shadow-sm text-sm md:text-base">
+              <button type="submit" className="mt-4 bg-[#37b9c7] hover:bg-[#2BAAB0] text-white font-bold py-3 px-6 rounded-xl transition-colors w-max shadow-sm text-sm md:text-base">
                 Enviar Solicitud
               </button>
             </form>

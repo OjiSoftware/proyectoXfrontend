@@ -292,7 +292,7 @@ export default function CheckoutPage() {
         <div className="mb-2">
           <button
             onClick={() => navigate('/cart')}
-            className="text-sm px-2 py-1 -ml-2 mb-3 font-semibold text-[#1E8A90] hover:text-[#2BAAB0] flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-sm px-2 py-1 -ml-2 mb-3 font-semibold text-[#37b9c7] hover:text-[#2BAAB0] flex items-center gap-1 cursor-pointer transition-colors"
           >
             <ChevronLeftIcon className="w-4 h-4" />
             Volver al carrito

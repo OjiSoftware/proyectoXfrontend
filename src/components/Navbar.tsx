@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import logo from '@/assets/logo_upalele.PNG';
+import logo from '@/assets/upalele_logo.svg';
 import SearchBar from '@/components/SearchBar';
 import { catalogApi } from '@/services/CatalogService';
 import { Product } from '@/types/product.types';
@@ -94,15 +94,15 @@ const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       {/* Barra de anuncio */}
-      <div className="w-full bg-[#1E8A90] text-white text-center text-xs md:text-sm font-medium font-fredoka py-2 px-4 tracking-wide">
+      {/*       <div className="w-full bg-[#37b9c7] text-white text-center text-xs md:text-sm font-medium font-fredoka py-2 px-4 tracking-wide">
         🚚 Envíos a todo el país <span className="text-[#FFE600] font-semibold">·</span> Todo para tu bebé en un solo lugar
-      </div>
-      <nav className="w-full bg-white relative z-30 border-b border-gray-200 font-fredoka">
-        <div className="max-w-[1187px] mx-auto px-4 py-3 md:pt-2! md:pb-2!">
+      </div> */}
+      <nav className="w-full bg-white relative z-30 border-b border-gray-200 font-fredoka ">
+        <div className="max-w-[1187px] mx-auto px-4 py-3 md:pt-2! md:pb-4!">
           <div className="flex items-center md:items-start! justify-between gap-4 md:gap-8">
             {/* Botón Menú Móvil */}
             <button
-              className="md:hidden text-[#1E8A90] p-1"
+              className="md:hidden text-[#37b9c7] p-1"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <svg
@@ -137,7 +137,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <img
                 src={logo}
                 alt="Logo"
-                className="hidden md:block h-20 object-contain rounded-xl"
+                className="hidden md:block h-20 mt-2 object-contain rounded-xl"
                 onClick={() => (window.location.href = '/')}
                 style={{ cursor: 'pointer' }}
               />
@@ -153,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 onChange={handleSearchChange}
                 onSubmit={handleSearchSubmit}
                 placeholder="Buscá pañales, toallitas, productos..."
-                containerClassName="w-full mb-3"
+                containerClassName="w-full mb-1"
                 inputClassName="
                                 bg-[#f5f6f8]
                                 text-[#1A2D2A]
@@ -223,7 +223,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         Intentá con otras palabras o{' '}
                         <NavLink
                           to="/contacto"
-                          className="text-[#D4AC58] hover:text-[#1A2D2A] font-semibold underline transition-colors"
+                          className="text-[#37b9c7] hover:text-[#33aab8] font-semibold underline transition-colors"
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           contactanos
@@ -234,17 +234,17 @@ const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
 
-              <div className="flex w-full justify-between text-[13px]  subpixel-antialiased font-medium font-sans uppercase tracking-[0.2rem] mt-2">
+              <div className="flex w-full justify-between text-[13px]  subpixel-antialiased font-medium font-sans uppercase tracking-[0.2rem] mt-3">
                 <a
                   href="/"
-                  className={`transition-colors ${location.pathname === '/' ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`}
+                  className={`transition-colors ${location.pathname === '/' ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`}
                 >
                   Inicio
                 </a>
                 <NavLink
                   to="/nosotros"
                   className={({ isActive }) =>
-                    `transition-colors ${isActive ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`
+                    `transition-colors ${isActive ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`
                   }
                 >
                   Nosotros
@@ -252,14 +252,14 @@ const Navbar: React.FC<NavbarProps> = ({
                 <NavLink
                   to="/contacto"
                   className={({ isActive }) =>
-                    `transition-colors ${isActive ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`
+                    `transition-colors ${isActive ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`
                   }
                 >
                   Contacto
                 </NavLink>
                 <a
                   href="/catalogo"
-                  className={`transition-colors ${location.pathname.startsWith('/catalogo') ? 'text-[#1E8A90] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#1E8A90]'}`}
+                  className={`transition-colors ${location.pathname.startsWith('/catalogo') ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`}
                 >
                   Tienda
                 </a>
@@ -282,7 +282,7 @@ const Navbar: React.FC<NavbarProps> = ({
               {/* Carrito mobile */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="md:hidden h-5 w-5 text-[#1E8A90]"
+                className="md:hidden h-5 w-5 text-[#37b9c7]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -297,7 +297,7 @@ const Navbar: React.FC<NavbarProps> = ({
               {/* Carrito desktop */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="hidden md:block h-7 w-7 text-[#1E8A90]"
+                className="hidden md:block h-7 w-7 text-[#37b9c7]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -361,7 +361,7 @@ const Navbar: React.FC<NavbarProps> = ({
                             text-xs
                             font-sans
                         "
-              iconClassName="text-[#1E8A90]"
+              iconClassName="text-[#37b9c7]"
             />
 
             {isDropdownOpen && (
@@ -435,8 +435,8 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Menú Mobile */}
         {isMenuOpen && (
-          <div className="md:hidden bg-[#2BAAB0] border-t border-white/30">
-            <div className="flex flex-col p-4 space-y-4 text-[12px] font-bold font-sans uppercase tracking-widest">
+          <div className="md:hidden bg-[#37b9c7] border-t border-white/20">
+            <div className="font-fredoka flex flex-col p-4 space-y-4 text-[12px] font-bold font-sans uppercase tracking-widest">
               <a
                 href="/"
                 className={`transition-colors ${location.pathname === '/' ? 'text-[#f9c72a]' : 'text-white hover:text-[#f9c72a]'}`}
@@ -477,7 +477,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <a
                 key={c}
                 href={`/catalogo?search=${encodeURIComponent(c)}`}
-                className="hover:text-[#1E8A90] hover:underline decoration-[#FFE600] decoration-2 underline-offset-8 transition-colors"
+                className="hover:text-[#37b9c7] hover:underline decoration-[#FFE600] decoration-2 underline-offset-8 transition-colors"
               >
                 {c}
               </a>

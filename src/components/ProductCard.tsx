@@ -33,7 +33,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             addToCart(product, productQuantity);
 
             toast.success(`${product.name} agregado al carrito 🛒`, {
-                style: { backgroundColor: "#1E8A90", color: "#FFE600", fontWeight: "bold" },
+                style: { backgroundColor: "#37b9c7", color: "#FFE600", fontWeight: "bold" },
                 duration: 2000,
             });
 
@@ -73,7 +73,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                 />
                 {/* Badge de cantidad en carrito */}
                 {quantityInCart > 0 && (
-                    <div className="absolute top-2 left-2 bg-[#1E8A90] text-[#FFE600] text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md z-10 flex items-center gap-1 border border-[#FFE600]/30">
+                    <div className="absolute top-2 left-2 bg-[#37b9c7] text-[#FFE600] text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md z-10 flex items-center gap-1 border border-[#FFE600]/30">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                             <path d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" />
                         </svg>
@@ -94,35 +94,24 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                 <Link to={`/producto/${product.id}`}>
                     <h3
                         title={product.name}
-                        className="text-[#1A2D2A] font-nunito text-sm md:text-base font-bold leading-snug tracking-tight hover:text-[#1E8A90] transition-colors line-clamp-2"
+                        className="text-[#1A2D2A] font-nunito text-sm md:text-base font-bold leading-snug tracking-tight hover:text-[#37b9c7] transition-colors line-clamp-2"
                     >
                         {product.name}
                     </h3>
                 </Link>
 
-                {/* Badge de empaque - mobile */}
-                {product.unit && (
-                    <div className="md:hidden mt-2 text-[10px] font-bold font-nunito text-[#1E8A90] bg-[#D5F3F4] px-2 py-0.5 rounded-md w-fit border border-[#2BAAB0]/30 uppercase tracking-wide">
-                        {product.unit}
-                    </div>
-                )}
-                {/* Badge de empaque - desktop */}
-                {product.unit && (
-                    <div className="hidden md:block mt-2 text-[11px] font-bold font-nunito text-[#1E8A90] bg-[#D5F3F4] px-2.5 py-1 rounded-md w-fit border border-[#2BAAB0]/30 uppercase tracking-wide">
-                        {product.unit}
-                    </div>
-                )}
+
             </div>
 
             {/* Precio - mobile */}
             <div className="md:hidden mt-3 mb-2 flex flex-col">
-                <p className="text-[#1E8A90] font-nunito font-bold text-lg tracking-tight leading-none">
+                <p className="text-[#37b9c7] font-n font-bold text-lg tracking-tight leading-none">
                     {formatPrice(product.price)}
                 </p>
             </div>
             {/* Precio - desktop */}
             <div className="hidden md:flex mt-4 mb-3 flex-col">
-                <p className="text-[#1E8A90] font-nunito font-bold text-xl tracking-tight leading-none">
+                <p className="text-[#37b9c7] font-nunito font-bold text-xl tracking-tight leading-none">
                     {formatPrice(product.price)}
                 </p>
             </div>
@@ -187,7 +176,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                             <button
                                 type="button"
                                 disabled={productQuantity >= maxAvailable}
-                                className={`w-10 h-full flex items-center justify-center transition-colors ${productQuantity >= maxAvailable ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-white hover:text-[#1E8A90] cursor-pointer active:bg-gray-100"}`}
+                                className={`w-10 h-full flex items-center justify-center transition-colors ${productQuantity >= maxAvailable ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-white hover:text-[#37b9c7] cursor-pointer active:bg-gray-100"}`}
                                 onClick={() => setProductQuantity(Math.min(maxAvailable, productQuantity + 1))}
                             >
                                 <svg
@@ -213,8 +202,8 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             {/* Botón Añadir al carrito */}
             <button
                 className={`mt-2 relative ${isAdding
-                    ? "bg-[#1E8A90]"
-                    : "bg-[#2BAAB0] hover:bg-[#1E8A90] active:scale-[0.98]"
+                    ? "bg-[#37b9c7]"
+                    : "bg-[#2BAAB0] hover:bg-[#37b9c7] active:scale-[0.98]"
                     } text-white md:py-2 md:px-3 py-2 px-1 rounded-xl shadow-sm flex items-center justify-center text-xs font-bold transition-all duration-200 ${isAdding || maxAvailable <= 0 ? "cursor-not-allowed opacity-70" : "cursor-pointer"} overflow-hidden`}
                 onClick={handleAddToCart}
                 disabled={isAdding || maxAvailable <= 0}

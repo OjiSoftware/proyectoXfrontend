@@ -28,25 +28,25 @@ export default function LibroQuejasPage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-lg w-full font-nunito">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Nombre y Apellido *</label>
-                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" />
+                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">DNI / CUIL *</label>
-                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" />
+                <input type="text" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Email de contacto *</label>
-                <input type="email" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" />
+                <input type="email" required className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Número de Teléfono</label>
-                <input type="tel" className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" />
+                <input type="tel" className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-bold text-gray-700">Detalle del reclamo/queja *</label>
-                <textarea required rows={5} className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#1E8A90] focus:ring-1 focus:ring-[#1E8A90] transition-colors bg-[#f9fafa]" placeholder="Describí los hechos de la forma más clarificada posible..."></textarea>
+                <textarea required rows={5} className="p-3.5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#37b9c7] focus:ring-1 focus:ring-[#37b9c7] transition-colors bg-[#f9fafa]" placeholder="Describí los hechos de la forma más clarificada posible..."></textarea>
               </div>
-              <button type="submit" className="mt-4 bg-[#1E8A90] hover:bg-[#2BAAB0] text-white font-bold py-3 px-6 rounded-xl transition-colors w-max shadow-sm text-sm md:text-base">
+              <button type="submit" className="mt-4 bg-[#37b9c7] hover:bg-[#2BAAB0] text-white font-bold py-3 px-6 rounded-xl transition-colors w-max shadow-sm text-sm md:text-base">
                 Registrar Reclamo
               </button>
             </form>
