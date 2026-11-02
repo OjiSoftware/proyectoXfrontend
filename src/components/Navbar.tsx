@@ -180,7 +180,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="bg-gray-100 p-2 rounded-full text-gray-500 group-hover:bg-[#FAD390] group-hover:text-[#1A2D2A] transition-colors">
+                        <div className="bg-gray-100 p-2 rounded-full text-gray-500 group-hover:bg-[#33aab8] group-hover:text-[#1A2D2A] transition-colors">
                           <MagnifyingGlassIcon className="w-4 h-4" />
                         </div>
                         <span className="font-semibold text-gray-700 font-nunito text-sm truncate max-w-[450px]">
@@ -195,7 +195,7 @@ const Navbar: React.FC<NavbarProps> = ({
                           alt={p.name}
                           className="w-10 h-10 object-cover rounded-lg border border-gray-200"
                         />
-                        <span className="text-xs font-bold text-[#D4AC58] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs font-bold text-[#33aab8] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
                           Ver
                         </span>
                       </div>

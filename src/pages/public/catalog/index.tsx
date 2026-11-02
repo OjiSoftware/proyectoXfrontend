@@ -161,7 +161,7 @@ export default function CatalogPage() {
                     <div className="w-full flex-1 flex flex-col gap-6 min-w-0">
                         {isLoading ? (
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 flex-1 flex items-center justify-center">
-                                <div className="animate-spin h-8 w-8 text-[#EDC062] rounded-full border-4 border-t-transparent border-[#FAD390]" />
+                                <div className="animate-spin h-8 w-8 text-[#33aab8] rounded-full border-4 border-t-transparent border-[#33aab8]" />
                             </div>
                         ) : filteredProducts.length === 0 ? (
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex-1 flex items-center justify-center">

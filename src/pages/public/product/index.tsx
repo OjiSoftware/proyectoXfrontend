@@ -125,7 +125,7 @@ export default function ProductDetailPage() {
             className="hover:text-gray-600 cursor-pointer transition-colors"
             onClick={() => navigate("/")}
           >
-            ElementAll
+            Upa Lelé
           </span>
           <span>/</span>
           <span
