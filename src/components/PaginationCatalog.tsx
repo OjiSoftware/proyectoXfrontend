@@ -156,7 +156,7 @@ export default function Pagination({
                                     className={`
                                         px-4 py-2 font-inter font-bold cursor-pointer transition-all duration-200
                                         ${currentPage === page
-                                            ? "bg-[#FFF6B8] text-black border border-[#fff6b8] z-10"
+                                            ? "bg-[#33aab8] text-white border border-gray-500 z-10"
                                             : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-100 hover:text-gray-700"
                                         }
                                     `}
