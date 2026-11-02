@@ -57,7 +57,7 @@ export default function Pagination({
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-md text-[#1A2D2A] bg-white border border-[#9E9494]/30 hover:bg-[#FAD390]/10 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                    className="p-2 rounded-md text-gray-700 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                 >
                     <ChevronLeftIcon className="size-4" />
                 </button>
@@ -78,7 +78,7 @@ export default function Pagination({
                         onPageChange(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-md text-[#1A2D2A] bg-white border border-[#9E9494]/30 hover:bg-[#FAD390]/10 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                    className="p-2 rounded-md text-gray-700 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                 >
                     <ChevronRightIcon className="size-4" />
                 </button>
@@ -130,7 +130,7 @@ export default function Pagination({
                                 onPageChange(Math.max(1, currentPage - 1))
                             }
                             disabled={currentPage === 1}
-                            className="relative inline-flex items-center rounded-l-md px-3 py-2 bg-white text-[#1A2D2A] border border-[#9E9494]/30 hover:bg-[#FAD390]/10 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                            className="relative inline-flex items-center rounded-l-md px-3 py-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                         >
                             <ChevronLeftIcon className="size-5" />
                         </button>
@@ -143,7 +143,7 @@ export default function Pagination({
 
                                 <span
                                     key={i}
-                                    className="px-4 py-2 bg-white text-[#1A2D2A] border border-[#9E9494]/30 font-inter font-medium"
+                                    className="px-4 py-2 bg-white text-gray-400 border border-gray-200 font-inter font-medium"
                                 >
                                     ...
                                 </span>
@@ -156,8 +156,8 @@ export default function Pagination({
                                     className={`
                                         px-4 py-2 font-inter font-bold cursor-pointer transition-all duration-200
                                         ${currentPage === page
-                                            ? "bg-[#33aab8] text-white border border-[#EDC062] z-10"
-                                            : "bg-white text-[#33aab8] border border-[#9E9494]/30 hover:bg-[#FAD390]/10"
+                                            ? "bg-[#FFF6B8] text-black border border-[#fff6b8] z-10"
+                                            : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-100 hover:text-gray-700"
                                         }
                                     `}
                                 >
@@ -176,7 +176,7 @@ export default function Pagination({
                                 )
                             }
                             disabled={currentPage === totalPages}
-                            className="relative inline-flex items-center rounded-r-md px-3 py-2 bg-white text-[#1A2D2A] border border-[#9E9494]/30 hover:bg-[#FAD390]/10 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                            className="relative inline-flex items-center rounded-r-md px-3 py-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                         >
                             <ChevronRightIcon className="size-5" />
                         </button>
