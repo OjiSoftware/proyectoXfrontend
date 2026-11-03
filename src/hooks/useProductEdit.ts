@@ -19,6 +19,7 @@ export function useProductEdit() {
         price: 0,
         description: "",
         showingInCatalog: false,
+        isOffer: false,
         stock: 0,
         imageUrl: "",
         unit: "",
@@ -75,6 +76,7 @@ export function useProductEdit() {
                     stock: productData.stock || 0,
                     imageUrl: productData.imageUrl || "",
                     unit: productData.unit || "",
+                    isOffer: productData.isOffer ?? false,
                 };
 
                 setFormData(newFormData);

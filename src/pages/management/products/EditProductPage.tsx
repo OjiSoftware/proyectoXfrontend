@@ -165,6 +165,7 @@ export default function EditProductPage() {
                 description: formData.description.trim(),
                 showingInCatalog: formData.showingInCatalog,
                 imageUrl: formData.imageUrl?.trim() || "",
+                isOffer: formData.isOffer ?? false,
                 unit: formData.unit.trim(),
             };
 
@@ -524,6 +525,21 @@ export default function EditProductPage() {
                                     className="text-[9px] font-bold uppercase tracking-wider text-slate-300 cursor-pointer"
                                 >
                                     Mostrar en catálogo
+                                </label>
+
+                                <input
+                                    type="checkbox"
+                                    id="isOffer"
+                                    name="isOffer"
+                                    checked={formData.isOffer ?? false}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 rounded border border-white/10 text-indigo-500 focus:ring-indigo-500/50 bg-[#151320] cursor-pointer shadow-inner"
+                                />
+                                <label
+                                    htmlFor="isOffer"
+                                    className="text-[9px] font-bold uppercase tracking-wider text-slate-300 cursor-pointer"
+                                >
+                                    Oferta
                                 </label>
                             </div>
                         </div>
