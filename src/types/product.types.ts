@@ -14,6 +14,7 @@ export interface Product {
     stock?: number;
     unit?: string;
     status?: boolean;
+    isOffer?: boolean;
     createdAt?: string;
     showingInCatalog: boolean;
 }
@@ -28,6 +29,7 @@ export interface ProductEditFrontend {
     price: number;
     description: string;
     showingInCatalog: boolean;
+    isOffer?: boolean;
     imageUrl: string;
     unit: string;
 }
