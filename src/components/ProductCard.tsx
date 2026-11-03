@@ -71,6 +71,11 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                     alt={product.name || "Nombre del producto"}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                 />
+                {product.isOffer && (
+                    <span className="absolute top-2 right-2 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
+                        OFERTA
+                    </span>
+                )}
                 {/* Badge de cantidad en carrito */}
                 {quantityInCart > 0 && (
                     <div className="absolute top-2 left-2 bg-black text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md z-10 flex items-center gap-1 border border-white/30">
