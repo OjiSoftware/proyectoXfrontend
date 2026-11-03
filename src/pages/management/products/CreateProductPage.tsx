@@ -30,7 +30,7 @@ export default function CreateProductPage() {
     const [minStock, setMinStock] = useState("");
 
     // Profit Margin Calculation
-    const profitMargin = costPrice > 0 && formData.price > 0 
+    const profitMargin = costPrice > 0 && formData.price > 0
         ? (((formData.price - costPrice) / costPrice) * 100).toFixed(1)
         : null;
 
@@ -413,7 +413,7 @@ export default function CreateProductPage() {
                                 </div>
                             )}
 
-                             <div className="grid grid-cols-2 gap-3 mt-1">
+                            <div className="grid grid-cols-2 gap-3 mt-1">
                                 <div className="col-span-1">
                                     <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                                         Stock{" "}
@@ -461,13 +461,15 @@ export default function CreateProductPage() {
                                 </label>
 
                                 <input
-  type="checkbox"
-  id="isOffer"
-  name="isOffer"
-  checked={formData.isOffer}
-  onChange={handleChange}
-/>
-<label htmlFor="isOffer">Oferta</label>
+                                    type="checkbox"
+                                    id="isOffer"
+                                    name="isOffer"
+                                    checked={formData.isOffer}
+                                    onChange={handleChange}
+                                />
+                                <label htmlFor="isOffer" className="text-[9px] font-bold uppercase tracking-wider text-slate-300 cursor-pointer">
+                                    Oferta
+                                </label>
                             </div>
                         </div>
 
