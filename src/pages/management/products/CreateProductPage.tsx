@@ -459,6 +459,15 @@ export default function CreateProductPage() {
                                 >
                                     Mostrar en catálogo
                                 </label>
+
+                                <input
+  type="checkbox"
+  id="isOffer"
+  name="isOffer"
+  checked={formData.isOffer}
+  onChange={handleChange}
+/>
+<label htmlFor="isOffer">Oferta</label>
                             </div>
                         </div>
 

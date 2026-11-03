@@ -17,7 +17,10 @@ export const useProductForm = () => {
         imageUrl: "",
         unit: "",
         showingInCatalog: false,
+        isOffer: false,
     });
+
+
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [brands, setBrands] = useState<Brand[]>([]);
@@ -118,6 +121,7 @@ export const useProductForm = () => {
                 imageUrl: "",
                 unit: "",
                 showingInCatalog: false,
+                isOffer: false,
             });
         } catch (error) {
             console.error("Error al crear el producto:", error);
