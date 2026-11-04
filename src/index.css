@@ -2,9 +2,15 @@
 @import "tailwindcss";
 @import "flowbite";
 
+:root {
+  --font-public-body: "Nunito", sans-serif;
+  --font-public-heading: "Fredoka", sans-serif;
+  --font-management: "Poppins", sans-serif;
+}
+
 @layer base {
   body {
-    font-family: "Nunito", sans-serif;
+    font-family: var(--font-public-body);
   }
 
   h1,
@@ -13,7 +19,18 @@
   h4,
   h5,
   h6 {
-    font-family: "Fredoka", sans-serif;
+    font-family: var(--font-public-heading);
+  }
+
+  /* Gestor / Dashboard: Todo el contenido y títulos usan Poppins */
+  .font-poppins,
+  .font-poppins h1,
+  .font-poppins h2,
+  .font-poppins h3,
+  .font-poppins h4,
+  .font-poppins h5,
+  .font-poppins h6 {
+    font-family: var(--font-management) !important;
   }
 
   button,
