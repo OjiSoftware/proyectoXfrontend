@@ -41,8 +41,6 @@ import HomePage from "@/pages/public";
 
 // Cart
 import CartPage from "@/pages/public/cart";
-import CheckoutPage from "@/pages/public/cart/CheckoutPage";
-import CheckoutStatus from "@/pages/public/cart/CheckoutStatusPage";
 
 import ContactoPage from "@/pages/public/contacto";
 import NosotrosPage from "@/pages/public/nosotros";
@@ -86,10 +84,10 @@ export const AppRoutes = () => {
                 <Route path="/catalogo" element={<CatalogPage />} />
                 <Route path="/producto/:id" element={<ProductDetailPage />} />
 
-                {/* Shopping Cart, Checkout and Checkout Status */}
+                {/* Shopping Cart & Redirects */}
                 <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/checkout/status" element={<CheckoutStatus />} />
+                <Route path="/checkout" element={<Navigate to="/catalogo" replace />} />
+                <Route path="/checkout/status" element={<Navigate to="/catalogo" replace />} />
 
                 {/* Auth Flow */}
                 <Route path="/auth/login" element={<LoginPage />} />

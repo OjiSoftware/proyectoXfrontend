@@ -41,7 +41,7 @@ const CartRow: React.FC<CartRowProps> = ({ item }) => {
                             <div className="flex items-center gap-x-3 min-w-0">
                                 <h3
                                     title={item.product.name}
-                                    className="text-[#3b4b5e] text-[15px] sm:text-sm font-bold hover:underline cursor-pointer truncate"
+                                    className="text-[#3b4b5e] text-[15px] sm:text-sm font-lato hover:underline cursor-pointer truncate"
                                 >
                                     {item.product.name}
                                 </h3>
@@ -57,12 +57,7 @@ const CartRow: React.FC<CartRowProps> = ({ item }) => {
                                     <TrashIcon className="w-5 h-5 sm:w-4 sm:h-4 stroke-2" />
                                 </button>
                             </div>
-                            {/* Unit */}
-                            {item.product.unit && (
-                                <span className="text-[12px] text-gray-400 font-lato">
-                                    {item.product.unit}
-                                </span>
-                            )}
+
                         </div>
                     </div>
 

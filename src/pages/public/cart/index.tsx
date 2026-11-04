@@ -7,10 +7,37 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 export default function CartPage() {
-    const { cart, totalItems, totalPrice, clearCart } = useCart();
+    const { cart, totalPrice, clearCart } = useCart();
     const [search, setSearch] = useState("");
     const navigate = useNavigate();
     const [showConfirmClear, setShowConfirmClear] = useState(false);
+
+    const handleRealizarPedido = () => {
+        if (cart.length === 0) return;
+
+        const phoneClean = "5493456479016";
+
+        let message = `🛒 *Nuevo Pedido - Upa Lelé*\n\n`;
+        message += `¡Hola! Quisiera realizar el siguiente pedido:\n\n`;
+
+        cart.forEach((item) => {
+            const subtotal = item.product.price * item.quantity;
+            message += `• ${item.quantity}x ${item.product.name} - $${subtotal.toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+            })}\n`;
+        });
+
+        message += `\n*Total: $${totalPrice.toLocaleString("es-AR", {
+            minimumFractionDigits: 2,
+        })}*\n\n`;
+        message += `¡Muchas gracias!`;
+
+        const whatsappUrl = `https://wa.me/${phoneClean}?text=${encodeURIComponent(message)}`;
+
+        window.open(whatsappUrl, "_blank");
+        clearCart();
+        navigate("/catalogo");
+    };
 
     // Si el carrito está vacío, mostramos el estado inicial
     if (cart.length === 0) {
@@ -66,62 +93,29 @@ export default function CartPage() {
 
                     {/* Resumen de orden */}
                     <div className="flex-[0_0_100%] lg:flex-[1_1_30%] bg-white rounded-2xl max-sm:rounded-none shadow-sm border border-gray-200 max-sm:border-x-0 p-5 sticky top-8 flex flex-col gap-3 font-nunito w-full">
-                        <div className="flex flex-col gap-2 pb-3 border-b border-gray-100">
-                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                <span>Subtotal ({totalItems} artículos):</span>
-                                <span>
-                                    $
-                                    {totalPrice.toLocaleString("es-AR", {
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center text-[13px] text-gray-500">
-                                <span>Incluye IVA (21%)</span>
-                                <span>
-                                    $
-                                    {(
-                                        totalPrice -
-                                        totalPrice / 1.21
-                                    ).toLocaleString("es-AR", {
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </span>
-                            </div>
-                        </div>
 
                         <div className="flex flex-col gap-1 mb-2 mt-1">
                             <div className="flex justify-between items-center">
                                 <span className="font-bold text-gray-800 text-base">
-                                    Total Final:
+                                    Total
                                 </span>
-                                <span className="font-black text-xl text-[#16a34a]">
+                                <span className="font-black text-xl text-black">
                                     $
                                     {totalPrice.toLocaleString("es-AR", {
                                         minimumFractionDigits: 2,
                                     })}
                                 </span>
                             </div>
-                            <div className="text-[10px] text-gray-400 text-right uppercase tracking-tight">
-                                Precio sin impuestos nacionales: $
-                                {(totalPrice / 1.21).toLocaleString("es-AR", {
-                                    minimumFractionDigits: 2,
-                                })}
-                            </div>
+
                         </div>
 
-                        {/* BOTÓN HACIA CHECKOUT: Aquí es donde cambiamos la lógica */}
+                        {/* BOTÓN HACIA WHATSAPP: Pedido directo */}
                         <button
-                            className="w-full py-3 bg-[#16a34a] text-white text-[0.95rem] font-bold rounded-lg hover:bg-[#15803d] transition shadow-md flex items-center justify-center gap-2 mt-2 cursor-pointer shadow-[0_0_20px_rgba(22,163,74,0.3)] hover:shadow-[0_0_25px_rgba(22,163,74,0.4)] active:scale-[0.98]"
-                            onClick={() => navigate("/checkout")}
+                            className="w-full py-3 bg-[#33aab8] text-white text-[0.95rem] font-bold rounded-lg hover:bg-[#15803d] transition shadow-md flex items-center justify-center gap-2 mt-2 cursor-pointer shadow-[0_0_20px_rgba(22,163,74,0.3)] hover:shadow-[0_0_25px_rgba(22,163,74,0.4)] active:scale-[0.98]"
+                            onClick={handleRealizarPedido}
                         >
-                            Finalizar compra
+                            Realizar pedido
                         </button>
-
-                        <p className="text-[11px] text-gray-500 text-center leading-tight">
-                            * Los recargos por financiación en cuotas con
-                            tarjeta de crédito corren por cuenta del cliente.
-                        </p>
 
                         {!showConfirmClear ? (
                             <button
