@@ -134,7 +134,7 @@ export default function DashboardLayout({
 
                     {/* Navegación Base Expandida */}
                     <div className="px-4">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-3 px-2">Menú Principal</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 px-2">Menú Principal</p>
                         <nav className="flex flex-col space-y-1">
                             {navigation.map((item) => {
                                 const isActive = location.pathname.startsWith(item.href);
@@ -145,13 +145,13 @@ export default function DashboardLayout({
                                         className={classNames(
                                             isActive
                                                 ? "bg-indigo-500/10 text-indigo-400 shadow-sm border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]"
-                                                : "text-slate-400 hover:bg-white/5 hover:text-white border border-transparent",
+                                                : "text-slate-300 hover:bg-white/5 hover:text-white border border-transparent",
                                             "group flex items-center px-4 py-3 text-xs font-medium rounded-2xl transition-all"
                                         )}
                                     >
                                         <item.icon
                                             className={classNames(
-                                                isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300",
+                                                isActive ? "text-indigo-400" : "text-slate-400 group-hover:text-slate-200",
                                                 "mr-3 flex-shrink-0 h-5 w-5 transition-colors"
                                             )}
                                             aria-hidden="true"
@@ -174,12 +174,12 @@ export default function DashboardLayout({
                         />
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium text-slate-200 truncate">{user?.name || "Admin"}</p>
-                            <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 truncate mt-0.5">{user?.email}</p>
+                            <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 truncate mt-0.5">{user?.email}</p>
                         </div>
                         <button
                             onClick={handleLogout}
                             disabled={isLoggingOut}
-                            className="p-2 text-gray-500 hover:bg-red-500/10 hover:text-red-400 transition-colors rounded-lg focus:outline-none active:scale-95"
+                            className="p-2 text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors rounded-lg focus:outline-none active:scale-95 cursor-pointer"
                             title="Cerrar sesión"
                         >
                             <ArrowRightOnRectangleIcon className="w-5 h-5" />

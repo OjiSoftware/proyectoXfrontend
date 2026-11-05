@@ -37,19 +37,19 @@ interface SalesTableProps {
 const SALE_STATUS_MAP: Record<string, { label: string; style: string }> = {
   PENDING: {
     label: 'Pendiente',
-    style: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    style: 'bg-amber-400/15 text-amber-300 border-amber-400/30',
   },
   IN_PROGRESS: {
     label: 'En curso',
-    style: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
+    style: 'bg-slate-400/15 text-slate-200 border-slate-400/30',
   },
   COMPLETED: {
     label: 'Completada',
-    style: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+    style: 'bg-emerald-400/15 text-emerald-300 border-emerald-400/30',
   },
   CANCELLED: {
     label: 'Cancelada',
-    style: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+    style: 'bg-rose-400/15 text-rose-300 border-rose-400/30',
   },
 };
 
@@ -260,7 +260,7 @@ export function SalesTable({
               {isVisible('client') && (
                 <TableCell className="hidden md:table-cell! text-slate-300 font-medium align-top py-4 lg:align-middle">
                   {sale.client ? `${sale.client.surname}, ${sale.client.name}` : (
-                    <span className="text-slate-500 italic text-xs font-normal">Sin cliente</span>
+                    <span className="text-slate-400 italic text-xs font-normal">Sin cliente</span>
                   )}
                 </TableCell>
               )}
@@ -269,7 +269,7 @@ export function SalesTable({
                 <div className="flex items-center justify-center gap-3">
                   <button
                     title="Ver detalles"
-                    className="text-slate-500 hover:text-indigo-400 transition-colors active:scale-95 cursor-pointer"
+                    className="text-slate-400 hover:text-indigo-400 transition-colors active:scale-95 cursor-pointer"
                     onClick={() => handleOpenDetails(sale)}
                   >
                     <EyeIcon className="w-4 h-4" />
@@ -280,7 +280,7 @@ export function SalesTable({
                       title="Agregar / Ver notas"
                       type="button"
                       onClick={() => handleOpenNotes(sale)}
-                      className="text-slate-500 hover:text-amber-400 transition-colors active:scale-95 cursor-pointer"
+                      className="text-slate-400 hover:text-amber-400 transition-colors active:scale-95 cursor-pointer"
                     >
                       <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
                     </button>
@@ -303,8 +303,8 @@ export function SalesTable({
                         }
                         className={
                           sale.status === 'CANCELLED'
-                            ? 'text-slate-600 pointer-events-none opacity-40'
-                            : 'text-slate-500 hover:text-amber-400 transition-colors active:scale-95'
+                            ? 'text-slate-500 pointer-events-none opacity-40'
+                            : 'text-slate-400 hover:text-amber-400 transition-colors active:scale-95'
                         }
                         onClick={(e) =>
                           sale.status === 'CANCELLED' && e.preventDefault()
@@ -324,8 +324,8 @@ export function SalesTable({
                     }
                     className={
                       sale.status === 'CANCELLED'
-                        ? 'text-slate-600 cursor-not-allowed opacity-40'
-                        : 'text-slate-500 hover:text-rose-500 transition-colors active:scale-95 cursor-pointer'
+                        ? 'text-slate-500 cursor-not-allowed opacity-40'
+                        : 'text-slate-400 hover:text-rose-500 transition-colors active:scale-95 cursor-pointer'
                     }
                     onClick={() =>
                       sale.status !== 'CANCELLED' && onDelete(sale)

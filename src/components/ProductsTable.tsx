@@ -111,30 +111,6 @@ export function ProductsTable({
               </div>
             </TableHeadCell>
 
-            {isVisible('unit') && (
-              <TableHeadCell
-                className={`${hideOnTablet} cursor-pointer select-none text-center`}
-                onClick={() => onSort('unit')}
-              >
-                <div className="relative inline-flex items-center justify-center">
-                  <span>Unidad</span>
-                  <div className="absolute -right-6">{renderSortArrow('unit')}</div>
-                </div>
-              </TableHeadCell>
-            )}
-
-            {isVisible('brand') && (
-              <TableHeadCell
-                className={`${hideOnTablet} cursor-pointer select-none text-center`}
-                onClick={() => onSort('brand.name')}
-              >
-                <div className="relative inline-flex items-center justify-center">
-                  <span>Marca</span>
-                  <div className="absolute -right-6">{renderSortArrow('brand.name')}</div>
-                </div>
-              </TableHeadCell>
-            )}
-
             {isVisible('category') && (
               <TableHeadCell
                 className={`${hideOnTablet} cursor-pointer select-none text-center`}
@@ -143,18 +119,6 @@ export function ProductsTable({
                 <div className="relative inline-flex items-center justify-center">
                   <span>Categoría</span>
                   <div className="absolute -right-6">{renderSortArrow('subCategory.category.name')}</div>
-                </div>
-              </TableHeadCell>
-            )}
-
-            {isVisible('subCategory') && (
-              <TableHeadCell
-                className={`${hideOnTablet} cursor-pointer select-none text-center`}
-                onClick={() => onSort('subCategory.name')}
-              >
-                <div className="relative inline-flex items-center justify-center">
-                  <span>Subcategoría</span>
-                  <div className="absolute -right-6">{renderSortArrow('subCategory.name')}</div>
                 </div>
               </TableHeadCell>
             )}

@@ -30,7 +30,7 @@ export default function ProductsPage() {
     const [filterSubCategory, setFilterSubCategory] = useState<string>('all');
 
     // ---------------- Columnas visibles ----------------
-    const ALL_PRODUCT_COLS = new Set(['unit', 'brand', 'category', 'subCategory', 'stock', 'price', 'catalog']);
+    const ALL_PRODUCT_COLS = new Set(['category', 'stock', 'price', 'catalog']);
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set(ALL_PRODUCT_COLS));
 
     const toggleColumn = (col: string) => {

@@ -210,24 +210,24 @@ export default function SalesPage() {
               <div className="absolute right-0 top-full mt-2 w-72 bg-gray-900/95 backdrop-blur-xl border border-amber-500/20 rounded-2xl shadow-2xl shadow-amber-900/20 z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-amber-500/15 bg-amber-900/20">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-400" />
+                    <Clock className="w-4 h-4 text-amber-300" />
                     <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">Pendientes / En curso</p>
                   </div>
-                  <p className="text-2xl font-black text-amber-400 mt-1">{pendingSalesCount} <span className="text-xs font-normal text-amber-200/60">ventas</span></p>
+                  <p className="text-2xl font-black text-amber-300 mt-1">{pendingSalesCount} <span className="text-xs font-normal text-amber-200/70">ventas</span></p>
                 </div>
                 <div className="max-h-52 overflow-y-auto py-1">
                   {pendingSales.length === 0 ? (
-                    <p className="text-xs text-gray-500 px-4 py-3 text-center">Sin ventas pendientes</p>
+                    <p className="text-xs text-gray-400 px-4 py-3 text-center">Sin ventas pendientes</p>
                   ) : pendingSales.map(s => (
                     <div key={s.id} className="flex items-center justify-between px-4 py-2 hover:bg-white/5 transition-colors">
                       <div className="flex-1 min-w-0 mr-2">
                         <span className="text-xs font-bold text-gray-200 block">Venta #{s.id}</span>
-                        <span className="text-[10px] text-gray-500 truncate block">{s.client?.name || 'Sin cliente'}</span>
+                        <span className="text-[10px] text-gray-400 truncate block">{s.client?.name || 'Sin cliente'}</span>
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
                         s.status === 'PENDING'
-                          ? 'bg-amber-500/15 text-amber-400'
-                          : 'bg-blue-500/15 text-blue-400'
+                          ? 'bg-amber-400/15 text-amber-300'
+                          : 'bg-blue-400/15 text-blue-300'
                       }`}>
                         {s.status === 'PENDING' ? 'Pendiente' : 'En curso'}
                       </span>
@@ -250,8 +250,8 @@ export default function SalesPage() {
               onChange={setQuery}
               placeholder="Buscar por ID o nombre del cliente..."
               containerClassName="max-w-full"
-              inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
-              iconClassName="text-slate-500 group-focus-within:text-indigo-400"
+              inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
+              iconClassName="text-slate-400 group-focus-within:text-indigo-400"
             />
           </div>
 
@@ -264,7 +264,7 @@ export default function SalesPage() {
                 className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                   filterOpen || filterStatus !== 'all'
                     ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-                    : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
+                    : 'bg-[#151519] border-white/10 text-gray-300 hover:border-white/25 hover:text-white'
                 }`}
               >
                 <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
@@ -273,7 +273,7 @@ export default function SalesPage() {
               </button>
               {filterOpen && (
                 <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3 space-y-1">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Estado</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Estado</p>
                   {([
                     ['all',         'Todos'],
                     ['PENDING',     'Pendiente'],
@@ -283,14 +283,14 @@ export default function SalesPage() {
                   ] as const).map(([val, lbl]) => (
                     <button key={val} onClick={() => setFilterStatus(val)}
                       className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                        filterStatus === val ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                        filterStatus === val ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-300 hover:bg-white/5 hover:text-white'
                       }`}>
                       {lbl}
                     </button>
                   ))}
                   {filterStatus !== 'all' && (
                     <button onClick={() => setFilterStatus('all')}
-                      className="w-full text-center text-[10px] text-rose-400/70 hover:text-rose-400 transition-colors cursor-pointer pt-1 border-t border-white/5">
+                      className="w-full text-center text-[10px] text-rose-300 hover:text-rose-200 transition-colors cursor-pointer pt-1 border-t border-white/5">
                       Limpiar filtro
                     </button>
                   )}
@@ -302,7 +302,7 @@ export default function SalesPage() {
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
-                className="h-11 flex items-center gap-2 px-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 text-xs font-medium transition-all hover:bg-rose-500/20 hover:border-rose-500/40 active:scale-95 cursor-pointer"
+                className="h-11 flex items-center gap-2 px-4 rounded-xl border border-rose-400/30 bg-rose-500/15 text-rose-300 text-xs font-medium transition-all hover:bg-rose-500/25 hover:border-rose-400/50 active:scale-95 cursor-pointer"
                 title="Limpiar todos los filtros"
               >
                 <X className="w-4 h-4" />
@@ -317,7 +317,7 @@ export default function SalesPage() {
                 className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                   paramsOpen || visibleColumns.size < ALL_SALE_COLS.size
                     ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-                    : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
+                    : 'bg-[#151519] border-white/10 text-gray-300 hover:border-white/25 hover:text-white'
                 }`}
               >
                 <ChevronDown className={`w-4 h-4 transition-transform ${paramsOpen ? 'rotate-180' : ''}`} />
@@ -330,7 +330,7 @@ export default function SalesPage() {
               </button>
               {paramsOpen && (
                 <div className="absolute right-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3 space-y-1">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 px-1">Columnas visibles</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">Columnas visibles</p>
                   {([
                     ['createdAt', 'Fecha'],
                     ['status',    'Estado'],
@@ -344,12 +344,12 @@ export default function SalesPage() {
                         onChange={() => toggleColumn(col)}
                         className="w-3.5 h-3.5 rounded text-indigo-500 focus:ring-indigo-500 bg-gray-800 border-gray-600 cursor-pointer"
                       />
-                      <span className={`text-xs font-medium transition-colors ${visibleColumns.has(col) ? 'text-gray-200' : 'text-gray-500'}`}>{lbl}</span>
+                      <span className={`text-xs font-medium transition-colors ${visibleColumns.has(col) ? 'text-gray-200' : 'text-gray-400'}`}>{lbl}</span>
                     </label>
                   ))}
                   <div className="pt-1 border-t border-white/5">
                     <button onClick={() => setVisibleColumns(new Set(ALL_SALE_COLS))}
-                      className="w-full text-center text-[10px] text-gray-500 hover:text-gray-300 transition-colors cursor-pointer py-1">
+                      className="w-full text-center text-[10px] text-gray-400 hover:text-gray-200 transition-colors cursor-pointer py-1">
                       Mostrar todas
                     </button>
                   </div>
