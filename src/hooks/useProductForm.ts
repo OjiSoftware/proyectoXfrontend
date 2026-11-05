@@ -95,7 +95,7 @@ export const useProductForm = () => {
                 stock: 0,
                 categoryId: 0,
                 imageUrl: "",
-                unit: null,
+                unit: "",
                 brandId: null,
                 showingInCatalog: false,
                 isOffer: false,

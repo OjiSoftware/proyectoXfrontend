@@ -12,8 +12,6 @@ export default function CreateProductPage() {
         formData,
         setFormData,
         categories,
-        /*         brands, */
-        /* filteredSubCategories, */
         handleChange,
         handleSubmit: submitFormData,
     } = useProductForm();
@@ -100,7 +98,7 @@ export default function CreateProductPage() {
         try {
             await submitFormData(undefined, {
                 ...formData,
-                unit: "",
+                unit: null,
                 brandId: null,
                 barcode: barcode.trim(),
                 name: formData.name.trim(), // Limpiamos espacios accidentales
@@ -189,8 +187,6 @@ export default function CreateProductPage() {
                         e.preventDefault();
                         const {
                             categoryId,
-                            /*                             subCategoryId,
-                                                        brandId, */
                             price,
                             name,
                         } = formData;
@@ -202,10 +198,6 @@ export default function CreateProductPage() {
                             return toast.error("El codigo de barras es obligatorio")
                         if (!categoryId)
                             return toast.error("Selecciona una Categoría");
-                        /* if (!subCategoryId)
-                            return toast.error("Selecciona una Subcategoría");
-                        if (!brandId)
-                            return toast.error("Selecciona una Marca"); */
                         if (price <= 0)
                             return toast.error("El precio debe ser mayor a 0");
 
@@ -263,6 +255,7 @@ export default function CreateProductPage() {
                                 onChange={(e) => setBarcode(e.target.value)}
                                 placeholder="Escanee o ingrese código"
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                                required
                             />
                         </div>
 

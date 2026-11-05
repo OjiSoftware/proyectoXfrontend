@@ -21,7 +21,7 @@ export function useProductEdit() {
         isOffer: false,
         stock: 0,
         imageUrl: "",
-        unit: null,
+        unit: "",
     });
 
     const [priceInput, setPriceInput] = useState<string>("0,00");
@@ -74,7 +74,7 @@ export function useProductEdit() {
                     showingInCatalog: productData.showingInCatalog ?? false,
                     stock: productData.stock || 0,
                     imageUrl: productData.imageUrl || "",
-                    unit: productData.unit ?? null,
+                    unit: productData.unit ?? "",
                     isOffer: productData.isOffer ?? false,
                 };
 

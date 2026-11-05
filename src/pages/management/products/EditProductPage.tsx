@@ -175,7 +175,7 @@ export default function EditProductPage() {
                 showingInCatalog: formData.showingInCatalog,
                 imageUrl: formData.imageUrl?.trim() || "",
                 isOffer: formData.isOffer ?? false,
-                unit: "",
+                unit: null,
                 brandId: null,
             };
 
