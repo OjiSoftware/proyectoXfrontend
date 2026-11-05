@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Pagination from "@/components/PaginationManagement";
 import SearchBar from "@/components/SearchBar";
@@ -27,8 +27,6 @@ export default function BrandsPage() {
     const navigate = useNavigate();
     const itemsPerPage = useItemsPerpage();
     const { deleteBrand, loading } = useDeleteBrand(setBrands);
-
-
 
     // ---------------- Filtrado y Ordenamiento Combinados ----------------
     const filteredBrands = useMemo(() => {
@@ -79,12 +77,12 @@ export default function BrandsPage() {
         });
     }, [brands, query, sortColumn, sortDirection]);
 
-    // ---------------- Paginaci�n ----------------
+    // ---------------- Paginación ----------------
     const lastIndex = currentPage * itemsPerPage;
     const firstIndex = lastIndex - itemsPerPage;
     const currentBrands = filteredBrands.slice(firstIndex, lastIndex);
 
-    // ---------------- Funci�n Handle Sort ----------------
+    // ---------------- Función Handle Sort ----------------
     const handleSort = (col: string) => {
         if (sortColumn === col) {
             if (sortDirection === "asc") setSortDirection("desc");
@@ -116,30 +114,30 @@ export default function BrandsPage() {
     return (
         <DashboardLayout
             title="Lista de marcas"
-            subtitle="Gesti�n de marcas del sistema."
+            subtitle="Gestión de marcas del sistema."
             actions={
                 <button
+                    title="Nueva marca"
                     onClick={() => navigate(ROUTES.brands.create)}
-                    className="flex items-center gap-2 px-4 py-2 text-xs rounded-lg bg-accent-500 text-[#00001A] font-extrabold transition-all duration-300 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.4)] hover:bg-accent-400 hover:shadow-[0_0_20px_rgba(0,240,255,0.6)] active:scale-95"
+                    className="group flex items-center justify-center w-11 h-11 rounded-[14px] bg-indigo-600 text-white font-bold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 border border-indigo-400/30 active:scale-95 active:translate-y-0"
                 >
-                    <PlusIcon size={18} />
-                    <span className="hidden md:inline">Nueva marca</span>
+                    <PlusIcon size={22} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] group-hover:rotate-90 transition-transform duration-500" />
                 </button>
             }
         >
-            <div className="space-y-6">
-
-
-                {/* CONTENEDOR BUSCADOR TIPO GLASS */}
-                <div className="bg-gray-800/30 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl">
-                    <SearchBar
-                        value={query}
-                        onChange={setQuery}
-                        placeholder="Buscar por nombre de la marca..."
-                        containerClassName="max-w-full"
-                        inputClassName="bg-gray-900/50 text-white border-white/10 placeholder:text-slate-500 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all rounded-xl h-11"
-                        iconClassName="text-slate-500 group-focus-within:text-brand-400"
-                    />
+            <div className="space-y-3">
+                {/* BUSCADOR */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    <div className="flex-1 min-w-[200px]">
+                        <SearchBar
+                            value={query}
+                            onChange={setQuery}
+                            placeholder="Buscar por nombre de la marca..."
+                            containerClassName="max-w-full"
+                            inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
+                            iconClassName="text-slate-500 group-focus-within:text-indigo-400"
+                        />
+                    </div>
                 </div>
 
                 <BrandsTable
@@ -168,7 +166,6 @@ export default function BrandsPage() {
                         onConfirm={async () => {
                             await deleteBrand(brandToDelete.id);
 
-                            // Ajustamos p�gina si la �ltima marca desaparece de la vista
                             if (currentBrands.length === 1 && currentPage > 1) {
                                 setCurrentPage((prev) => prev - 1);
                             }
@@ -181,5 +178,3 @@ export default function BrandsPage() {
         </DashboardLayout>
     );
 }
-
-

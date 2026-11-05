@@ -125,7 +125,7 @@ export default function DashboardLayout({
                                 </MenuItem>
                                 <MenuItem>
                                     <Link to="/management/subcategories/create" className="block px-4 py-3 text-xs font-medium text-pink-400 hover:bg-white/5 transition-colors text-center w-full focus:outline-none">
-                                        Nueva Subcategoría
+                                        Nuevo proovedor
                                     </Link>
                                 </MenuItem>
                             </MenuItems>

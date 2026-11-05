@@ -97,7 +97,7 @@ export default function CartPage() {
                         <div className="flex flex-col gap-1 mb-2 mt-1">
                             <div className="flex justify-between items-center">
                                 <span className="font-bold text-gray-800 text-base">
-                                    Total
+                                    Total provisional
                                 </span>
                                 <span className="font-black text-xl text-black">
                                     $

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { SalesTable } from '@/components/SalesTable';
 import Pagination from '@/components/PaginationManagement';
@@ -9,7 +9,7 @@ import { saleApi } from '@/services/SaleService';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { useDisableSale } from '@/hooks/useDisableSale';
-import { PlusIcon, Clock, ChevronDown } from 'lucide-react';
+import { PlusIcon, Clock, ChevronDown, X } from 'lucide-react';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function SalesPage() {
@@ -18,14 +18,14 @@ export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [saleToDelete, setSaleToDelete] = useState<Sale | null>(null);
 
-  // NUEVO ESTADO: Para el Checkbox de "Cancelaci�n Silenciosa" (Por defecto true)
+  // NUEVO ESTADO: Para el Checkbox de "Cancelación Silenciosa" (Por defecto true)
   const [isSilentCancel, setIsSilentCancel] = useState(true);
 
   // ---------------- Filtros ----------------
   const [filterStatus, setFilterStatus] = useState<'all' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'>('all');
 
   // ---------------- Columnas visibles ----------------
-  const ALL_SALE_COLS = new Set(['createdAt','status','total','client']);
+  const ALL_SALE_COLS = new Set(['createdAt', 'status', 'total', 'client']);
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set(ALL_SALE_COLS));
   const toggleColumn = (col: string) => {
     setVisibleColumns(prev => {
@@ -51,14 +51,11 @@ export default function SalesPage() {
   }, []);
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
-    null,
-  );
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
   const navigate = useNavigate();
   const itemsPerPage = useItemsPerpage();
 
-  // Modificamos c�mo se usa el hook para poder pasarle el 'silent' a la API
   const { disableSale, loading } = useDisableSale(setSales);
 
   // --- ALERTA SOLICITADA ---
@@ -78,7 +75,7 @@ export default function SalesPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  // ... (todo el memo de filteredSales y los useEffect quedan IGUAL) ...
+
   const filteredSales = useMemo(() => {
     const searchTerm = query.trim().toLowerCase();
 
@@ -95,7 +92,7 @@ export default function SalesPage() {
       return s.status !== undefined;
     });
 
-    // 2. ASIGNAR POSICI�N ORIGINAL
+    // 2. ASIGNAR POSICIÓN ORIGINAL
     const salesWithIndex = filtered.map((sale, index) => ({
       ...sale,
       originalIndex: index + 1,
@@ -111,25 +108,21 @@ export default function SalesPage() {
       let bVal: any;
 
       if (sortColumn === 'rowNum') {
-        aVal = a.originalIndex;
-        bVal = b.originalIndex;
-      } else if (sortColumn === 'client.name') {
-        aVal = a.client?.name || '';
-        bVal = b.client?.name || '';
+        aVal = (a as any).originalIndex;
+        bVal = (b as any).originalIndex;
       } else {
-        aVal = a[sortColumn as keyof Sale] ?? '';
-        bVal = b[sortColumn as keyof Sale] ?? '';
+        aVal = a[sortColumn as keyof Sale];
+        bVal = b[sortColumn as keyof Sale];
       }
 
-      // Comparaci�n
-      if (
-        sortColumn === 'rowNum' ||
-        sortColumn === 'total' ||
-        typeof aVal === 'number'
-      ) {
-        return sortDirection === 'asc'
-          ? Number(aVal) - Number(bVal)
-          : Number(bVal) - Number(aVal);
+      if (sortColumn === 'total' || sortColumn === 'id' || sortColumn === 'rowNum') {
+        return sortDirection === 'asc' ? Number(aVal) - Number(bVal) : Number(bVal) - Number(aVal);
+      }
+
+      if (sortColumn === 'createdAt') {
+        const dateA = new Date(aVal).getTime();
+        const dateB = new Date(bVal).getTime();
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
       }
 
       return sortDirection === 'asc'
@@ -138,29 +131,16 @@ export default function SalesPage() {
     });
   }, [sales, query, sortColumn, sortDirection, filterStatus]);
 
+  // ---------------- Paginación ----------------
   const lastIndex = currentPage * itemsPerPage;
   const firstIndex = lastIndex - itemsPerPage;
   const currentSales = filteredSales.slice(firstIndex, lastIndex);
 
-  useEffect(() => {
-    const fetchSales = async () => {
-      try {
-        const data = await saleApi.getAllSales();
-        setSales(data);
-      } catch (error) {
-        console.error('Error cargando ventas', error);
-      }
-    };
-    fetchSales();
-  }, []);
-
-  useEffect(() => setCurrentPage(1), [itemsPerPage, query, filterStatus]);
-
+  // ---------------- Función Handle Sort ----------------
   const handleSort = (col: string) => {
     if (sortColumn === col) {
-      if (sortDirection === 'asc') {
-        setSortDirection('desc');
-      } else if (sortDirection === 'desc') {
+      if (sortDirection === 'asc') setSortDirection('desc');
+      else {
         setSortColumn(null);
         setSortDirection(null);
       }
@@ -170,17 +150,41 @@ export default function SalesPage() {
     }
   };
 
+  // ---------------- Fetch Ventas ----------------
+  useEffect(() => {
+    const fetchSales = async () => {
+      try {
+        const data = await saleApi.getAllSales();
+        setSales(data);
+      } catch (error) {
+        console.error('Error al cargar ventas:', error);
+      }
+    };
+    fetchSales();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage, query, filterStatus]);
+
+  const hasActiveFilters = query !== '' || filterStatus !== 'all';
+
+  const resetFilters = () => {
+    setQuery('');
+    setFilterStatus('all');
+  };
+
   return (
     <DashboardLayout
       title="Lista de ventas"
-      subtitle="Gesti�n de ventas generadas en el sistema."
+      subtitle="Gestión de ventas generadas en el sistema."
       actions={
         <button
+          title="Nueva venta"
           onClick={() => navigate(ROUTES.sales.create)}
-          className="flex items-center gap-2 px-4 py-2 text-xs rounded-lg bg-accent-500 text-[#00001A] font-extrabold transition-all duration-300 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.4)] hover:bg-accent-400 hover:shadow-[0_0_20px_rgba(0,240,255,0.6)] active:scale-95"
+          className="group flex items-center justify-center w-11 h-11 rounded-[14px] bg-indigo-600 text-white font-bold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 border border-indigo-400/30 active:scale-95 active:translate-y-0"
         >
-          <PlusIcon size={18} />
-          <span className="hidden md:inline">Nueva venta</span>
+          <PlusIcon size={22} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] group-hover:rotate-90 transition-transform duration-500" />
         </button>
       }
       headerWidgets={
@@ -236,107 +240,122 @@ export default function SalesPage() {
         </div>
       }
     >
-      <div className="space-y-4">
-        {/* BUSCADOR + FILTROS + PAR�METROS */}
-        <div className="flex gap-3">
+      <div className="space-y-3">
+        {/* BUSCADOR + FILTROS + PARÁMETROS */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
           {/* Buscador */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-[200px]">
             <SearchBar
               value={query}
               onChange={setQuery}
               placeholder="Buscar por ID o nombre del cliente..."
               containerClassName="max-w-full"
-              inputClassName="bg-gray-800/60 text-white border-white/10 placeholder:text-slate-500 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all rounded-xl h-11"
-              iconClassName="text-slate-500 group-focus-within:text-brand-400"
+              inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
+              iconClassName="text-slate-500 group-focus-within:text-indigo-400"
             />
           </div>
 
-          {/* Dropdown FILTROS */}
-          <div ref={filterRef} className="relative shrink-0">
-            <button
-              onClick={() => { setFilterOpen(o => !o); setParamsOpen(false); }}
-              className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                filterOpen || filterStatus !== 'all'
-                  ? 'bg-brand-500/15 border-brand-500/40 text-brand-300'
-                  : 'bg-gray-800/60 border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-              }`}
-            >
-              <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
-              Filtros
-              {filterStatus !== 'all' && <span className="w-2 h-2 rounded-full bg-brand-400 shrink-0" />}
-            </button>
-            {filterOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3 space-y-1">
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Estado</p>
-                {([
-                  ['all',         'Todos'],
-                  ['PENDING',     'Pendiente'],
-                  ['IN_PROGRESS', 'En curso'],
-                  ['COMPLETED',   'Completado'],
-                  ['CANCELLED',   'Cancelado'],
-                ] as const).map(([val, lbl]) => (
-                  <button key={val} onClick={() => setFilterStatus(val)}
-                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                      filterStatus === val ? 'bg-brand-500/20 text-brand-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                    }`}>
-                    {lbl}
-                  </button>
-                ))}
-                {filterStatus !== 'all' && (
-                  <button onClick={() => setFilterStatus('all')}
-                    className="w-full text-center text-[10px] text-rose-400/70 hover:text-rose-400 transition-colors cursor-pointer pt-1 border-t border-white/5">
-                    Limpiar filtro
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Dropdown PAR�METROS */}
-          <div ref={paramsRef} className="relative shrink-0">
-            <button
-              onClick={() => { setParamsOpen(o => !o); setFilterOpen(false); }}
-              className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                paramsOpen || visibleColumns.size < ALL_SALE_COLS.size
-                  ? 'bg-brand-500/15 border-brand-500/40 text-brand-300'
-                  : 'bg-gray-800/60 border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-              }`}
-            >
-              <ChevronDown className={`w-4 h-4 transition-transform ${paramsOpen ? 'rotate-180' : ''}`} />
-              Par�metros
-              {visibleColumns.size < ALL_SALE_COLS.size && (
-                <span className="text-[10px] font-bold bg-brand-500/20 text-brand-300 px-1.5 rounded-full">
-                  {ALL_SALE_COLS.size - visibleColumns.size} ocultas
-                </span>
-              )}
-            </button>
-            {paramsOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3 space-y-1">
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 px-1">Columnas visibles</p>
-                {([
-                  ['createdAt', 'Fecha'],
-                  ['status',    'Estado'],
-                  ['total',     'Monto'],
-                  ['client',    'Cliente'],
-                ] as const).map(([col, lbl]) => (
-                  <label key={col} className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={visibleColumns.has(col)}
-                      onChange={() => toggleColumn(col)}
-                      className="w-3.5 h-3.5 rounded accent-brand-500 cursor-pointer"
-                    />
-                    <span className={`text-xs font-medium transition-colors ${visibleColumns.has(col) ? 'text-gray-200' : 'text-gray-500'}`}>{lbl}</span>
-                  </label>
-                ))}
-                <div className="pt-1 border-t border-white/5">
-                  <button onClick={() => setVisibleColumns(new Set(ALL_SALE_COLS))}
-                    className="w-full text-center text-[10px] text-gray-500 hover:text-gray-300 transition-colors cursor-pointer py-1">
-                    Mostrar todas
-                  </button>
+          {/* Contenedor de Filtros y Acciones */}
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+            {/* Dropdown FILTROS */}
+            <div ref={filterRef} className="relative shrink-0">
+              <button
+                onClick={() => { setFilterOpen(o => !o); setParamsOpen(false); }}
+                className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                  filterOpen || filterStatus !== 'all'
+                    ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+                    : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
+                }`}
+              >
+                <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
+                Filtros
+                {filterStatus !== 'all' && <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />}
+              </button>
+              {filterOpen && (
+                <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3 space-y-1">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Estado</p>
+                  {([
+                    ['all',         'Todos'],
+                    ['PENDING',     'Pendiente'],
+                    ['IN_PROGRESS', 'En curso'],
+                    ['COMPLETED',   'Completado'],
+                    ['CANCELLED',   'Cancelado'],
+                  ] as const).map(([val, lbl]) => (
+                    <button key={val} onClick={() => setFilterStatus(val)}
+                      className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                        filterStatus === val ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                      }`}>
+                      {lbl}
+                    </button>
+                  ))}
+                  {filterStatus !== 'all' && (
+                    <button onClick={() => setFilterStatus('all')}
+                      className="w-full text-center text-[10px] text-rose-400/70 hover:text-rose-400 transition-colors cursor-pointer pt-1 border-t border-white/5">
+                      Limpiar filtro
+                    </button>
+                  )}
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Botón LIMPIAR FILTROS (Global) */}
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                className="h-11 flex items-center gap-2 px-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 text-xs font-medium transition-all hover:bg-rose-500/20 hover:border-rose-500/40 active:scale-95 cursor-pointer"
+                title="Limpiar todos los filtros"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden xl:inline">Limpiar filtros</span>
+              </button>
             )}
+
+            {/* Dropdown PARÁMETROS */}
+            <div ref={paramsRef} className="relative shrink-0 ml-auto">
+              <button
+                onClick={() => { setParamsOpen(o => !o); setFilterOpen(false); }}
+                className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                  paramsOpen || visibleColumns.size < ALL_SALE_COLS.size
+                    ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+                    : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
+                }`}
+              >
+                <ChevronDown className={`w-4 h-4 transition-transform ${paramsOpen ? 'rotate-180' : ''}`} />
+                Ver columnas
+                {visibleColumns.size < ALL_SALE_COLS.size && (
+                  <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 px-1.5 rounded-full">
+                    {ALL_SALE_COLS.size - visibleColumns.size} ocultas
+                  </span>
+                )}
+              </button>
+              {paramsOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3 space-y-1">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 px-1">Columnas visibles</p>
+                  {([
+                    ['createdAt', 'Fecha'],
+                    ['status',    'Estado'],
+                    ['total',     'Monto'],
+                    ['client',    'Cliente'],
+                  ] as const).map(([col, lbl]) => (
+                    <label key={col} className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.has(col)}
+                        onChange={() => toggleColumn(col)}
+                        className="w-3.5 h-3.5 rounded text-indigo-500 focus:ring-indigo-500 bg-gray-800 border-gray-600 cursor-pointer"
+                      />
+                      <span className={`text-xs font-medium transition-colors ${visibleColumns.has(col) ? 'text-gray-200' : 'text-gray-500'}`}>{lbl}</span>
+                    </label>
+                  ))}
+                  <div className="pt-1 border-t border-white/5">
+                    <button onClick={() => setVisibleColumns(new Set(ALL_SALE_COLS))}
+                      className="w-full text-center text-[10px] text-gray-500 hover:text-gray-300 transition-colors cursor-pointer py-1">
+                      Mostrar todas
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -361,17 +380,17 @@ export default function SalesPage() {
         {saleToDelete && (
           <ConfirmModal
             isOpen={true}
-            title="Confirmar cancelaci�n"
+            title="Confirmar cancelación"
             variant="danger"
             message={
               <div className="space-y-4">
                 <p>
-                  �Est�s seguro de que quer�s cancelar la{' '}
-                  <b>Venta #{saleToDelete.id}</b>? Esta acci�n no se puede
+                  ¿Estás seguro de que querés cancelar la{' '}
+                  <b>Venta #{saleToDelete.id}</b>? Esta acción no se puede
                   deshacer.
                 </p>
 
-                <div className="flex items-center justify-center gap-2 p-3 gap-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <div className="flex items-center justify-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                   <input
                     type="checkbox"
                     id="silent-trash"
@@ -383,7 +402,7 @@ export default function SalesPage() {
                     htmlFor="silent-trash"
                     className="text-xs text-red-200 cursor-pointer select-none"
                   >
-                    Cancelaci�n silenciosa (No enviar email)
+                    Cancelación silenciosa (No enviar email)
                   </label>
                 </div>
               </div>
@@ -406,5 +425,3 @@ export default function SalesPage() {
     </DashboardLayout>
   );
 }
-
-
