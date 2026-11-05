@@ -2,11 +2,19 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Product } from "@/types/product.types";
 import { ROUTES } from "@/constants/routes";
-// Lucide para info técnica
-import { Package, Tag, Layers, Info, Box } from "lucide-react";
-// Heroicons para mantener consistencia con la tabla
+import {
+    Package,
+    Layers,
+    Barcode,
+    TrendingUp,
+    DollarSign,
+    Coins,
+    PackageOpen,
+    Eye,
+    EyeOff,
+    Sparkles,
+} from "lucide-react";
 import { PencilIcon } from "@heroicons/react/20/solid";
-
 import { getDriveDirectLink } from "@/helpers/url.helper";
 
 interface ProductDetailsModalProps {
@@ -38,172 +46,252 @@ export function ProductDetailsModal({
         }).format(amount);
     };
 
+    const cost = product.costPrice != null ? Number(product.costPrice) : 0;
+    const price = Number(product.price) || 0;
+    const hasCost = cost > 0;
+    const profitMargin = hasCost && price > 0
+        ? (((price - cost) / cost) * 100).toFixed(1)
+        : null;
+    const netProfit = hasCost && price > 0 ? price - cost : null;
+
     return (
-      <div
-        className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-md p-0 md:p-4"
-        onClick={onClose}
-      >
         <div
-          className="bg-[#0C0A15]/95 backdrop-blur-3xl border-t md:border border-white/10 rounded-t-[32px] md:rounded-3xl p-4 md:p-6 w-full max-w-4xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-left transform transition-all animate-fade-in max-h-[95vh] md:max-h-[90vh] overflow-y-auto flex flex-col ring-1 ring-white/5"
-          onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-md p-0 md:p-4"
+            onClick={onClose}
         >
-          {/* Cabecera */}
-          <div className="flex justify-between items-center mb-4 md:mb-6 border-b border-white/5 pb-3 md:pb-4">
-            <h2 className="text-lg md:text-xl font-bold text-slate-100 flex items-center gap-2">
-              <Package className="text-brand-400" size={20} />
-              Detalles <span className="hidden md:inline">del producto</span>
-              <span className="tracking-wider">#{product.id}</span>
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-slate-500 hover:text-rose-400 hover:bg-white/5 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer text-2xl md:text-3xl leading-none"
-            >
-              &times;
-            </button>
-          </div>
-
-          <div className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-              {/* Imagen */}
-              <div className="md:col-span-1 flex justify-center">
-                <div className="w-48 h-48 md:w-full md:h-auto md:aspect-square rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
-                  {product.imageUrl ? (
-                    <img
-                      src={getDriveDirectLink(product.imageUrl)}
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                    />
-                  ) : (
-                    <Package size={48} className="text-slate-500 opacity-50" />
-                  )}
-                </div>
-              </div>
-
-              {/* Bloque de Información Principal */}
-              <div className="md:col-span-2">
-                <div className="bg-white/[0.02] p-4 md:p-5 rounded-2xl border border-white/5 h-full flex flex-col shadow-inner">
-                  <div className="mb-2 md:mb-4">
-                    <h3 className="text-xl md:text-2xl font-bold text-white leading-tight">
-                      {product.name}
-                    </h3>
-                  </div>
-
-                  {/* Descripción arriba del borde */}
-                  <p className="text-xs md:text-sm text-slate-400 italic leading-relaxed mb-4">
-                    {product.description ||
-                      'Este producto no cuenta con una descripción detallada por el momento.'}
-                  </p>
-
-                  {/* Borde y Precio abajo de la descripción */}
-                  <div className="mt-auto pt-3 md:pt-4 border-t border-white/5 inline-flex flex-col">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
-                      Precio de venta
-                    </span>
-                    <span className="text-2xl md:text-3xl font-black text-emerald-400">
-                      {formatARS(product.price || 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
-              {/* Categoría */}
-              <div className="bg-white/[0.02] p-3 md:p-4 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-2 md:gap-4 md:items-center">
-                <div className="p-2 md:p-3 bg-indigo-500/10 rounded-xl text-indigo-400 w-fit">
-                  <Layers size={18} className="md:w-5 md:h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] md:text-xs text-slate-500 uppercase block font-medium">
-                    Categoría
-                  </span>
-                  <span className="text-xs md:text-sm font-semibold text-slate-200">
-                    {product.category?.name || 'General'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Marca */}
-              <div className="bg-white/[0.02] p-3 md:p-4 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-2 md:gap-4 md:items-center">
-                <div className="p-2 md:p-3 bg-amber-500/10 rounded-xl text-amber-400 w-fit">
-                  <Tag size={18} className="md:w-5 md:h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] md:text-xs text-slate-500 uppercase block font-medium">
-                    Marca
-                  </span>
-                  <span className="text-xs md:text-sm font-semibold text-slate-200">
-                    {product.brand?.name || 'Sin Marca'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Stock */}
-              <div className="bg-white/[0.02] p-3 md:p-4 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-2 md:gap-4 md:items-center">
-                <div className="p-2 md:p-3 bg-emerald-500/10 rounded-xl text-emerald-400 w-fit">
-                  <Info size={18} className="md:w-5 md:h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] md:text-xs text-slate-500 uppercase block font-medium">
-                    Stock
-                  </span>
-                  <span
-                    className={`text-xs md:text-sm font-bold ${product.stock === 0 ? 'text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.5)]' : 'text-slate-200'}`}
-                  >
-                    {product.stock ?? 0} u.
-                  </span>
-                </div>
-              </div>
-
-              {/* Presentación */}
-              <div className="bg-white/[0.02] p-3 md:p-4 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-2 md:gap-4 md:items-center">
-                <div className="p-2 md:p-3 bg-slate-500/10 rounded-xl text-slate-400 w-fit">
-                  <Box size={18} className="md:w-5 md:h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] md:text-xs text-slate-500 uppercase block font-medium">
-                    Unidad
-                  </span>
-                  <span className="text-xs md:text-sm font-semibold text-slate-200">
-                    {product.unit || 'N/A'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Banner de Catálogo */}
             <div
-              className={`p-2 md:p-3 rounded-2xl border flex items-center justify-center gap-2 text-[10px] md:text-xs font-bold tracking-widest uppercase ${
-                product.showingInCatalog
-                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
-                  : 'bg-white/[0.02] border-white/5 text-slate-500'
-              }`}
+                className="bg-[#0C0A15]/95 backdrop-blur-3xl border-t md:border border-white/10 rounded-t-[32px] md:rounded-3xl p-5 md:p-6 w-full max-w-3xl shadow-[0_0_60px_rgba(0,0,0,0.7)] text-left transform transition-all animate-fade-in max-h-[92vh] md:max-h-[90vh] overflow-y-auto flex flex-col ring-1 ring-white/5"
+                onClick={(e) => e.stopPropagation()}
             >
-              <div
-                className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${product.showingInCatalog ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400'}`}
-              ></div>
-              {product.showingInCatalog ? 'Visible en Catálogo' : 'Oculto'}
-            </div>
-          </div>
+                {/* Cabecera */}
+                <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                            <Package size={20} />
+                        </div>
+                        <div>
+                            <h2 className="text-base md:text-lg font-bold text-slate-100 flex items-center gap-2">
+                                Detalle de Producto
+                                <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-white/5 text-slate-400 border border-white/5">
+                                    #{product.id}
+                                </span>
+                            </h2>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-slate-500 hover:text-rose-400 hover:bg-white/5 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer text-2xl leading-none"
+                    >
+                        &times;
+                    </button>
+                </div>
 
-          {/* Footer */}
-          <div className="mt-6 md:mt-8 flex justify-end border-t border-white/5 pt-4 gap-2 md:gap-3">
-            <button
-              className="px-4 md:px-6 py-3 md:py-2.5 font-bold rounded-2xl text-xs flex-1 md:flex-none border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white"
-              onClick={onClose}
-            >
-              Cerrar
-            </button>
-            <Link
-              to={ROUTES.products.edit(product.id)}
-              className="px-4 md:px-6 py-3 md:py-2.5 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-500 transition cursor-pointer text-xs shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center justify-center gap-2 flex-1 md:flex-none border border-indigo-500/30 active:scale-95 hover:-translate-y-0.5"
-            >
-              <PencilIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              Editar producto
-            </Link>
-          </div>
+                <div className="space-y-4">
+                    {/* Tarjeta Superior: Imagen + Info Principal */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/[0.02] p-4 rounded-2xl border border-white/5 shadow-inner">
+                        <div className="sm:col-span-1 flex justify-center items-center">
+                            <div className="w-36 h-36 sm:w-full sm:h-auto sm:aspect-square rounded-xl bg-[#151320] border border-white/5 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                                {product.imageUrl ? (
+                                    <img
+                                        src={getDriveDirectLink(product.imageUrl)}
+                                        alt={product.name}
+                                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                    />
+                                ) : (
+                                    <Package size={42} className="text-slate-600" />
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="sm:col-span-2 flex flex-col justify-between">
+                            <div>
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center gap-1">
+                                        <Layers size={11} />
+                                        {product.category?.name || "Sin categoría"}
+                                    </span>
+                                    {product.isOffer && (
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                            <Sparkles size={11} />
+                                            En oferta
+                                        </span>
+                                    )}
+                                </div>
+                                <h3 className="text-lg sm:text-xl font-bold text-white leading-snug">
+                                    {product.name}
+                                </h3>
+                                <p className="text-xs text-slate-400 mt-2 leading-relaxed line-clamp-3">
+                                    {product.description || (
+                                        <span className="italic text-slate-500">
+                                            Sin descripción registrada.
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+
+                            {/* Código de barra */}
+                            <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-2 text-xs">
+                                <Barcode size={16} className="text-slate-500 shrink-0" />
+                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
+                                    Código:
+                                </span>
+                                <span className="font-mono text-slate-300 font-medium">
+                                    {product.barcode || <span className="text-slate-600 italic">Sin código</span>}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* BLOQUE FINANCIERO: Costo, Venta, Margen y Ganancia neta */}
+                    <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-2 block">
+                            Información Financiera y Rentabilidad
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {/* Costo */}
+                            <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl flex flex-col justify-between">
+                                <div className="flex items-center justify-between text-slate-400 mb-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                                        Precio de Costo
+                                    </span>
+                                    <div className="w-6 h-6 rounded-lg bg-slate-500/10 flex items-center justify-center text-slate-400">
+                                        <Coins size={13} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xl md:text-2xl font-black text-slate-200">
+                                        {hasCost ? formatARS(cost) : <span className="text-slate-600 text-lg">No asignado</span>}
+                                    </span>
+                                    <span className="block text-[10px] text-slate-500 mt-0.5">
+                                        Costo de adquisición
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Venta */}
+                            <div className="bg-emerald-500/[0.04] border border-emerald-500/15 p-3.5 rounded-2xl flex flex-col justify-between shadow-[0_0_20px_rgba(16,185,129,0.05)]">
+                                <div className="flex items-center justify-between text-emerald-400 mb-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                                        Precio de Venta
+                                    </span>
+                                    <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                        <DollarSign size={14} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xl md:text-2xl font-black text-emerald-400">
+                                        {formatARS(price)}
+                                    </span>
+                                    <span className="block text-[10px] text-emerald-500/70 mt-0.5">
+                                        Precio al público
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Margen y Ganancia */}
+                            <div className="bg-indigo-500/[0.04] border border-indigo-500/15 p-3.5 rounded-2xl flex flex-col justify-between shadow-[0_0_20px_rgba(99,102,241,0.05)]">
+                                <div className="flex items-center justify-between text-indigo-400 mb-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                                        Margen / Ganancia
+                                    </span>
+                                    <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                                        <TrendingUp size={13} />
+                                    </div>
+                                </div>
+                                <div>
+                                    {profitMargin !== null ? (
+                                        <>
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-xl md:text-2xl font-black text-indigo-300">
+                                                    +{profitMargin}%
+                                                </span>
+                                            </div>
+                                            <span className="block text-[10px] text-indigo-400/80 mt-0.5 font-medium">
+                                                Ganancia: {formatARS(netProfit || 0)} / u.
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-sm font-semibold text-slate-500 block">
+                                                Sin costo base
+                                            </span>
+                                            <span className="block text-[10px] text-slate-600 mt-0.5">
+                                                Ingrese costo para calcular margen
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stock y Catálogo */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white/[0.02] p-3 rounded-2xl border border-white/5 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-slate-500/10 border border-white/5 flex items-center justify-center text-slate-300 shrink-0">
+                                <PackageOpen size={18} />
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-slate-500 uppercase font-bold block">
+                                    Stock disponible
+                                </span>
+                                <span
+                                    className={`text-sm md:text-base font-black ${
+                                        product.stock === 0
+                                            ? "text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.5)]"
+                                            : "text-slate-100"
+                                    }`}
+                                >
+                                    {product.stock ?? 0} unidades
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white/[0.02] p-3 rounded-2xl border border-white/5 flex items-center gap-3">
+                            <div
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                                    product.showingInCatalog
+                                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                        : "bg-slate-500/10 border-white/5 text-slate-500"
+                                }`}
+                            >
+                                {product.showingInCatalog ? <Eye size={18} /> : <EyeOff size={18} />}
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-slate-500 uppercase font-bold block">
+                                    Catálogo Web
+                                </span>
+                                <span
+                                    className={`text-xs md:text-sm font-bold ${
+                                        product.showingInCatalog ? "text-emerald-400" : "text-slate-500"
+                                    }`}
+                                >
+                                    {product.showingInCatalog ? "Visible al público" : "Oculto del catálogo"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="mt-5 flex justify-end border-t border-white/5 pt-4 gap-2.5">
+                    <button
+                        type="button"
+                        className="px-5 py-2.5 font-bold rounded-xl text-xs flex-1 sm:flex-none border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white active:scale-95"
+                        onClick={onClose}
+                    >
+                        Cerrar
+                    </button>
+                    <Link
+                        to={ROUTES.products.edit(product.id)}
+                        className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition cursor-pointer text-xs shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center justify-center gap-2 flex-1 sm:flex-none border border-indigo-500/30 active:scale-95 hover:-translate-y-0.5"
+                    >
+                        <PencilIcon className="w-3.5 h-3.5" />
+                        Editar producto
+                    </Link>
+                </div>
+            </div>
         </div>
-      </div>
     );
 }
 

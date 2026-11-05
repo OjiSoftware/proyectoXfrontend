@@ -102,10 +102,10 @@ export function ProductsTable({
             </TableHeadCell>
 
             <TableHeadCell
-              className="cursor-pointer select-none text-center"
+              className="cursor-pointer select-none text-left"
               onClick={() => onSort('name')}
             >
-              <div className="relative inline-flex items-center justify-center">
+              <div className="relative inline-flex items-center">
                 <span>Nombre</span>
                 <div className="absolute -right-6">{renderSortArrow('name')}</div>
               </div>
