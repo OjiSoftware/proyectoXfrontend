@@ -30,7 +30,7 @@ export default function ProductsPage() {
     const [filterSubCategory, setFilterSubCategory] = useState<string>('all');
 
     // ---------------- Columnas visibles ----------------
-    const ALL_PRODUCT_COLS = new Set(['category', 'stock', 'price', 'catalog']);
+    const ALL_PRODUCT_COLS = new Set(['barcode', 'category', 'stock', 'price', 'catalog']);
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set(ALL_PRODUCT_COLS));
 
     const toggleColumn = (col: string) => {
@@ -107,7 +107,9 @@ export default function ProductsPage() {
         // 1. Filtrar
         const filtered = products.filter((p) => {
             if (!p.status) return false;
-            const matchesQuery = p.name.toLowerCase().includes(searchTerm);
+            const matchesQuery =
+                p.name.toLowerCase().includes(searchTerm) ||
+                (p.barcode && p.barcode.toLowerCase().includes(searchTerm));
             if (!matchesQuery) return false;
 
             // Filtro de stock
@@ -262,7 +264,7 @@ export default function ProductsPage() {
                 <div className="bg-slate-800/90 backdrop-blur-md border border-white/10 shadow-2xl rounded-xl p-4 flex items-start gap-3 min-w-[300px]">
                     <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                        <h3 className="text-xs font-bold text-white">
+                        <h3 className="text-xs font-poppins text-white">
                             ¡Hola, {userName}!
                         </h3>
                         <p className="text-xs text-slate-400 mt-1">
@@ -627,6 +629,7 @@ export default function ProductsPage() {
                                     <div className="absolute right-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3 space-y-1">
                                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 px-1">Columnas visibles</p>
                                         {([
+                                            ['barcode', 'Código'],
                                             ['category', 'Categoría'],
                                             ['stock', 'Stock'],
                                             ['price', 'Precio'],

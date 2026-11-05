@@ -15,6 +15,12 @@ export const productApi = {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || "Error al actualizar el producto");
+        }
+
         return response.json();
     },
 
@@ -25,7 +31,10 @@ export const productApi = {
             body: JSON.stringify(data),
         });
 
-        if (!response.ok) throw new Error("Error al crear el producto");
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || "Error al crear el producto");
+        }
 
         return response.json();
     },

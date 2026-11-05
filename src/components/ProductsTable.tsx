@@ -111,6 +111,18 @@ export function ProductsTable({
               </div>
             </TableHeadCell>
 
+            {isVisible('barcode') && (
+              <TableHeadCell
+                className="cursor-pointer select-none text-center"
+                onClick={() => onSort('barcode')}
+              >
+                <div className="relative inline-flex items-center justify-center">
+                  <span>Código</span>
+                  <div className="absolute -right-6">{renderSortArrow('barcode')}</div>
+                </div>
+              </TableHeadCell>
+            )}
+
             {isVisible('category') && (
               <TableHeadCell
                 className={`${hideOnTablet} cursor-pointer select-none text-center`}
@@ -177,9 +189,14 @@ export function ProductsTable({
               <TableCell className="text-left py-3">
                 <div className="flex flex-col items-start justify-center">
                   <span className="font-bold text-slate-200">{product.name}</span>
-                  <span className="text-[10px] text-slate-500 font-mono uppercase mt-0.5">ID: {product.id}</span>
                 </div>
               </TableCell>
+
+              {isVisible('barcode') && (
+                <TableCell className="text-center font-mono text-slate-400">
+                  {product.barcode || <span className="text-slate-600 italic">-</span>}
+                </TableCell>
+              )}
 
               {isVisible('category') && (
                 <TableCell className={`${hideOnTablet} text-center text-slate-400`}>

@@ -17,6 +17,7 @@ import {
     TagIcon,
     BriefcaseIcon,
     DocumentChartBarIcon,
+    GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
@@ -89,9 +90,13 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             <aside className="hidden md:flex md:w-64 md:flex-col bg-[#0A0812] backdrop-blur-xl border-r border-white/5 shadow-2xl relative z-20">
                 {/* Header Layout Lateral (Logo) */}
-                <div className="flex shrink-0 items-center justify-center px-4 h-25">
+                <Link
+                    to="/"
+                    title="Ir a la web pública"
+                    className="flex shrink-0 items-center justify-center px-4 h-25 hover:opacity-80 transition-opacity"
+                >
                     <img alt="OJI" src={logo} className="h-18 w-auto" />
-                </div>
+                </Link>
 
                 {/* Zona central scrolleable con Menu */}
                 <div className="flex-1 overflow-y-auto w-full no-scrollbar pb-6">
@@ -104,27 +109,27 @@ export default function DashboardLayout({
                             </MenuButton>
                             <MenuItems transition className="absolute left-0 mt-3 w-full rounded-2xl bg-[#151320]/95 backdrop-blur-2xl shadow-2xl ring-1 ring-white/10 focus:outline-none overflow-hidden z-50">
                                 <MenuItem>
-                                    <Link to="/management/sales/create" className="block px-4 py-3 text-xs font-medium text-emerald-400 hover:bg-white/5 transition-colors text-center w-full focus:outline-none">
-                                        Nueva Venta
+                                    <Link to="/management/sales/create" className="block px-4 py-3 text-xs font-medium text-white hover:bg-white/5 transition-colors text-center w-full focus:outline-none">
+                                        Nueva venta
                                     </Link>
                                 </MenuItem>
                                 <MenuItem>
-                                    <Link to="/management/products/create" className="block px-4 py-3 text-xs font-medium text-indigo-400 hover:bg-white/5 transition-colors text-center border-y border-white/5 w-full focus:outline-none">
-                                        Nuevo Producto
+                                    <Link to="/management/products/create" className="block px-4 py-3 text-xs font-medium text-white hover:bg-white/5 transition-colors text-center border-y border-white/5 w-full focus:outline-none">
+                                        Nuevo producto
+                                    </Link>
+                                </MenuItem>
+                                {/*                                 <MenuItem>
+                                    <Link to="/management/brands/create" className="block px-4 py-3 text-xs font-medium text-white hover:bg-white/5 transition-colors text-center border-b border-white/5 w-full focus:outline-none">
+                                        Nueva marca
+                                    </Link>
+                                </MenuItem> */}
+                                <MenuItem>
+                                    <Link to="/management/categories/create" className="block px-4 py-3 text-xs font-medium text-white hover:bg-white/5 transition-colors text-center border-b border-white/5 w-full focus:outline-none">
+                                        Nueva categoría
                                     </Link>
                                 </MenuItem>
                                 <MenuItem>
-                                    <Link to="/management/brands/create" className="block px-4 py-3 text-xs font-medium text-amber-400 hover:bg-white/5 transition-colors text-center border-b border-white/5 w-full focus:outline-none">
-                                        Nueva Marca
-                                    </Link>
-                                </MenuItem>
-                                <MenuItem>
-                                    <Link to="/management/categories/create" className="block px-4 py-3 text-xs font-medium text-purple-400 hover:bg-white/5 transition-colors text-center border-b border-white/5 w-full focus:outline-none">
-                                        Nueva Categoría
-                                    </Link>
-                                </MenuItem>
-                                <MenuItem>
-                                    <Link to="/management/subcategories/create" className="block px-4 py-3 text-xs font-medium text-pink-400 hover:bg-white/5 transition-colors text-center w-full focus:outline-none">
+                                    <Link to="/management/subcategories/create" className="block px-4 py-3 text-xs font-medium text-white hover:bg-white/5 transition-colors text-center w-full focus:outline-none">
                                         Nuevo proovedor
                                     </Link>
                                 </MenuItem>
@@ -161,6 +166,16 @@ export default function DashboardLayout({
                                 );
                             })}
                         </nav>
+
+                        <div className="pt-4 mt-4 border-t border-white/5">
+                            <Link
+                                to="/"
+                                className="group flex items-center px-4 py-2.5 text-xs font-medium rounded-2xl text-emerald-400/90 hover:text-emerald-300 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/15 hover:border-emerald-500/30 transition-all shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+                            >
+                                <GlobeAltIcon className="mr-3 h-5 w-5 text-emerald-400/80 group-hover:text-emerald-300 transition-colors" />
+                                <span>Ver tienda pública</span>
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
@@ -197,9 +212,9 @@ export default function DashboardLayout({
                     <div className="mx-auto px-4 sm:px-6">
                         <div className="flex h-16 items-center justify-between">
                             <div className="flex items-center">
-                                <div className="shrink-0">
+                                <Link to="/" title="Ir a la web pública" className="shrink-0">
                                     <img alt="OJI" src={logo} className="h-8 w-auto" />
-                                </div>
+                                </Link>
                             </div>
                             <div className="-mr-2 flex items-center">
                                 <DisclosureButton className="inline-flex items-center justify-center rounded-lg p-2 text-gray-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all">
@@ -232,6 +247,17 @@ export default function DashboardLayout({
                                     </DisclosureButton>
                                 )
                             })}
+
+                            <div className="pt-2 mt-2 border-t border-white/10">
+                                <DisclosureButton
+                                    as={Link}
+                                    to="/"
+                                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 transition-all"
+                                >
+                                    <GlobeAltIcon className="h-5 w-5 text-emerald-400 opacity-80" />
+                                    <span>Ver tienda pública</span>
+                                </DisclosureButton>
+                            </div>
                         </div>
                         <div className="border-t border-white/10 pb-4 pt-4 bg-gray-800/30">
                             <div className="flex items-center justify-between px-5">

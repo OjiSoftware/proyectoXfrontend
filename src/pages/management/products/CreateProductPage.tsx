@@ -103,6 +103,7 @@ export default function CreateProductPage() {
                 barcode: barcode.trim(),
                 name: formData.name.trim(), // Limpiamos espacios accidentales
                 price: Math.max(0, formData.price),
+                costPrice: costPrice > 0 ? costPrice : null,
                 // Blindaje de stock: aseguramos que sea entero y no negativo
                 stock: Math.max(0, Math.floor(Number(formData.stock) || 0)),
             });
@@ -123,7 +124,6 @@ export default function CreateProductPage() {
     const isFormInvalid =
         !formData.name.trim() ||
         /* !formData.unit.trim() || */
-        !formData.description.trim() ||
         !formData.categoryId ||
         !barcode.trim() ||
         formData.price <= 0 ||
@@ -261,7 +261,7 @@ export default function CreateProductPage() {
 
                         <div>
                             <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                                Descripción <span className="font-bold text-indigo-400">*</span>
+                                Descripción
                             </label>
                             <textarea
                                 name="description"
@@ -270,7 +270,6 @@ export default function CreateProductPage() {
                                 onChange={handleChange}
                                 placeholder="Características..."
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner resize-none h-20"
-                                required
                             />
                         </div>
 
@@ -382,6 +381,7 @@ export default function CreateProductPage() {
                                         onChange={handleCostPriceChange}
                                         placeholder="0,00"
                                         className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                                        required
                                     />
                                 </div>
                                 <div className="col-span-1">

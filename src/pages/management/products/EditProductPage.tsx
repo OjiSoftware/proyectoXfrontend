@@ -31,12 +31,22 @@ export default function EditProductPage() {
     const [costPrice, setCostPrice] = useState(0);
     const [minStock, setMinStock] = useState("");
 
-    // Sincronizar el barcode cuando formData se carga desde la API
+    // Sincronizar el barcode y costPrice cuando formData se carga desde la API
     React.useEffect(() => {
         if (formData.barcode) {
             setBarcode(formData.barcode);
         }
-    }, [formData.barcode]);
+        if (formData.costPrice !== undefined && formData.costPrice !== null) {
+            const num = Number(formData.costPrice);
+            setCostPrice(num);
+            setCostPriceInput(
+                num.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                })
+            );
+        }
+    }, [formData.barcode, formData.costPrice]);
 
     // Profit Margin Calculation
     const profitMargin = costPrice > 0 && formData.price > 0
@@ -159,6 +169,27 @@ export default function EditProductPage() {
         setCostPrice(isNaN(numericValue) ? 0 : Math.max(0, numericValue));
     };
 
+    const handleCostPriceFocus = () => {
+        if (costPrice > 0) {
+            setCostPriceInput(costPrice.toString());
+        } else {
+            setCostPriceInput("");
+        }
+    };
+
+    const handleCostPriceBlur = () => {
+        if (costPrice > 0) {
+            setCostPriceInput(
+                costPrice.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                }),
+            );
+        } else {
+            setCostPriceInput("");
+        }
+    };
+
     const handleSubmit = async () => {
         setShowConfirmModal(false);
         const loadingToast = toast.loading("Guardando cambios...");
@@ -171,6 +202,7 @@ export default function EditProductPage() {
                 name: formData.name.trim(),
                 stock: Math.max(0, Math.floor(Number(formData.stock) || 0)),
                 price: Math.max(0, formData.price),
+                costPrice: costPrice > 0 ? costPrice : null,
                 description: formData.description.trim(),
                 showingInCatalog: formData.showingInCatalog,
                 imageUrl: formData.imageUrl?.trim() || "",
@@ -196,7 +228,6 @@ export default function EditProductPage() {
     const isFormInvalid =
         !formData.name.trim() ||
         /*         !formData.unit.trim() || */
-        !formData.description.trim() ||
         !formData.categoryId ||
         /*         !formData.subCategoryId ||
                 !formData.brandId || */
@@ -332,7 +363,8 @@ export default function EditProductPage() {
 
                         <div>
                             <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                                Código de barra
+                                Código de barra{" "}
+                                <span className="font-bold text-indigo-400">*</span>
                             </label>
                             <input
                                 type="text"
@@ -345,7 +377,7 @@ export default function EditProductPage() {
 
                         <div>
                             <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                                Descripción <span className="font-bold text-indigo-400">*</span>
+                                Descripción
                             </label>
                             <textarea
                                 name="description"
@@ -354,7 +386,6 @@ export default function EditProductPage() {
                                 onChange={handleChange}
                                 placeholder="Características..."
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner resize-none h-20"
-                                required
                             />
                         </div>
 
@@ -463,6 +494,8 @@ export default function EditProductPage() {
                                         type="text"
                                         value={costPriceInput}
                                         onChange={handleCostPriceChange}
+                                        onFocus={handleCostPriceFocus}
+                                        onBlur={handleCostPriceBlur}
                                         placeholder="0,00"
                                         className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
                                     />

@@ -7,6 +7,7 @@ export interface Product {
     barcode?: string | null;
     description: string;
     price: number;
+    costPrice?: number | null;
     imageUrl: string;
     /* subCategoryId: number;
     subCategory?: SubCategory & { category: { id: number; name: string } }; */
@@ -30,6 +31,7 @@ export interface ProductEditFrontend {
     /* subCategoryId: number; */
     stock: number;
     price: number;
+    costPrice?: number | null;
     description: string;
     showingInCatalog: boolean;
     isOffer?: boolean;
