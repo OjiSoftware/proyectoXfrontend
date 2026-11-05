@@ -121,13 +121,12 @@ export function SalesTable({
     const isActive = currentSortColumn === column;
     return (
       <ArrowUpIcon
-        className={`w-3 h-3 ms-1 transition-all duration-150 ${
-          isActive && currentSortDirection
-            ? currentSortDirection === 'desc'
-              ? 'rotate-180 opacity-100'
-              : 'opacity-100'
-            : 'opacity-0'
-        }`}
+        className={`w-3 h-3 ms-1 transition-all duration-150 ${isActive && currentSortDirection
+          ? currentSortDirection === 'desc'
+            ? 'rotate-180 opacity-100'
+            : 'opacity-100'
+          : 'opacity-0'
+          }`}
       />
     );
   };
@@ -138,8 +137,8 @@ export function SalesTable({
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0C0A15] shadow-2xl relative w-full">
-      <Table hoverable className="w-full border-collapse">
-        <TableHead className="bg-[#151320] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-[10px] [&_th]:uppercase [&_th]:tracking-wider">
+      <Table hoverable className="w-full ">
+        <TableHead className="bg-[#151320] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white-5 [&_th]:font-semibold [&_th]:text-[10px] [&_th]:uppercase [&_th]:tracking-wider">
           <TableRow className="hover:bg-transparent border-none">
             <TableHeadCell
               className="px-4 w-14 cursor-pointer select-none"
@@ -206,11 +205,10 @@ export function SalesTable({
           {displaySales.map((sale) => (
             <TableRow
               key={sale.id}
-              className={`bg-transparent transition-colors text-xs border-white/5 group ${
-                (sale as any).notes
-                  ? 'hover:bg-amber-500/15 bg-amber-500/5'
-                  : 'hover:bg-white/5'
-              }`}
+              className={`bg-transparent transition-colors text-xs border-white/5 group ${(sale as any).notes
+                ? 'hover:bg-amber-500/15 bg-amber-500/5'
+                : 'hover:bg-white/5'
+                }`}
             >
               <TableCell className="px-4 font-bold align-top py-3 lg:align-middle">
                 <div className="flex flex-col">
