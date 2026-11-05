@@ -315,7 +315,7 @@ export default function ProductDetailPage() {
         {/* RELATED PRODUCTS */}
         <SimilarProducts
           currentProductId={product.id}
-          subCategoryId={product.subCategoryId}
+          categoryId={product.category?.id}
         />
       </div>
 

@@ -1,18 +1,20 @@
 import { Brand } from "./brand.types";
-import { SubCategory } from "./subcategory.types";
+/* import { SubCategory } from "./subcategory.types"; */
 
 export interface Product {
     id: number;
     name: string;
+    barcode?: string | null;
     description: string;
     price: number;
     imageUrl: string;
-    subCategoryId: number;
-    subCategory?: SubCategory & { category: { id: number; name: string } };
-    brandId?: number;
-    brand?: Brand;
+    /* subCategoryId: number;
+    subCategory?: SubCategory & { category: { id: number; name: string } }; */
+    category: { id: number; name: string };
+    brandId?: number | null;
+    brand?: Brand | null;
     stock?: number;
-    unit?: string;
+    unit?: string | null;
     status?: boolean;
     isOffer?: boolean;
     createdAt?: string;
@@ -22,16 +24,17 @@ export interface Product {
 // Para el formulario de edición
 export interface ProductEditFrontend {
     name: string;
-    brandId: number;
-    categoryId: number; // solo UI
-    subCategoryId: number;
+    barcode?: string | null;
+    brandId?: number | null;
+    categoryId: number;
+    /* subCategoryId: number; */
     stock: number;
     price: number;
     description: string;
     showingInCatalog: boolean;
     isOffer?: boolean;
     imageUrl: string;
-    unit: string;
+    unit?: string | null;
 }
 
-export type ProductEditBackend = Omit<ProductEditFrontend, "categoryId">;
+export type ProductEditBackend = ProductEditFrontend;

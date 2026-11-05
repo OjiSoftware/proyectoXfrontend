@@ -56,21 +56,20 @@ export default function CatalogPage() {
             filtered = filtered.filter((p) => {
                 const searchableText = `
                     ${p.name}
-                    ${p.subCategory?.name || ''}
-                    ${p.subCategory?.category?.name || ''}
+                    ${p.category?.name || ''}
                 `.toLowerCase();
 
                 return searchTerms.every((term) => searchableText.includes(term));
             });
         }
 
-        if (selectedSubCategory !== null) {
-            filtered = filtered.filter((p) => Number(p.subCategoryId) === selectedSubCategory);
-        }
-
-        if (selectedBrand !== null) {
-            filtered = filtered.filter((p) => Number(p.brandId) === selectedBrand);
-        }
+        /*         if (selectedSubCategory !== null) {
+                    filtered = filtered.filter((p) => Number(p.subCategoryId) === selectedSubCategory);
+                }
+        
+                if (selectedBrand !== null) {
+                    filtered = filtered.filter((p) => Number(p.brandId) === selectedBrand);
+                } */
 
         return filtered;
     }, [search, selectedSubCategory, selectedBrand, catProducts]);

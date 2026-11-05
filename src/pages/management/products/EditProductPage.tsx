@@ -17,8 +17,8 @@ export default function EditProductPage() {
         priceInput,
         setPriceInput,
         categories,
-        brands,
-        subCategories,
+        /*         brands,
+                subCategories, */
         isLoading,
     } = useProductEdit();
 
@@ -31,14 +31,21 @@ export default function EditProductPage() {
     const [costPrice, setCostPrice] = useState(0);
     const [minStock, setMinStock] = useState("");
 
+    // Sincronizar el barcode cuando formData se carga desde la API
+    React.useEffect(() => {
+        if (formData.barcode) {
+            setBarcode(formData.barcode);
+        }
+    }, [formData.barcode]);
+
     // Profit Margin Calculation
-    const profitMargin = costPrice > 0 && formData.price > 0 
+    const profitMargin = costPrice > 0 && formData.price > 0
         ? (((formData.price - costPrice) / costPrice) * 100).toFixed(1)
         : null;
 
-    const filteredSubCategories = subCategories.filter(
-        (sub) => sub.categoryId === formData.categoryId,
-    );
+    /*     const filteredSubCategories = subCategories.filter(
+            (sub) => sub.categoryId === formData.categoryId,
+        ); */
 
     if (!id)
         return (
@@ -72,25 +79,27 @@ export default function EditProductPage() {
         }
 
         const isNumeric = [
-            "brandId",
+            /*             "brandId", */
             "categoryId",
-            "subCategoryId",
+            /* "subCategoryId", */
             "stock",
         ].includes(name);
-        
+
         let finalValue: string | number | boolean = isNumeric ? parseInt(value) || 0 : value;
 
         if (name === "imageUrl") {
             finalValue = getDriveDirectLink(value as string);
         }
 
-        setFormData((prev) => {
-            const newState = { ...prev, [name]: finalValue };
-            if (name === "categoryId" && prev.categoryId !== finalValue) {
-                newState.subCategoryId = 0;
-            }
-            return newState;
-        });
+        /*         setFormData((prev) => {
+                    const newState = { ...prev, [name]: finalValue };
+                    if (name === "categoryId" && prev.categoryId !== finalValue) {
+                        newState.subCategoryId = 0;
+                    }
+                    return newState;
+                }); */
+
+        setFormData((prev) => ({ ...prev, [name]: finalValue }));
     };
 
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +111,7 @@ export default function EditProductPage() {
             if (raw.lastIndexOf(",") > raw.lastIndexOf(".")) {
                 parseableRaw = raw.replace(/\./g, "").replace(",", ".");
             } else {
-                parseableRaw = raw.replace(/,/g, ""); 
+                parseableRaw = raw.replace(/,/g, "");
             }
         } else {
             parseableRaw = raw.replace(/,/g, ".");
@@ -140,7 +149,7 @@ export default function EditProductPage() {
             if (raw.lastIndexOf(",") > raw.lastIndexOf(".")) {
                 parseableRaw = raw.replace(/\./g, "").replace(",", ".");
             } else {
-                parseableRaw = raw.replace(/,/g, ""); 
+                parseableRaw = raw.replace(/,/g, "");
             }
         } else {
             parseableRaw = raw.replace(/,/g, ".");
@@ -157,8 +166,8 @@ export default function EditProductPage() {
         try {
             // Implementación de blindaje igual al Create
             const payload: ProductEditBackend = {
-                brandId: formData.brandId,
-                subCategoryId: formData.subCategoryId,
+                categoryId: formData.categoryId,
+                barcode: barcode.trim(),
                 name: formData.name.trim(),
                 stock: Math.max(0, Math.floor(Number(formData.stock) || 0)),
                 price: Math.max(0, formData.price),
@@ -166,7 +175,8 @@ export default function EditProductPage() {
                 showingInCatalog: formData.showingInCatalog,
                 imageUrl: formData.imageUrl?.trim() || "",
                 isOffer: formData.isOffer ?? false,
-                unit: formData.unit.trim(),
+                unit: "",
+                brandId: null,
             };
 
             await productApi.update(id!, payload);
@@ -185,11 +195,11 @@ export default function EditProductPage() {
 
     const isFormInvalid =
         !formData.name.trim() ||
-        !formData.unit.trim() ||
+        /*         !formData.unit.trim() || */
         !formData.description.trim() ||
         !formData.categoryId ||
-        !formData.subCategoryId ||
-        !formData.brandId ||
+        /*         !formData.subCategoryId ||
+                !formData.brandId || */
         formData.price <= 0 ||
         isLoading;
 
@@ -251,8 +261,8 @@ export default function EditProductPage() {
                         e.preventDefault();
                         const {
                             categoryId,
-                            subCategoryId,
-                            brandId,
+                            /*                             subCategoryId,
+                                                        brandId, */
                             name,
                             unit,
                             price,
@@ -261,16 +271,18 @@ export default function EditProductPage() {
                         // Validaciones reforzadas (Igual que el Create)
                         if (!name.trim())
                             return toast.error("El nombre es obligatorio");
-                        if (!unit.trim())
-                            return toast.error(
-                                "La unidad por bulto es obligatoria",
-                            );
+                        if (!barcode)
+                            return toast.error("El codigo de barras es obligatorio")
+                        /*                         if (!unit.trim())
+                                                    return toast.error(
+                                                        "La unidad por bulto es obligatoria",
+                                                    ); */
                         if (!categoryId)
                             return toast.error("Selecciona una Categoría");
-                        if (!subCategoryId)
-                            return toast.error("Selecciona una Subcategoría");
-                        if (!brandId)
-                            return toast.error("Selecciona una Marca");
+                        /*                         if (!subCategoryId)
+                                                    return toast.error("Selecciona una Subcategoría");
+                                                if (!brandId)
+                                                    return toast.error("Selecciona una Marca"); */
                         if (price <= 0)
                             return toast.error("El precio debe ser mayor a 0");
 
@@ -301,7 +313,7 @@ export default function EditProductPage() {
                             />
                         </div>
 
-                        <div>
+                        {/*                         <div>
                             <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                                 Unidad por bulto{" "}
                                 <span className="font-bold text-indigo-400">*</span>
@@ -316,7 +328,7 @@ export default function EditProductPage() {
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
                                 required
                             />
-                        </div>
+                        </div> */}
 
                         <div>
                             <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
@@ -392,7 +404,7 @@ export default function EditProductPage() {
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            {/*                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                                         Subcategoría{" "}
@@ -440,7 +452,7 @@ export default function EditProductPage() {
                                         ))}
                                     </select>
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="col-span-1">
@@ -482,7 +494,7 @@ export default function EditProductPage() {
                                 </div>
                             )}
 
-                             <div className="grid grid-cols-2 gap-3 mt-1">
+                            <div className="grid grid-cols-2 gap-3 mt-1">
                                 <div className="col-span-1">
                                     <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                                         Stock{" "}
@@ -560,11 +572,10 @@ export default function EditProductPage() {
                                 <button
                                     type="submit"
                                     disabled={isFormInvalid}
-                                    className={`flex-1 md:flex-none md:min-w-32 px-5 py-2.5 text-[11px] font-bold border rounded-xl transition-all duration-300 active:scale-95 active:translate-y-0 ${
-                                          isFormInvalid
-                                              ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40 border-white/5 pointer-events-none"
-                                              : "bg-emerald-600/20 text-emerald-400 border-emerald-500/30 cursor-pointer hover:bg-emerald-500/30 hover:border-emerald-400/50 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
-                                      }`}
+                                    className={`flex-1 md:flex-none md:min-w-32 px-5 py-2.5 text-[11px] font-bold border rounded-xl transition-all duration-300 active:scale-95 active:translate-y-0 ${isFormInvalid
+                                        ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40 border-white/5 pointer-events-none"
+                                        : "bg-emerald-600/20 text-emerald-400 border-emerald-500/30 cursor-pointer hover:bg-emerald-500/30 hover:border-emerald-400/50 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                                        }`}
                                 >
                                     Guardar cambios
                                 </button>

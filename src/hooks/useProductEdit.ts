@@ -5,7 +5,7 @@ import { productApi } from "@/services/ProductService";
 import toast from "react-hot-toast";
 import { ProductEditFrontend } from "@/types/product.types";
 import { Category } from "@/types/category.types";
-import { SubCategory } from "@/types/subcategory.types";
+/* import { SubCategory } from "@/types/subcategory.types"; */
 import { Brand } from "@/types/brand.types";
 
 export function useProductEdit() {
@@ -13,22 +13,21 @@ export function useProductEdit() {
 
     const [formData, setFormData] = useState<ProductEditFrontend>({
         name: "",
-        brandId: 0,
-        categoryId: 0, // solo UI
-        subCategoryId: 0,
+        brandId: null,
+        categoryId: 0,
         price: 0,
         description: "",
         showingInCatalog: false,
         isOffer: false,
         stock: 0,
         imageUrl: "",
-        unit: "",
+        unit: null,
     });
 
     const [priceInput, setPriceInput] = useState<string>("0,00");
     const [categories, setCategories] = useState<Category[]>([]);
     const [brands, setBrands] = useState<Brand[]>([]);
-    const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+    /*     const [subCategories, setSubCategories] = useState<SubCategory[]>([]); */
     const [isLoading, setLoading] = useState(false);
 
     // Función para formatear números a ARS
@@ -48,34 +47,34 @@ export function useProductEdit() {
                     productData,
                     categoriesData,
                     brandsData,
-                    subcategoriesData,
+                    /*                     subcategoriesData, */
                 ] = await Promise.all([
                     productApi.getById(id),
                     productApi.getAllCategories(),
                     productApi.getAllBrands(),
-                    productApi.getAllSubcategories(),
+                    /*                     productApi.getAllSubcategories(), */
                 ]);
 
                 setCategories(categoriesData);
                 setBrands(brandsData);
-                setSubCategories(subcategoriesData);
+                /*                 setSubCategories(subcategoriesData); */
 
                 // Buscar la categoría correspondiente a la subcategoría
-                const subCat: SubCategory | undefined = subcategoriesData.find(
-                    (sub: SubCategory) => sub.id === productData.subCategoryId,
-                );
+                /*                 const subCat: SubCategory | undefined = subcategoriesData.find(
+                                    (sub: SubCategory) => sub.id === productData.subCategoryId,
+                                ); */
 
                 const newFormData: ProductEditFrontend = {
                     name: productData.name || "",
-                    brandId: productData.brandId || 0,
-                    categoryId: subCat?.categoryId || 0, // solo UI
-                    subCategoryId: productData.subCategoryId || 0,
+                    barcode: productData.barcode || "",
+                    brandId: productData.brandId ?? null,
+                    categoryId: productData.categoryId || productData.category?.id || 0,
                     price: productData.price || 0,
                     description: productData.description || "",
                     showingInCatalog: productData.showingInCatalog ?? false,
                     stock: productData.stock || 0,
                     imageUrl: productData.imageUrl || "",
-                    unit: productData.unit || "",
+                    unit: productData.unit ?? null,
                     isOffer: productData.isOffer ?? false,
                 };
 
@@ -100,7 +99,7 @@ export function useProductEdit() {
         setPriceInput,
         categories,
         brands,
-        subCategories,
+        /*  subCategories, */
         isLoading,
         formatARS,
     };

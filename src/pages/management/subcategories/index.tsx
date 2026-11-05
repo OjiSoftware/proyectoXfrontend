@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+/* import { useEffect, useState, useMemo } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Pagination from "@/components/PaginationManagement";
 import SearchBar from "@/components/SearchBar";
@@ -126,7 +126,6 @@ export default function SubCategoriesPage() {
             }
         >
             <div className="space-y-3">
-                {/* BUSCADOR */}
                 <div className="flex flex-col lg:flex-row lg:items-center gap-3">
                     <div className="flex-1 min-w-[200px]">
                         <SearchBar
@@ -177,4 +176,8 @@ export default function SubCategoriesPage() {
             </div>
         </DashboardLayout>
     );
+} */
+
+export default function SubCategoriesPage() {
+    return null;
 }

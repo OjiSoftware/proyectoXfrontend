@@ -1,4 +1,4 @@
-import { useState } from "react";
+/* import { useState } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import { ConfirmModal } from "@/components/ConfirmModal";
@@ -32,11 +32,10 @@ export default function EditSubCategoryPage() {
                         </h1>
                     </div>
                     <p className="text-slate-400 text-xs hidden md:block">
-                        Modifique la informaci�n de la subcategoría.
+                        Modifique la informacin de la subcategoría.
                     </p>
                 </div>
 
-                {/* Preview */}
                 <div className="flex items-center gap-4 mb-4 bg-slate-800/30 p-3 rounded-xl border border-white/10 shadow-lg">
                     <div>
                         <h2 className="text-lg font-bold text-white leading-tight">
@@ -48,7 +47,6 @@ export default function EditSubCategoryPage() {
                     </div>
                 </div>
 
-                {/* Formulario */}
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -56,10 +54,9 @@ export default function EditSubCategoryPage() {
                     }}
                     className="bg-slate-800/80 border border-white/20 p-6 rounded-2xl shadow-2xl backdrop-blur-md grid grid-cols-1 gap-6"
                 >
-                    {/* Nombre */}
                     <div className="space-y-4">
                         <h3 className="text-pink-400 text-xs font-semibold border-b border-white/10 pb-1.5 uppercase">
-                            Informaci�n b�sica
+                            Informacin bsica
                         </h3>
 
                         <div>
@@ -139,7 +136,7 @@ export default function EditSubCategoryPage() {
                     variant="success"
                     message={
                         <>
-                            �Seguro que quer�s guardar los cambios de{" "}
+                            Seguro que quers guardar los cambios de{" "}
                             <b>{name}</b>?
                         </>
                     }
@@ -152,5 +149,8 @@ export default function EditSubCategoryPage() {
             </div>
         </DashboardLayout>
     );
-}
+} */
 
+export default function EditSubCategoryPage() {
+    return null;
+}

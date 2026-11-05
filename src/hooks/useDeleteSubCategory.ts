@@ -1,4 +1,4 @@
-import { useState } from "react";
+/* import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { SubCategory } from "@/types/subcategory.types";
 import { subCategoryApi } from "@/services/SubCategoryService";
@@ -14,7 +14,7 @@ export function useDeleteSubCategory(
         try {
             await subCategoryApi.delete(id.toString());
 
-            // Actualizamos la lista local eliminando el elemento
+
             setSubCategories((prev) => prev.filter((b) => b.id !== id));
 
             toast.success("Subcategoría eliminada");
@@ -28,3 +28,4 @@ export function useDeleteSubCategory(
 
     return { deleteSubCategory, loading };
 }
+ */

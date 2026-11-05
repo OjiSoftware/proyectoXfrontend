@@ -12,8 +12,8 @@ export default function CreateProductPage() {
         formData,
         setFormData,
         categories,
-        brands,
-        filteredSubCategories,
+        /*         brands, */
+        /* filteredSubCategories, */
         handleChange,
         handleSubmit: submitFormData,
     } = useProductForm();
@@ -100,6 +100,9 @@ export default function CreateProductPage() {
         try {
             await submitFormData(undefined, {
                 ...formData,
+                unit: "",
+                brandId: null,
+                barcode: barcode.trim(),
                 name: formData.name.trim(), // Limpiamos espacios accidentales
                 price: Math.max(0, formData.price),
                 // Blindaje de stock: aseguramos que sea entero y no negativo
@@ -121,11 +124,10 @@ export default function CreateProductPage() {
 
     const isFormInvalid =
         !formData.name.trim() ||
-        !formData.unit.trim() ||
+        /* !formData.unit.trim() || */
         !formData.description.trim() ||
         !formData.categoryId ||
-        !formData.subCategoryId ||
-        !formData.brandId ||
+        !barcode.trim() ||
         formData.price <= 0 ||
         isLoading;
 
@@ -187,8 +189,8 @@ export default function CreateProductPage() {
                         e.preventDefault();
                         const {
                             categoryId,
-                            subCategoryId,
-                            brandId,
+                            /*                             subCategoryId,
+                                                        brandId, */
                             price,
                             name,
                         } = formData;
@@ -196,12 +198,14 @@ export default function CreateProductPage() {
                         // Validaciones reforzadas
                         if (!name.trim())
                             return toast.error("El nombre es obligatorio");
+                        if (!barcode)
+                            return toast.error("El codigo de barras es obligatorio")
                         if (!categoryId)
                             return toast.error("Selecciona una Categoría");
-                        if (!subCategoryId)
+                        /* if (!subCategoryId)
                             return toast.error("Selecciona una Subcategoría");
                         if (!brandId)
-                            return toast.error("Selecciona una Marca");
+                            return toast.error("Selecciona una Marca"); */
                         if (price <= 0)
                             return toast.error("El precio debe ser mayor a 0");
 
@@ -232,7 +236,7 @@ export default function CreateProductPage() {
                             />
                         </div>
 
-                        <div>
+                        {/*<div>
                             <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                                 Unidad por bulto{" "}
                                 <span className="font-bold text-indigo-400">*</span>
@@ -247,11 +251,11 @@ export default function CreateProductPage() {
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
                                 required
                             />
-                        </div>
+                        </div> */}
 
                         <div>
                             <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                                Código de barra
+                                Código de barra <span className="font-bold text-indigo-400">*</span>
                             </label>
                             <input
                                 type="text"
@@ -323,7 +327,7 @@ export default function CreateProductPage() {
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            {/* <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                                         Subcategoría{" "}
@@ -371,12 +375,13 @@ export default function CreateProductPage() {
                                         ))}
                                     </select>
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="col-span-1">
                                     <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                                        Costo ($)
+                                        Costo ($){" "}
+                                        <span className="font-bold text-indigo-400">*</span>
                                     </label>
                                     <input
                                         type="text"

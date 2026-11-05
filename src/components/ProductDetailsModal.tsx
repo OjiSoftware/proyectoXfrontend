@@ -118,9 +118,7 @@ export function ProductDetailsModal({
                     Categoría
                   </span>
                   <span className="text-xs md:text-sm font-semibold text-slate-200">
-                    {product.subCategory?.category?.name || 'General'}
-                    <span className="text-slate-600 mx-1">/</span>
-                    {product.subCategory?.name || 'Varios'}
+                    {product.category?.name || 'General'}
                   </span>
                 </div>
               </div>

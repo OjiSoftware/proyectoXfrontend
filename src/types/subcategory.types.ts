@@ -1,4 +1,4 @@
-export interface SubCategory {
+/* export interface SubCategory {
     id: number;
     name: string;
     categoryId: number;
@@ -15,4 +15,4 @@ export interface UpdateSubCategoryDto {
     name?: string;
     categoryId?: number;
     status?: boolean;
-}
+} */

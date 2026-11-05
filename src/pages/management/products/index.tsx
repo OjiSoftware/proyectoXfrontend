@@ -120,14 +120,10 @@ export default function ProductsPage() {
             if (filterVisibility === 'visible' && !p.showingInCatalog) return false;
             if (filterVisibility === 'hidden' && p.showingInCatalog) return false;
 
-            // Filtro de marca
-            if (filterBrand !== 'all' && (p.brand?.name ?? '') !== filterBrand) return false;
 
             // Filtro de categoría
-            if (filterCategory !== 'all' && (p.subCategory?.category?.name ?? '') !== filterCategory) return false;
-
-            // Filtro de subcategoría
-            if (filterSubCategory !== 'all' && (p.subCategory?.name ?? '') !== filterSubCategory) return false;
+            /*             if (filterCategory !== 'all' && (p.subCategory?.category?.name ?? '') !== filterCategory) return false;
+             */
 
             return true;
         });
@@ -154,13 +150,13 @@ export default function ProductsPage() {
             } else if (sortColumn === "brand.name") {
                 aVal = a.brand?.name || "";
                 bVal = b.brand?.name || "";
-            } else if (sortColumn === "subCategory.category.name") {
-                aVal = a.subCategory?.category?.name || "";
-                bVal = b.subCategory?.category?.name || "";
-            } else if (sortColumn === "subCategory.name") {
+            } else if (sortColumn === "category.name") {
+                aVal = a.category?.name || "";
+                bVal = b.category?.name || "";
+            } /* else if (sortColumn === "subCategory.name") {
                 aVal = a.subCategory?.name || "";
                 bVal = b.subCategory?.name || "";
-            } else {
+            } */ else {
                 aVal = a[sortColumn as keyof Product] ?? "";
                 bVal = b[sortColumn as keyof Product] ?? "";
             }
@@ -234,13 +230,13 @@ export default function ProductsPage() {
     const uniqueBrands = useMemo(() =>
         [...new Set(products.map(p => p.brand?.name).filter(Boolean) as string[])].sort(), [products]);
     const uniqueCategories = useMemo(() =>
-        [...new Set(products.map(p => p.subCategory?.category?.name).filter(Boolean) as string[])].sort(), [products]);
-    const uniqueSubCategories = useMemo(() => {
+        [...new Set(products.map(p => p.category?.name).filter(Boolean) as string[])].sort(), [products]);
+    /* const uniqueSubCategories = useMemo(() => {
         const source = filterCategory !== 'all'
             ? products.filter(p => (p.subCategory?.category?.name ?? '') === filterCategory)
             : products;
         return [...new Set(source.map(p => p.subCategory?.name).filter(Boolean) as string[])].sort();
-    }, [products, filterCategory]);
+    }, [products, filterCategory]); */
 
     const resetFilters = () => {
         setQuery('');
@@ -441,7 +437,7 @@ export default function ProductsPage() {
 
 
                             {/* Dropdown MARCA */}
-                            <div ref={brandRef} className="relative shrink-0">
+                            {/*                             <div ref={brandRef} className="relative shrink-0">
                                 <button
                                     onClick={() => { setBrandOpen(o => !o); setFilterOpen(false); setCategoryOpen(false); setParamsOpen(false); }}
                                     className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${brandOpen || filterBrand !== 'all'
@@ -472,7 +468,7 @@ export default function ProductsPage() {
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
 
                             {/* Dropdown CATEGORÍA */}
                             <div ref={categoryRef} className="relative shrink-0">
@@ -509,7 +505,7 @@ export default function ProductsPage() {
                             </div>
 
                             {/* Dropdown SUBCATEGORÍA */}
-                            <div ref={subCategoryRef} className="relative shrink-0">
+                            {/* <div ref={subCategoryRef} className="relative shrink-0">
                                 <button
                                     onClick={() => { setSubCategoryOpen(o => !o); setFilterOpen(false); setBrandOpen(false); setCategoryOpen(false); setParamsOpen(false); }}
                                     className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${subCategoryOpen || filterSubCategory !== 'all'
@@ -543,7 +539,7 @@ export default function ProductsPage() {
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
 
                             {/* Dropdown otros FILTROS — solo Stock y Visibilidad */}
                             <div ref={filterRef} className="relative shrink-0">
@@ -631,10 +627,7 @@ export default function ProductsPage() {
                                     <div className="absolute right-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3 space-y-1">
                                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 px-1">Columnas visibles</p>
                                         {([
-                                            ['unit', 'Unidad'],
-                                            ['brand', 'Marca'],
                                             ['category', 'Categoría'],
-                                            ['subCategory', 'Subcategoría'],
                                             ['stock', 'Stock'],
                                             ['price', 'Precio'],
                                             ['catalog', 'Catálogo'],

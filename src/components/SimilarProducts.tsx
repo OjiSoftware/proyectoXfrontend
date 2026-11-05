@@ -6,10 +6,10 @@ import ProductCard from "@/components/ProductCard";
 
 interface Props {
   currentProductId: number;
-  subCategoryId: number;
+  categoryId?: number;
 }
 
-const SimilarProducts: React.FC<Props> = ({ currentProductId, subCategoryId }) => {
+const SimilarProducts: React.FC<Props> = ({ currentProductId, categoryId }) => {
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,9 +20,9 @@ const SimilarProducts: React.FC<Props> = ({ currentProductId, subCategoryId }) =
         // Traemos todo el catálogo y filtramos en el cliente (para evitar crear un nuevo endpoint)
         const allProducts = await catalogApi.getCatalog();
 
-        // Filtramos por la misma subcategoría y excluimos el producto actual
+        // Filtramos por la misma categoría y excluimos el producto actual
         const filtered = allProducts.filter(
-          (p: Product) => p.subCategoryId === subCategoryId && p.id !== currentProductId
+          (p: any) => (p.categoryId === categoryId || p.category?.id === categoryId) && p.id !== currentProductId
         );
 
         // Tomamos un máximo de 5 para no saturar la vista
@@ -34,10 +34,10 @@ const SimilarProducts: React.FC<Props> = ({ currentProductId, subCategoryId }) =
       }
     };
 
-    if (subCategoryId) {
+    if (categoryId) {
       fetchSimilar();
     }
-  }, [currentProductId, subCategoryId]);
+  }, [currentProductId, categoryId]);
 
   if (loading || similarProducts.length === 0) {
     return null; // No mostramos nada si carga o no hay similares

@@ -1,64 +1,46 @@
 import { useState, useEffect } from "react";
-import { Brand } from "@/types/brand.types";
-import { SubCategory } from "@/types/subcategory.types";
 import { Category } from "@/types/category.types";
 import { productApi } from "@/services/ProductService";
 import { getDriveDirectLink } from "@/helpers/url.helper";
 
 export const useProductForm = () => {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        name: string;
+        price: number;
+        stock: number;
+        categoryId: number;
+        description: string;
+        imageUrl: string;
+        unit: string | null;
+        brandId: number | null;
+        showingInCatalog: boolean;
+        isOffer: boolean;
+    }>({
         name: "",
         price: 0,
         stock: 0,
         categoryId: 0,
-        subCategoryId: 0,
-        brandId: 0,
         description: "",
         imageUrl: "",
-        unit: "",
+        unit: null,
+        brandId: null,
         showingInCatalog: false,
         isOffer: false,
     });
 
-
-
     const [categories, setCategories] = useState<Category[]>([]);
-    const [brands, setBrands] = useState<Brand[]>([]);
-    const [allSubCategories, setAllSubCategories] = useState<SubCategory[]>([]);
-    const [filteredSubCategories, setFilteredSubCategories] = useState<
-        SubCategory[]
-    >([]);
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [cat, subCat, brands] = await Promise.all([
-                    productApi.getAllCategories(),
-                    productApi.getAllSubcategories(),
-                    productApi.getAllBrands(),
-                ]);
-
+                const cat = await productApi.getAllCategories();
                 setCategories(cat);
-                setAllSubCategories(subCat);
-                setBrands(brands);
             } catch (error) {
-                console.error("Error cargando los datos de campos: ", error);
+                console.error("Error cargando categorías: ", error);
             }
         };
         loadData();
     }, []);
-
-    useEffect(() => {
-        const subs = allSubCategories.filter(
-            (sub) => sub.categoryId === formData.categoryId,
-        );
-        setFilteredSubCategories(subs);
-
-        // Reiniciar subCategoryId si cambió la categoría
-        if (formData.subCategoryId !== 0) {
-            setFormData((prev) => ({ ...prev, subCategoryId: 0 }));
-        }
-    }, [formData.categoryId, allSubCategories]);
 
     const updateField = (name: string, value: string | number | boolean) => {
         setFormData((prev) => ({
@@ -71,12 +53,12 @@ export const useProductForm = () => {
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, value, type } = e.target as HTMLInputElement;
-        const numericFields = ["price", "stock", "categoryId", "subCategoryId", "brandId"];
+        const numericFields = ["price", "stock", "categoryId"];
 
         let finalValue: string | number | boolean = value;
 
         if (type === "checkbox") {
-            finalValue = (e.target as HTMLInputElement).checked
+            finalValue = (e.target as HTMLInputElement).checked;
         } else if (numericFields.includes(name)) {
             finalValue = value === "" ? "" : Number(value);
             if (typeof finalValue === "number" && (name === "stock" || name === "price")) {
@@ -91,17 +73,13 @@ export const useProductForm = () => {
 
     const handleSubmit = async (
         e?: React.SyntheticEvent<HTMLFormElement>,
-        overrideData?: typeof formData,
+        overrideData?: Partial<typeof formData> & Record<string, any>,
     ) => {
         e?.preventDefault();
         const dataToSubmit = overrideData || formData;
 
         try {
-            const { categoryId, ...productData } = dataToSubmit;
-
-            if (productData.subCategoryId === 0 || productData.brandId === 0) {
-                return;
-            }
+            const productData: any = { ...dataToSubmit };
 
             if (productData.price < 0) productData.price = 0;
             if (productData.stock < 0) productData.stock = 0;
@@ -116,15 +94,15 @@ export const useProductForm = () => {
                 price: 0,
                 stock: 0,
                 categoryId: 0,
-                subCategoryId: 0,
-                brandId: 0,
                 imageUrl: "",
-                unit: "",
+                unit: null,
+                brandId: null,
                 showingInCatalog: false,
                 isOffer: false,
             });
         } catch (error) {
             console.error("Error al crear el producto:", error);
+            throw error;
         }
     };
 
@@ -132,8 +110,6 @@ export const useProductForm = () => {
         formData,
         setFormData,
         categories,
-        brands,
-        filteredSubCategories,
         handleChange,
         handleSubmit,
     };

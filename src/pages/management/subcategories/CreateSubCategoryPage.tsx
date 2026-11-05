@@ -1,4 +1,4 @@
-import { useState } from "react";
+/* import { useState } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { PackagePlus } from "lucide-react";
 import { ConfirmModal } from "@/components/ConfirmModal";
@@ -45,11 +45,10 @@ export default function CreateSubCategoryPage() {
                         </h1>
                     </div>
                     <p className="text-slate-400 text-xs hidden md:block">
-                        Complete la informaci�n para crear una nueva subcategoría.
+                        Complete la informacin para crear una nueva subcategoría.
                     </p>
                 </div>
 
-                {/* Card de preview sin imagen */}
                 <div className="flex items-center gap-4 mb-4 bg-slate-800/30 p-3 rounded-xl border border-white/10 shadow-lg">
                     <div>
                         <h2 className="text-lg font-bold text-white leading-tight">
@@ -61,7 +60,6 @@ export default function CreateSubCategoryPage() {
                     </div>
                 </div>
 
-                {/* Formulario */}
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -73,7 +71,7 @@ export default function CreateSubCategoryPage() {
                 >
                     <div className="space-y-4">
                         <h3 className="text-pink-400 text-xs font-semibold border-b border-white/10 pb-1.5 uppercase">
-                            Informaci�n b�sica
+                            Informacin bsica
                         </h3>
 
                         <div>
@@ -156,7 +154,7 @@ export default function CreateSubCategoryPage() {
                     variant="success"
                     message={
                         <>
-                            �Seguro que quer�s crear la subcategoría{" "}
+                            Seguro que quers crear la subcategoría{" "}
                             <b>{formData.name}</b>?
                         </>
                     }
@@ -169,5 +167,8 @@ export default function CreateSubCategoryPage() {
             </div>
         </DashboardLayout>
     );
-}
+} */
 
+export default function CreateSubCategoryPage() {
+    return null;
+}

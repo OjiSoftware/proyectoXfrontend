@@ -114,11 +114,11 @@ export function ProductsTable({
             {isVisible('category') && (
               <TableHeadCell
                 className={`${hideOnTablet} cursor-pointer select-none text-center`}
-                onClick={() => onSort('subCategory.category.name')}
+                onClick={() => onSort('category.name')}
               >
                 <div className="relative inline-flex items-center justify-center">
                   <span>Categoría</span>
-                  <div className="absolute -right-6">{renderSortArrow('subCategory.category.name')}</div>
+                  <div className="absolute -right-6">{renderSortArrow('category.name')}</div>
                 </div>
               </TableHeadCell>
             )}
@@ -181,29 +181,12 @@ export function ProductsTable({
                 </div>
               </TableCell>
 
-              {isVisible('unit') && (
-                <TableCell className={`${hideOnTablet} text-center text-slate-400`}>
-                  {product.unit || '-'}
-                </TableCell>
-              )}
-
-              {isVisible('brand') && (
-                <TableCell className={`${hideOnTablet} text-center text-slate-400`}>
-                  {product.brand?.name || 'Sin marca'}
-                </TableCell>
-              )}
-
               {isVisible('category') && (
                 <TableCell className={`${hideOnTablet} text-center text-slate-400`}>
-                  {product.subCategory?.category?.name || 'Sin categoría'}
+                  {product.category?.name || 'Sin categoría'}
                 </TableCell>
               )}
 
-              {isVisible('subCategory') && (
-                <TableCell className={`${hideOnTablet} text-center text-slate-400`}>
-                  {product.subCategory?.name || '-'}
-                </TableCell>
-              )}
 
               {isVisible('stock') && (
                 <TableCell className={`${hideOnMobile} font-bold text-center`}>

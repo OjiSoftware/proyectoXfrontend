@@ -104,17 +104,17 @@ export const AppRoutes = () => {
                         path="/management"
                         element={<Navigate to="/management/dashboard" replace />}
                     />
-                    
+
                     {/* DASHBOARD */}
-                    <Route 
-                        path="/management/dashboard" 
-                        element={<DashboardPage />} 
+                    <Route
+                        path="/management/dashboard"
+                        element={<DashboardPage />}
                     />
 
                     {/* REPORTS */}
-                    <Route 
-                        path="/management/reports" 
-                        element={<ReportsPage />} 
+                    <Route
+                        path="/management/reports"
+                        element={<ReportsPage />}
                     />
 
                     {/* PRODUCTS */}
@@ -132,7 +132,7 @@ export const AppRoutes = () => {
                     />
 
                     {/* BRANDS */}
-                    <Route path="/management/brands" element={<BrandsPage />} />
+                    {/*                     <Route path="/management/brands" element={<BrandsPage />} />
                     <Route
                         path="/management/brands/create"
                         element={<CreateBrandPage />}
@@ -140,7 +140,7 @@ export const AppRoutes = () => {
                     <Route
                         path="/management/brands/edit/:id"
                         element={<EditBrandPage />}
-                    />
+                    /> */}
 
                     {/* CATEGORIES */}
                     <Route path="/management/categories" element={<CategoriesPage />} />
@@ -154,7 +154,7 @@ export const AppRoutes = () => {
                     />
 
                     {/* SUBCATEGORIES */}
-                    <Route path="/management/subcategories" element={<SubCategoriesPage />} />
+                    {/*                     <Route path="/management/subcategories" element={<SubCategoriesPage />} />
                     <Route
                         path="/management/subcategories/create"
                         element={<CreateSubCategoryPage />}
@@ -163,6 +163,7 @@ export const AppRoutes = () => {
                         path="/management/subcategories/edit/:id"
                         element={<EditSubCategoryPage />}
                     />
+                     */}
 
                     {/* SALES */}
                     <Route path="/management/sales" element={<SalesPage />} />
