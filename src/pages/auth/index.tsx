@@ -117,7 +117,7 @@ export default function LoginPage() {
                         alt="OJI"
                         className="sm:hidden h-20  w-auto block mx-auto mb-4 object-contain"
                     />
-                    <p className="text-[10px] sm:text-xs font-bold text-brand-400 uppercase tracking-[0.2em]">
+                    <p className="text-[10px] sm:text-xs font-bold text-white-400 uppercase tracking-[0.2em]">
                         Gestión Empresarial Integral
                     </p>
                 </div>

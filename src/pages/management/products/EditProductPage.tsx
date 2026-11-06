@@ -5,7 +5,7 @@ import { ConfirmModal } from "../../../components/ConfirmModal";
 import { productApi } from "@/services/ProductService";
 import toast from "react-hot-toast";
 import { useProductEdit } from "@/hooks/useProductEdit";
-import { SquarePen, Image as ImageIcon, ArrowLeft, Tag, Layers, Sliders, DollarSign, PackageCheck, Eye } from "lucide-react";
+import { SquarePen, Image as ImageIcon } from "lucide-react";
 import type { ProductEditBackend } from "@/types/product.types";
 import { getDriveDirectLink } from "@/helpers/url.helper";
 
@@ -17,6 +17,8 @@ export default function EditProductPage() {
         priceInput,
         setPriceInput,
         categories,
+        /*         brands,
+                subCategories, */
         isLoading,
     } = useProductEdit();
 
@@ -25,7 +27,6 @@ export default function EditProductPage() {
 
     // Mock states for non-functional fields
     const [barcode, setBarcode] = useState("");
-    const [supplier, setSupplier] = useState(""); // Campo proveedor (sin uso activo en backend aún)
     const [costPriceInput, setCostPriceInput] = useState("");
     const [costPrice, setCostPrice] = useState(0);
     const [marginInput, setMarginInput] = useState("");
@@ -54,6 +55,10 @@ export default function EditProductPage() {
         }
     }, [formData.barcode, formData.costPrice, formData.price, setPriceInput]);
 
+    /*     const filteredSubCategories = subCategories.filter(
+            (sub) => sub.categoryId === formData.categoryId,
+        ); */
+
     if (!id)
         return (
             <DashboardLayout>
@@ -63,7 +68,7 @@ export default function EditProductPage() {
                     </h1>
                     <button
                         onClick={() => navigate("/management/products")}
-                        className="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition cursor-pointer"
+                        className="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
                     >
                         Volver
                     </button>
@@ -85,15 +90,32 @@ export default function EditProductPage() {
             return;
         }
 
-        const isNumeric = ["categoryId", "stock"].includes(name);
-        const finalValue = isNumeric ? parseInt(value) || 0 : value;
+        const isNumeric = [
+            /*             "brandId", */
+            "categoryId",
+            /* "subCategoryId", */
+            "stock",
+        ].includes(name);
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: finalValue,
-        }));
+        let finalValue: string | number | boolean = isNumeric ? parseInt(value) || 0 : value;
+
+        if (name === "imageUrl") {
+            finalValue = getDriveDirectLink(value as string);
+        }
+
+        /*         setFormData((prev) => {
+                    const newState = { ...prev, [name]: finalValue };
+                    if (name === "categoryId" && prev.categoryId !== finalValue) {
+                        newState.subCategoryId = 0;
+                    }
+                    return newState;
+                }); */
+
+        setFormData((prev) => ({ ...prev, [name]: finalValue }));
     };
 
+    // ---------------- Handlers de Precios y Margen ----------------
+    // 1. VENTA: se edita de forma independiente. Si hay costo > 0, actualiza el margen.
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setPriceInput(val);
@@ -113,6 +135,7 @@ export default function EditProductPage() {
         }
     };
 
+    // 2. COSTO: se edita de forma independiente. Si hay venta > 0, actualiza el margen. NUNCA toca la venta.
     const handleCostPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setCostPriceInput(val);
@@ -129,11 +152,14 @@ export default function EditProductPage() {
         }
     };
 
+    // 3. MARGEN: solo cuando el usuario tipea explícitamente en el margen, si hay costo > 0, calcula la venta.
     const handleMarginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setMarginInput(val);
 
-        if (val.trim() === "") return;
+        if (val.trim() === "") {
+            return;
+        }
 
         const numericMargin = parseFloat(val);
         if (!isNaN(numericMargin) && costPrice > 0) {
@@ -151,6 +177,7 @@ export default function EditProductPage() {
         const loadingToast = toast.loading("Guardando cambios...");
 
         try {
+            // Implementación de blindaje igual al Create
             const payload: ProductEditBackend = {
                 categoryId: formData.categoryId,
                 barcode: barcode.trim(),
@@ -182,101 +209,205 @@ export default function EditProductPage() {
 
     const isFormInvalid =
         !formData.name.trim() ||
+        /*         !formData.unit.trim() || */
         !formData.categoryId ||
+        /*         !formData.subCategoryId ||
+                !formData.brandId || */
         formData.price <= 0 ||
         isLoading;
 
     return (
         <DashboardLayout>
-            <div className="max-w-6xl mx-auto px-4 py-2">
-                {/* Cabecera y botón volver */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 h-full flex flex-col justify-center">
+                {/* Volver y Encabezado */}
+                <div className="flex justify-between items-end mb-4">
                     <div>
-                        <button
-                            type="button"
-                            onClick={() => navigate(-1)}
-                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-white transition-colors mb-2 cursor-pointer"
-                        >
-                            <ArrowLeft size={16} /> Volver a productos
-                        </button>
-                        <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
-                            <span className="p-2 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
-                                <SquarePen size={22} />
-                            </span>
+                        <div className="mb-2">
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="text-xs px-2 py-1 -ml-2 text-indigo-400 hover:text-indigo-300 mb-2 flex items-center gap-1 cursor-pointer font-medium"
+                            >
+                                ← Volver
+                            </button>
+                        </div>
+                        <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                            <SquarePen className="text-indigo-400" size={24} />
                             Editar producto
                         </h1>
                     </div>
-                    <p className="text-sm text-slate-400">
-                        Modifique los datos y configure la presencia del producto en la tienda.
+                    <p className="text-slate-300 text-sm hidden md:block">
+                        Modifique la información necesaria del producto.
                     </p>
                 </div>
 
+                {/* Card de preview */}
+                <div className="flex items-center gap-3 mb-4 bg-white/[0.02] p-3 rounded-2xl border border-white/5 shadow-inner">
+                    <div className="w-12 h-12 rounded-xl bg-linear-to-r from-indigo-500 to-purple-500 p-[1px] shadow-[0_0_15px_rgba(99,102,241,0.2)] shrink-0">
+                        <div className="w-full h-full rounded-[11px] overflow-hidden bg-[#151320] flex items-center justify-center">
+                            {formData.imageUrl ? (
+                                <img
+                                    src={getDriveDirectLink(formData.imageUrl)}
+                                    alt={formData.name}
+                                    className="w-full h-full object-contain"
+                                />
+                            ) : (
+                                <ImageIcon
+                                    className="text-slate-500"
+                                    size={24}
+                                />
+                            )}
+                        </div>
+                    </div>
+                    <div>
+                        <h2 className="text-base font-bold text-white leading-tight">
+                            {formData.name || "Sin nombre"}
+                        </h2>
+                        <p className="text-indigo-400 text-xs font-semibold tracking-wider uppercase mt-0.5">
+                            ID: #{id}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Formulario */}
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        if (!formData.name.trim()) return toast.error("El nombre es obligatorio");
-                        if (!formData.categoryId) return toast.error("Seleccione una Categoría");
-                        if (formData.price <= 0) return toast.error("El precio debe ser mayor a 0");
+                        const {
+                            categoryId,
+                            /*                             subCategoryId,
+                                                        brandId, */
+                            name,
+                            unit,
+                            price,
+                        } = formData;
+
+                        // Validaciones reforzadas (Igual que el Create)
+                        if (!name.trim())
+                            return toast.error("El nombre es obligatorio");
+                        if (!barcode)
+                            return toast.error("El codigo de barras es obligatorio")
+                        /*                         if (!unit.trim())
+                                                    return toast.error(
+                                                        "La unidad por bulto es obligatoria",
+                                                    ); */
+                        if (!categoryId)
+                            return toast.error("Selecciona una Categoría");
+                        /*                         if (!subCategoryId)
+                                                    return toast.error("Selecciona una Subcategoría");
+                                                if (!brandId)
+                                                    return toast.error("Selecciona una Marca"); */
+                        if (price <= 0)
+                            return toast.error("El precio debe ser mayor a 0");
 
                         setShowConfirmModal(true);
                     }}
-                    className="space-y-6"
+                    className="bg-[#0C0A15]/95 border border-white/10 p-5 md:p-6 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl ring-1 ring-white/5 grid grid-cols-1 md:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-4"
                 >
-                    {/* SECCIÓN 1: INFORMACIÓN BÁSICA & PROVEEDOR */}
-                    <div className="bg-[#0C0A15] border border-white/10 rounded-2xl p-6 shadow-xl space-y-5">
-                        <div className="flex items-center gap-2.5 border-b border-white/5 pb-3">
-                            <Tag className="w-5 h-5 text-indigo-400" />
-                            <h2 className="text-base font-bold text-slate-100 uppercase tracking-wider text-xs">
-                                1. Información Básica del Producto
-                            </h2>
+                    {/* Columna izquierda */}
+                    <div className="space-y-4">
+                        <h3 className="text-indigo-400 text-xs font-semibold tracking-wider border-b border-white/5 pb-1 uppercase">
+                            Información básica
+                        </h3>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                Nombre del producto{" "}
+                                <span className="font-bold text-indigo-400">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="name"
+                                autoComplete="off"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Ej: Teclado Mecánico RGB"
+                                className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
+                                required
+                            />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            {/* Nombre */}
-                            <div className="md:col-span-2">
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Nombre del producto <span className="text-indigo-400">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    autoComplete="off"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    placeholder="Ej: Teclado Mecánico RGB"
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all"
-                                    required
-                                />
-                            </div>
+                        {/*                         <div>
+                            <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                                Unidad por bulto{" "}
+                                <span className="font-bold text-indigo-400">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="unit"
+                                autoComplete="off"
+                                value={formData.unit}
+                                onChange={handleChange}
+                                placeholder="Ej: 24 unidades"
+                                className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                                required
+                            />
+                        </div> */}
 
-                            {/* Código de barra */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Código de barra <span className="text-indigo-400">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={barcode}
-                                    onChange={(e) => setBarcode(e.target.value)}
-                                    placeholder="Escanee o ingrese código"
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all"
-                                />
-                            </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                Código de barra{" "}
+                                <span className="font-bold text-indigo-400">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={barcode}
+                                onChange={(e) => setBarcode(e.target.value)}
+                                placeholder="Escanee o ingrese código"
+                                className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
+                            />
+                        </div>
 
-                            {/* Categoría */}
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                Descripción
+                            </label>
+                            <textarea
+                                name="description"
+                                maxLength={500}
+                                value={formData.description}
+                                onChange={handleChange}
+                                placeholder="Características..."
+                                className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner resize-none h-24"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                URL de Imagen
+                            </label>
+                            <input
+                                type="url"
+                                name="imageUrl"
+                                autoComplete="off"
+                                value={formData.imageUrl}
+                                onChange={handleChange}
+                                placeholder="Pegar URL"
+                                className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Columna derecha */}
+                    <div className="flex flex-col mt-2 md:mt-0">
+                        <h3 className="text-indigo-400 text-xs font-semibold tracking-wider border-b border-white/5 pb-1 mb-4 uppercase">
+                            Categorización y precio
+                        </h3>
+
+                        <div className="space-y-4 grow">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Categoría <span className="text-indigo-400">*</span>
+                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Categoría{" "}
+                                    <span className="font-bold text-indigo-400">*</span>
                                 </label>
                                 <select
                                     name="categoryId"
                                     value={formData.categoryId || ""}
                                     onChange={handleChange}
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all cursor-pointer"
+                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all cursor-pointer shadow-inner"
                                     required
                                 >
                                     <option value="" disabled className="text-slate-500">
-                                        Seleccionar categoría...
+                                        Seleccionar...
                                     </option>
                                     {categories.map((cat) => (
                                         <option key={cat.id} value={cat.id} className="bg-[#151320] text-slate-100">
@@ -286,77 +417,95 @@ export default function EditProductPage() {
                                 </select>
                             </div>
 
-                            {/* Proveedor (campo opcional reservado) */}
-                            <div className="md:col-span-2">
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                        Proveedor
+                            {/*                             <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                                        Subcategoría{" "}
+                                        <span className="font-bold text-indigo-400">*</span>
                                     </label>
-                                    <span className="text-[11px] font-medium text-slate-400 bg-white/5 px-2 py-0.5 rounded-md">
-                                        Opcional / Próximamente
-                                    </span>
+                                    <select
+                                        name="subCategoryId"
+                                        value={formData.subCategoryId || ""}
+                                        onChange={handleChange}
+                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all cursor-pointer shadow-inner"
+                                        required
+                                    >
+                                        <option value="" disabled>
+                                            Seleccionar...
+                                        </option>
+                                        {filteredSubCategories.map((sub) => (
+                                            <option key={sub.id} value={sub.id}>
+                                                {sub.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <input
-                                    type="text"
-                                    value={supplier}
-                                    onChange={(e) => setSupplier(e.target.value)}
-                                    placeholder="Nombre o razón social del proveedor"
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                                <div>
+                                    <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                                        Marca{" "}
+                                        <span className="font-bold text-indigo-400">*</span>
+                                    </label>
+                                    <select
+                                        name="brandId"
+                                        value={formData.brandId || ""}
+                                        onChange={handleChange}
+                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all cursor-pointer shadow-inner"
+                                        required
+                                    >
+                                        <option value="" disabled>
+                                            Seleccionar...
+                                        </option>
+                                        {brands.map((brand) => (
+                                            <option
+                                                key={brand.id}
+                                                value={brand.id}
+                                            >
+                                                {brand.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div> */}
 
-                    {/* SECCIÓN 2: PRECIOS & STOCK */}
-                    <div className="bg-[#0C0A15] border border-white/10 rounded-2xl p-6 shadow-xl space-y-5">
-                        <div className="flex items-center gap-2.5 border-b border-white/5 pb-3">
-                            <DollarSign className="w-5 h-5 text-emerald-400" />
-                            <h2 className="text-base font-bold text-slate-100 uppercase tracking-wider text-xs">
-                                2. Precios y Existencias
-                            </h2>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                            {/* Costo */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Costo ($)
-                                </label>
-                                <input
-                                    type="number"
-                                    step="any"
-                                    min="0"
-                                    value={costPriceInput}
-                                    onChange={handleCostPriceChange}
-                                    placeholder="0.00"
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                            </div>
-
-                            {/* Margen */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Margen (%)
-                                </label>
-                                <div className="relative">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="col-span-1">
+                                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Costo ($)
+                                    </label>
                                     <input
                                         type="number"
                                         step="any"
-                                        value={marginInput}
-                                        onChange={handleMarginChange}
-                                        placeholder="30"
-                                        className="w-full bg-[#151320] border border-white/10 rounded-xl pl-4 pr-8 py-2.5 text-sm font-semibold text-indigo-300 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        min="0"
+                                        value={costPriceInput}
+                                        onChange={handleCostPriceChange}
+                                        placeholder="0"
+                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                                        %
-                                    </span>
+                                </div>
+                                <div className="col-span-1">
+                                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Margen (%)
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            value={marginInput}
+                                            onChange={handleMarginChange}
+                                            placeholder="30"
+                                            className="w-full bg-[#151320] border border-white/10 rounded-xl pl-3.5 pr-8 py-2.5 text-sm font-semibold text-indigo-300 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                                            %
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Precio de venta */}
                             <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Venta ($) <span className="text-emerald-400">*</span>
+                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Venta ($){" "}
+                                    <span className="font-bold text-indigo-400">*</span>
                                 </label>
                                 <input
                                     type="number"
@@ -366,193 +515,104 @@ export default function EditProductPage() {
                                     autoComplete="off"
                                     value={priceInput}
                                     onChange={handlePriceChange}
-                                    placeholder="0.00"
-                                    className="w-full bg-[#151320] border border-emerald-500/30 rounded-xl px-4 py-2.5 text-sm font-mono font-bold text-emerald-400 placeholder:text-slate-500 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    placeholder="0"
+                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-emerald-400 font-bold focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     required
                                 />
                             </div>
 
-                            {/* Stock actual */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Stock actual <span className="text-indigo-400">*</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    name="stock"
-                                    step="1"
-                                    value={formData.stock}
-                                    onChange={handleChange}
-                                    placeholder="0"
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all"
-                                    required
-                                />
-                            </div>
-
-                            {/* Stock mínimo */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Stock mínimo
-                                </label>
-                                <input
-                                    type="number"
-                                    value={minStock}
-                                    onChange={(e) => setMinStock(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* SECCIÓN 3: DESCRIPCIÓN & MULTIMEDIA */}
-                    <div className="bg-[#0C0A15] border border-white/10 rounded-2xl p-6 shadow-xl space-y-5">
-                        <div className="flex items-center gap-2.5 border-b border-white/5 pb-3">
-                            <Layers className="w-5 h-5 text-indigo-400" />
-                            <h2 className="text-base font-bold text-slate-100 uppercase tracking-wider text-xs">
-                                3. Descripción y Multimedia
-                            </h2>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Descripción completa */}
-                            <div className="lg:col-span-2">
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                                    Descripción detallada del producto
-                                </label>
-                                <textarea
-                                    name="description"
-                                    maxLength={500}
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    placeholder="Ingrese especificaciones técnicas, modo de uso o detalles clave..."
-                                    rows={5}
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all resize-y"
-                                />
-                                <div className="text-right text-xs text-slate-400 mt-1">
-                                    {(formData.description || "").length} / 500 caracteres
+                            <div className="grid grid-cols-2 gap-3 mt-1">
+                                <div className="col-span-1">
+                                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Stock{" "}
+                                        <span className="font-bold text-indigo-400">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="stock"
+                                        value={formData.stock}
+                                        onChange={handleChange}
+                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-span-1">
+                                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Stock mínimo
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={minStock}
+                                        onChange={(e) => setMinStock(e.target.value)}
+                                        placeholder="0"
+                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
+                                    />
                                 </div>
                             </div>
 
-                            {/* URL de imagen con preview integrado */}
-                            <div className="space-y-3">
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                    Imagen del producto
+                            <div className="flex items-center gap-4 mt-4">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        id="showInCatalog"
+                                        name="showingInCatalog"
+                                        checked={formData.showingInCatalog || false}
+                                        onChange={handleChange}
+                                        className="w-4 h-4 rounded border border-white/10 text-indigo-500 focus:ring-indigo-500/50 bg-[#151320] cursor-pointer shadow-inner"
+                                    />
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+                                        Mostrar en catálogo
+                                    </span>
                                 </label>
-                                <input
-                                    type="url"
-                                    name="imageUrl"
-                                    autoComplete="off"
-                                    value={formData.imageUrl}
-                                    onChange={handleChange}
-                                    placeholder="https://..."
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition-all"
-                                />
 
-                                {/* Preview container */}
-                                <div className="w-full h-36 rounded-xl border border-dashed border-white/15 bg-[#151320]/60 flex flex-col items-center justify-center overflow-hidden p-2">
-                                    {formData.imageUrl ? (
-                                        <img
-                                            src={getDriveDirectLink(formData.imageUrl)}
-                                            alt={formData.name || "Preview"}
-                                            className="w-full h-full object-contain"
-                                            onError={(e) => {
-                                                (e.target as HTMLElement).style.display = 'none';
-                                            }}
-                                        />
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center text-slate-500 gap-1.5">
-                                            <ImageIcon size={28} />
-                                            <span className="text-xs">Sin imagen cargada</span>
-                                        </div>
-                                    )}
-                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        id="isOffer"
+                                        name="isOffer"
+                                        checked={formData.isOffer ?? false}
+                                        onChange={handleChange}
+                                        className="w-4 h-4 rounded border border-white/10 text-indigo-500 focus:ring-indigo-500/50 bg-[#151320] cursor-pointer shadow-inner"
+                                    />
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+                                        Oferta
+                                    </span>
+                                </label>
                             </div>
                         </div>
-                    </div>
 
-                    {/* SECCIÓN 4: ESTADOS & VISIBILIDAD (CHECKS) */}
-                    <div className="bg-[#0C0A15] border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
-                        <div className="flex items-center gap-2.5 border-b border-white/5 pb-3">
-                            <Sliders className="w-5 h-5 text-indigo-400" />
-                            <h2 className="text-base font-bold text-slate-100 uppercase tracking-wider text-xs">
-                                4. Opciones de Publicación
-                            </h2>
-                        </div>
+                        {/* Botones de acción */}
+                        <div className="flex flex-col items-end w-full">
+                            <div className="flex flex-row items-stretch gap-3 mt-6 w-full border-t border-white/5 pt-5">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        navigate("/management/products")
+                                    }
+                                    className="flex-1 md:flex-none md:min-w-32 px-5 py-2.5 text-xs font-semibold rounded-xl border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white active:scale-95"
+                                >
+                                    Cancelar
+                                </button>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {/* Checkbox Mostrar en catálogo */}
-                            <label className="flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-[#151320] hover:border-indigo-500/40 cursor-pointer transition-all">
-                                <input
-                                    type="checkbox"
-                                    id="showInCatalog"
-                                    name="showingInCatalog"
-                                    checked={formData.showingInCatalog || false}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border border-white/20 text-indigo-500 focus:ring-indigo-500 bg-[#0C0A15] cursor-pointer"
-                                />
-                                <div>
-                                    <span className="block text-sm font-semibold text-slate-100 flex items-center gap-1.5">
-                                        <Eye size={16} className="text-indigo-400" /> Mostrar en catálogo público
-                                    </span>
-                                    <span className="text-xs text-slate-400">
-                                        El producto será visible para los clientes en la tienda.
-                                    </span>
-                                </div>
-                            </label>
+                                <button
+                                    type="submit"
+                                    disabled={isFormInvalid}
+                                    className={`flex-1 md:flex-none md:min-w-32 px-5 py-2.5 text-xs font-semibold border rounded-xl transition-all duration-300 active:scale-95 active:translate-y-0 ${isFormInvalid
+                                        ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40 border-white/5 pointer-events-none"
+                                        : "bg-emerald-600/20 text-emerald-400 border-emerald-500/30 cursor-pointer hover:bg-emerald-500/30 hover:border-emerald-400/50 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                                        }`}
+                                >
+                                    Guardar cambios
+                                </button>
+                            </div>
 
-                            {/* Checkbox En oferta */}
-                            <label className="flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-[#151320] hover:border-amber-500/40 cursor-pointer transition-all">
-                                <input
-                                    type="checkbox"
-                                    id="isOffer"
-                                    name="isOffer"
-                                    checked={formData.isOffer ?? false}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border border-white/20 text-amber-500 focus:ring-amber-500 bg-[#0C0A15] cursor-pointer"
-                                />
-                                <div>
-                                    <span className="block text-sm font-semibold text-slate-100 flex items-center gap-1.5">
-                                        <PackageCheck size={16} className="text-amber-400" /> Destacar como Oferta
-                                    </span>
-                                    <span className="text-xs text-slate-400">
-                                        Muestra un badge especial de oferta en el escaparate.
-                                    </span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* BARRA INFERIOR DE ACCIONES */}
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10">
-                        <div>
-                            {isFormInvalid && !isLoading && (
-                                <p className="text-xs text-rose-400 font-medium">
-                                    * Complete todos los campos obligatorios marcados con asterisco para continuar.
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-3 w-full sm:w-auto">
-                            <button
-                                type="button"
-                                onClick={() => navigate("/management/products")}
-                                className="flex-1 sm:flex-none px-6 py-2.5 text-sm font-semibold rounded-xl border border-white/10 text-slate-300 bg-transparent hover:bg-white/5 hover:text-white transition-all cursor-pointer"
-                            >
-                                Cancelar
-                            </button>
-
-                            <button
-                                type="submit"
-                                disabled={isFormInvalid}
-                                className={`flex-1 sm:flex-none px-6 py-2.5 text-sm font-semibold rounded-xl border transition-all ${
-                                    isFormInvalid
-                                        ? "bg-slate-800 text-slate-500 border-white/5 cursor-not-allowed opacity-50"
-                                        : "bg-emerald-600/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30 hover:border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)] cursor-pointer"
-                                }`}
-                            >
-                                Guardar cambios
-                            </button>
+                            <div className="relative h-6 w-full">
+                                {isFormInvalid && !isLoading && (
+                                    <p className="absolute top-3 right-0 text-amber-400/80 text-xs text-right font-medium">
+                                        * Complete todos los campos requeridos para guardar
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -577,3 +637,4 @@ export default function EditProductPage() {
         </DashboardLayout>
     );
 }
+
