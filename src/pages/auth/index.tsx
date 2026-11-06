@@ -104,69 +104,72 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 flex flex-col justify-center items-center px-4 py-4 font-poppins ">
-            <div className="w-full max-w-md flex flex-col items-center [zoom:0.75] md:[zoom:1]">
-                <div className="w-full text-center mb-10">
+        <div className="min-h-screen bg-[#07050C] flex flex-col justify-center items-center px-4 py-8 font-poppins relative selection:bg-indigo-500 selection:text-white">
+            {/* Glows de fondo para profundidad ambiental */}
+            <div className="absolute top-1/4 -left-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="w-full max-w-md flex flex-col items-center relative z-10">
+                <div className="w-full text-center mb-8">
                     <img
                         src={logo}
                         alt="OJI"
-                        className="hidden sm:block h-25  w-auto block mx-auto mb-4 object-contain"
+                        className="hidden sm:block h-24 w-auto mx-auto mb-4 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.08)]"
                     />
                     <img
                         src={logo}
                         alt="OJI"
-                        className="sm:hidden h-20  w-auto block mx-auto mb-4 object-contain"
+                        className="sm:hidden h-20 w-auto mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.08)]"
                     />
-                    <p className="text-[10px] sm:text-xs font-bold text-white-400 uppercase tracking-[0.2em]">
+                    <p className="text-xs font-semibold text-slate-300 uppercase tracking-widest">
                         Gestión Empresarial Integral
                     </p>
                 </div>
 
-                <div className="w-full bg-gray-800/50 border border-white/10 p-6 sm:p-10 rounded-2xl shadow-2xl backdrop-blur-xl">
-                    <div className="mb-8 text-center">
+                <div className="w-full bg-[#0C0A15]/95 border border-white/10 p-6 sm:p-8 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.6)] backdrop-blur-3xl ring-1 ring-white/5">
+                    <div className="mb-6 text-center">
                         <h2 className="text-2xl font-bold text-white tracking-tight">
                             Iniciar sesión
                         </h2>
-                        <p className="text-gray-400 text-sm mt-2">
+                        <p className="text-slate-300 text-sm mt-1.5">
                             Ingresa tus credenciales de acceso
                         </p>
                     </div>
 
                     {/* 👇 Usamos el estado en lugar de la variable cruda */}
                     {showRegisteredMsg && (
-                        <div className="rounded-lg bg-green-500/10 border border-green-500/50 p-3 mb-6">
-                            <p className="text-xs font-medium text-green-400 text-center">
-                                ¡Cuenta creada con éxito! Ya podés iniciar
-                                sesión.
+                        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 mb-6">
+                            <p className="text-xs font-medium text-emerald-400 text-center">
+                                ¡Cuenta creada con éxito! Ya podés iniciar sesión.
                             </p>
                         </div>
                     )}
 
                     <form
                         onSubmit={handleLogin}
-                        className="space-y-6"
+                        className="space-y-5"
                         noValidate
                     >
                         {errors.api && (
-                            <div className="rounded-lg bg-red-500/10 border border-red-500/50 p-3 mb-6">
-                                <p className="text-xs font-medium text-red-400 text-center">
+                            <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 mb-5">
+                                <p className="text-xs font-medium text-rose-400 text-center">
                                     {errors.api}
                                 </p>
                             </div>
                         )}
 
                         {/* Campo Email */}
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <label
                                 htmlFor="email"
-                                className="block text-sm font-medium text-gray-200 ml-1"
+                                className="block text-xs font-semibold uppercase tracking-wider text-slate-300 ml-1"
                             >
                                 Correo electrónico
                             </label>
                             <div className="relative group flex items-center">
-                                <div className="absolute left-0 pl-3 flex items-center pointer-events-none z-20 translate-y-[1.5px]">
+                                <div className="absolute left-0 pl-3.5 flex items-center pointer-events-none z-20">
                                     <Mail
-                                        className={`h-4 w-4 transition-colors ${errors.email ? "text-red-400" : "text-gray-500 group-focus-within:text-brand-400"}`}
+                                        className={`h-4 w-4 transition-colors ${errors.email ? "text-rose-400" : "text-slate-400 group-focus-within:text-indigo-400"}`}
                                     />
                                 </div>
                                 <input
@@ -181,30 +184,30 @@ export default function LoginPage() {
                                         )
                                     }
                                     placeholder="tu@correo.com"
-                                    className={`block w-full h-11 bg-gray-900/50 border rounded-lg pl-10 pr-3 text-sm outline-none transition-all
-                                        ${errors.email ? "border-red-500/50 focus:ring-1 focus:ring-red-500 text-red-400 placeholder:text-red-400/60" : "border-white/10 focus:border-brand-500 text-white placeholder:text-gray-500"}`}
+                                    className={`block w-full h-11 bg-[#151320] border rounded-xl pl-10 pr-3 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500
+                                        ${errors.email ? "border-rose-500/50 focus:ring-2 focus:ring-rose-500/40 text-rose-300" : "border-white/10 focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/30"}`}
                                 />
                             </div>
                             {errors.email && (
-                                <p className="text-[10px] text-red-400 font-medium ml-1">
+                                <p className="text-xs text-rose-400 font-medium ml-1">
                                     {errors.email}
                                 </p>
                             )}
                         </div>
 
                         {/* Campo Contraseña */}
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <label
                                 htmlFor="password"
                                 title="password"
-                                className="block text-sm font-medium text-gray-200 ml-1"
+                                className="block text-xs font-semibold uppercase tracking-wider text-slate-300 ml-1"
                             >
                                 Contraseña
                             </label>
                             <div className="relative group flex items-center">
-                                <div className="absolute left-0 pl-3 flex items-center pointer-events-none z-20 translate-y-[1px]">
+                                <div className="absolute left-0 pl-3.5 flex items-center pointer-events-none z-20">
                                     <Lock
-                                        className={`h-4 w-4 transition-colors ${errors.password1 ? "text-red-400" : "text-gray-500 group-focus-within:text-brand-400"}`}
+                                        className={`h-4 w-4 transition-colors ${errors.password1 ? "text-rose-400" : "text-slate-400 group-focus-within:text-indigo-400"}`}
                                     />
                                 </div>
                                 <input
@@ -219,15 +222,15 @@ export default function LoginPage() {
                                         )
                                     }
                                     placeholder="••••••••"
-                                    className={`block w-full h-11 bg-gray-900/50 border rounded-lg pl-10 pr-10 text-sm outline-none transition-all
-                                        ${errors.password1 ? "border-red-500/50 focus:ring-1 focus:ring-red-500 text-red-400 placeholder:text-red-400/60" : "border-white/10 focus:border-brand-500 text-white placeholder:text-gray-500"}`}
+                                    className={`block w-full h-11 bg-[#151320] border rounded-xl pl-10 pr-10 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500
+                                        ${errors.password1 ? "border-rose-500/50 focus:ring-2 focus:ring-rose-500/40 text-rose-300" : "border-white/10 focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/30"}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() =>
                                         setShowPassword(!showPassword)
                                     }
-                                    className="absolute right-0 pr-3 flex items-center text-gray-500 hover:text-brand-400 transition-colors z-30 cursor-pointer focus:outline-none"
+                                    className="absolute right-0 pr-3.5 flex items-center text-slate-400 hover:text-indigo-400 transition-colors z-30 cursor-pointer focus:outline-none"
                                     title={
                                         showPassword
                                             ? "Ocultar contraseña"
@@ -247,9 +250,10 @@ export default function LoginPage() {
                                 </button>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row justify-between gap-2 pt-1">
+                            {/* Enlace de recuperación comentado temporalmente */}
+                            {/* <div className="flex flex-col sm:flex-row justify-between gap-2 pt-1">
                                 {errors.password1 ? (
-                                    <p className="text-[10px] text-red-400 font-medium order-2 sm:order-1 ml-1">
+                                    <p className="text-xs text-rose-400 font-medium order-2 sm:order-1 ml-1">
                                         {errors.password1}
                                     </p>
                                 ) : (
@@ -257,17 +261,23 @@ export default function LoginPage() {
                                 )}
                                 <a
                                     href="/auth/recover"
-                                    className="text-sm font-semibold text-brand-400 hover:text-brand-300 order-1 sm:order-2 self-end sm:self-auto"
+                                    className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 order-1 sm:order-2 self-end sm:self-auto transition-colors"
                                 >
                                     ¿Olvidaste tu contraseña?
                                 </a>
-                            </div>
+                            </div> */}
+
+                            {errors.password1 && (
+                                <p className="text-xs text-rose-400 font-medium ml-1">
+                                    {errors.password1}
+                                </p>
+                            )}
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-lg bg-brand-600 text-white text-sm font-semibold shadow-sm hover:bg-brand-500 transition-all duration-300 active:scale-95 disabled:opacity-50 cursor-pointer"
+                            className="w-full flex justify-center items-center gap-2 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-[0_0_20px_rgba(79,70,229,0.35)] transition-all duration-300 active:scale-95 disabled:opacity-50 cursor-pointer border border-indigo-400/30"
                         >
                             {loading ? (
                                 <>
@@ -283,26 +293,27 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    <div className="mt-6 text-center border-t border-white/5 pt-6">
-                        <p className="text-sm text-gray-400">
+                    {/* Enlace de registro comentado temporalmente */}
+                    {/* <div className="mt-6 text-center border-t border-white/5 pt-5">
+                        <p className="text-sm text-slate-300">
                             ¿No tenés una cuenta?{" "}
                             <a
                                 href="/auth/register"
-                                className="font-semibold text-brand-400 hover:text-brand-300 transition-colors"
+                                className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
                             >
                                 Registrate acá
                             </a>
                         </p>
-                    </div>
+                    </div> */}
                 </div>
 
-                <p className="mt-8 text-center text-xs text-gray-500">
+                <p className="mt-8 text-center text-xs text-slate-400">
                     Desarrollado por{" "}
-                    <span className="font-bold text-gray-400">OjiSoftware</span>{" "}
+                    <span className="font-semibold text-slate-200">OjiSoftware</span>{" "}
                     © 2026 •{" "}
                     <a
                         href="mailto:soporte@ojisoftware.com"
-                        className="font-semibold text-brand-400 hover:text-brand-300"
+                        className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
                     >
                         Soporte técnico
                     </a>

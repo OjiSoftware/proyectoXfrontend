@@ -203,14 +203,14 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* {product.description && (
+            {product.description && (
               <div className="mt-3 mb-5">
                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Descripción</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {product.description}
                 </p>
               </div>
-            )} */}
+            )}
 
             <hr className="my-2 border-gray-100" />
 
