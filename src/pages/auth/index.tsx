@@ -104,41 +104,36 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#07050C] flex flex-col justify-center items-center px-4 py-8 font-poppins relative selection:bg-indigo-500 selection:text-white">
-            {/* Glows de fondo para profundidad ambiental */}
+        <div className="h-screen w-full bg-[#07050C] flex flex-col justify-center items-center px-4 overflow-hidden font-poppins relative selection:bg-indigo-500 selection:text-white">
+            {/* Glows de fondo para profundidad ambiental (contenidos sin desbordar el viewport) */}
             <div className="absolute top-1/4 -left-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="w-full max-w-md flex flex-col items-center relative z-10">
-                <div className="w-full text-center mb-8">
+            <div className="w-full max-w-sm sm:max-w-md flex flex-col items-center relative z-10 my-auto">
+                <div className="w-full text-center mb-5 sm:mb-6">
                     <img
                         src={logo}
                         alt="OJI"
-                        className="hidden sm:block h-24 w-auto mx-auto mb-4 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+                        className="h-16 sm:h-20 w-auto mx-auto mb-2 sm:mb-3 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.08)]"
                     />
-                    <img
-                        src={logo}
-                        alt="OJI"
-                        className="sm:hidden h-20 w-auto mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.08)]"
-                    />
-                    <p className="text-xs font-semibold text-slate-300 uppercase tracking-widest">
+                    <p className="text-[11px] sm:text-xs font-semibold text-slate-300 uppercase tracking-widest">
                         Gestión Empresarial Integral
                     </p>
                 </div>
 
-                <div className="w-full bg-[#0C0A15]/95 border border-white/10 p-6 sm:p-8 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.6)] backdrop-blur-3xl ring-1 ring-white/5">
-                    <div className="mb-6 text-center">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">
+                <div className="w-full bg-[#0C0A15]/95 border border-white/10 p-5 sm:p-7 rounded-[22px] shadow-[0_0_50px_rgba(0,0,0,0.6)] backdrop-blur-3xl ring-1 ring-white/5">
+                    <div className="mb-5 text-center">
+                        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                             Iniciar sesión
                         </h2>
-                        <p className="text-slate-300 text-sm mt-1.5">
+                        <p className="text-slate-300 text-xs sm:text-sm mt-1">
                             Ingresa tus credenciales de acceso
                         </p>
                     </div>
 
                     {/* 👇 Usamos el estado en lugar de la variable cruda */}
                     {showRegisteredMsg && (
-                        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 mb-6">
+                        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-2.5 mb-4">
                             <p className="text-xs font-medium text-emerald-400 text-center">
                                 ¡Cuenta creada con éxito! Ya podés iniciar sesión.
                             </p>
@@ -147,11 +142,11 @@ export default function LoginPage() {
 
                     <form
                         onSubmit={handleLogin}
-                        className="space-y-5"
+                        className="space-y-4"
                         noValidate
                     >
                         {errors.api && (
-                            <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 mb-5">
+                            <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-2.5 mb-4">
                                 <p className="text-xs font-medium text-rose-400 text-center">
                                     {errors.api}
                                 </p>
@@ -159,7 +154,7 @@ export default function LoginPage() {
                         )}
 
                         {/* Campo Email */}
-                        <div className="space-y-1.5">
+                        <div className="space-y-1">
                             <label
                                 htmlFor="email"
                                 className="block text-xs font-semibold uppercase tracking-wider text-slate-300 ml-1"
@@ -184,7 +179,7 @@ export default function LoginPage() {
                                         )
                                     }
                                     placeholder="tu@correo.com"
-                                    className={`block w-full h-11 bg-[#151320] border rounded-xl pl-10 pr-3 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500
+                                    className={`block w-full h-10 sm:h-11 bg-[#151320] border rounded-xl pl-10 pr-3 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500
                                         ${errors.email ? "border-rose-500/50 focus:ring-2 focus:ring-rose-500/40 text-rose-300" : "border-white/10 focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/30"}`}
                                 />
                             </div>
@@ -196,7 +191,7 @@ export default function LoginPage() {
                         </div>
 
                         {/* Campo Contraseña */}
-                        <div className="space-y-1.5">
+                        <div className="space-y-1">
                             <label
                                 htmlFor="password"
                                 title="password"
@@ -222,7 +217,7 @@ export default function LoginPage() {
                                         )
                                     }
                                     placeholder="••••••••"
-                                    className={`block w-full h-11 bg-[#151320] border rounded-xl pl-10 pr-10 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500
+                                    className={`block w-full h-10 sm:h-11 bg-[#151320] border rounded-xl pl-10 pr-10 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500
                                         ${errors.password1 ? "border-rose-500/50 focus:ring-2 focus:ring-rose-500/40 text-rose-300" : "border-white/10 focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/30"}`}
                                 />
                                 <button
@@ -277,7 +272,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex justify-center items-center gap-2 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-[0_0_20px_rgba(79,70,229,0.35)] transition-all duration-300 active:scale-95 disabled:opacity-50 cursor-pointer border border-indigo-400/30"
+                            className="w-full flex justify-center items-center gap-2 h-10 sm:h-11 mt-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-[0_0_20px_rgba(79,70,229,0.35)] transition-all duration-300 active:scale-95 disabled:opacity-50 cursor-pointer border border-indigo-400/30"
                         >
                             {loading ? (
                                 <>
@@ -307,7 +302,7 @@ export default function LoginPage() {
                     </div> */}
                 </div>
 
-                <p className="mt-8 text-center text-xs text-slate-400">
+                <p className="mt-4 sm:mt-5 text-center text-xs text-slate-400">
                     Desarrollado por{" "}
                     <span className="font-semibold text-slate-200">OjiSoftware</span>{" "}
                     © 2026 •{" "}
