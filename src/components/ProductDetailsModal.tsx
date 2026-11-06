@@ -72,9 +72,7 @@ export function ProductDetailsModal({
                         <div>
                             <h2 className="text-base md:text-lg font-bold text-slate-100 flex items-center gap-2">
                                 Detalle de Producto
-                                <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-white/5 text-slate-400 border border-white/5">
-                                    #{product.id}
-                                </span>
+
                             </h2>
                         </div>
                     </div>
@@ -111,7 +109,7 @@ export function ProductDetailsModal({
                                         {product.category?.name || "Sin categoría"}
                                     </span>
                                     {product.isOffer && (
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-red-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
                                             <Sparkles size={11} />
                                             En oferta
                                         </span>
@@ -145,7 +143,7 @@ export function ProductDetailsModal({
                     {/* BLOQUE FINANCIERO: Costo, Venta, Margen y Ganancia neta */}
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-2 block">
-                            Información Financiera y Rentabilidad
+                            Información
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             {/* Costo */}
@@ -162,9 +160,7 @@ export function ProductDetailsModal({
                                     <span className="text-xl md:text-2xl font-black text-slate-200">
                                         {hasCost ? formatARS(cost) : <span className="text-slate-600 text-lg">No asignado</span>}
                                     </span>
-                                    <span className="block text-[10px] text-slate-500 mt-0.5">
-                                        Costo de adquisición
-                                    </span>
+
                                 </div>
                             </div>
 
@@ -182,9 +178,7 @@ export function ProductDetailsModal({
                                     <span className="text-xl md:text-2xl font-black text-emerald-400">
                                         {formatARS(price)}
                                     </span>
-                                    <span className="block text-[10px] text-emerald-500/70 mt-0.5">
-                                        Precio al público
-                                    </span>
+
                                 </div>
                             </div>
 
@@ -236,11 +230,10 @@ export function ProductDetailsModal({
                                     Stock disponible
                                 </span>
                                 <span
-                                    className={`text-sm md:text-base font-black ${
-                                        product.stock === 0
-                                            ? "text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.5)]"
-                                            : "text-slate-100"
-                                    }`}
+                                    className={`text-sm md:text-base font-black ${product.stock === 0
+                                        ? "text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.5)]"
+                                        : "text-slate-100"
+                                        }`}
                                 >
                                     {product.stock ?? 0} unidades
                                 </span>
@@ -249,11 +242,10 @@ export function ProductDetailsModal({
 
                         <div className="bg-white/[0.02] p-3 rounded-2xl border border-white/5 flex items-center gap-3">
                             <div
-                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
-                                    product.showingInCatalog
-                                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                                        : "bg-slate-500/10 border-white/5 text-slate-500"
-                                }`}
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${product.showingInCatalog
+                                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                    : "bg-slate-500/10 border-white/5 text-slate-500"
+                                    }`}
                             >
                                 {product.showingInCatalog ? <Eye size={18} /> : <EyeOff size={18} />}
                             </div>
@@ -262,9 +254,8 @@ export function ProductDetailsModal({
                                     Catálogo Web
                                 </span>
                                 <span
-                                    className={`text-xs md:text-sm font-bold ${
-                                        product.showingInCatalog ? "text-emerald-400" : "text-slate-500"
-                                    }`}
+                                    className={`text-xs md:text-sm font-bold ${product.showingInCatalog ? "text-emerald-400" : "text-slate-500"
+                                        }`}
                                 >
                                     {product.showingInCatalog ? "Visible al público" : "Oculto del catálogo"}
                                 </span>
