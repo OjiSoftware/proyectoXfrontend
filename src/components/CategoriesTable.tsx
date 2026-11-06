@@ -49,9 +49,9 @@ export function CategoriesTable({
     };
 
     return (
-        <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0C0A15] shadow-2xl relative w-full">
+        <div className="overflow-x-auto rounded-2xl management-table-container relative w-full">
             <Table hoverable className="w-full border-collapse management-table">
-                <TableHead className="bg-[#151320] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
+                <TableHead className="bg-[#151124] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
                     <TableRow className="hover:bg-transparent border-none">
                         {/* 1. ROW NUM (Cambiamos el onClick de id a rowNum) */}
                         <TableHeadCell

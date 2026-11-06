@@ -58,9 +58,9 @@ export default function DashboardLayout({
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     useEffect(() => {
-        document.body.classList.add("bg-[#00001A]", "overflow-hidden");
+        document.body.classList.add("bg-[#07050C]", "overflow-hidden");
         return () => {
-            document.body.classList.remove("bg-[#00001A]", "overflow-hidden");
+            document.body.classList.remove("bg-[#07050C]", "overflow-hidden");
         };
     }, []);
 
@@ -84,7 +84,7 @@ export default function DashboardLayout({
         "&background=6366f1&color=fff";
 
     return (
-        <div className="flex h-screen w-full bg-[#00001A] overflow-hidden font-poppins">
+        <div className="flex h-screen w-full bg-[#07050C] overflow-hidden font-poppins">
 
             {/* --------------------------- */}
             {/* SIDEBAR ESCRITORIO          */}
@@ -285,9 +285,9 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* AREA PRINCIPAL 100% WIDTH   */}
             {/* --------------------------- */}
-            <div className="flex flex-1 flex-col overflow-hidden pt-16 md:pt-0 bg-gradient-to-tl from-[#0A0812] to-[#07050C] md:bg-[#07050C]">
+            <div className="flex flex-1 flex-col overflow-hidden pt-16 md:pt-0 bg-[#07050C]">
                 {title && (
-                    <header className=" shrink-0 bg-[#0A0812] backdrop-blur-md border-b border-white/5 relative z-50 shadow-sm overflow-visible">
+                    <header className="shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-50 shadow-sm overflow-visible">
                         <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center gap-4">
                             <div className="flex-1 min-w-0">
                                 <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
@@ -304,7 +304,7 @@ export default function DashboardLayout({
                 )}
 
                 {/* CONTENIDO (Scroll interno, ancho completo w-full sin límites) */}
-                <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0">
+                <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.08),rgba(7,5,12,0))]">
                     <div className="w-full px-4 py-8 sm:px-6 lg:px-8 pb-20">
                         {/* W-FULL reemplazando al max-w de tailwind, para que todo toque los bordes del flex */}
                         {children}

@@ -34,7 +34,14 @@
   }
 
   /* Estandarización de tablas del panel de gestión */
+  .management-table-container {
+    background-color: #0d0a18;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  }
+
   .management-table th {
+    background-color: #151124 !important;
     font-size: 0.75rem !important; /* 12px (text-xs) */
     font-weight: 600 !important;
     text-transform: uppercase !important;
@@ -44,6 +51,14 @@
 
   .management-table td {
     font-size: 0.8125rem !important; /* 13px */
+  }
+
+  .management-table tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.015);
+  }
+
+  .management-table tbody tr:hover {
+    background-color: rgba(99, 102, 241, 0.08) !important;
   }
 
   .management-table td .data-primary {
