@@ -32,26 +32,28 @@ export default function EditProductPage() {
     const [marginInput, setMarginInput] = useState("");
     const [minStock, setMinStock] = useState("");
 
-    // Sincronizar el barcode, costPrice y margen inicial cuando formData se carga desde la API
+    const isDataLoadedRef = React.useRef(false);
+
+    // Sincronizar el barcode, costPrice y margen inicial SOLO cuando los datos llegan del backend
     React.useEffect(() => {
-        if (formData.barcode) {
-            setBarcode(formData.barcode);
-        }
-        if (formData.costPrice !== undefined && formData.costPrice !== null) {
-            const numCost = Number(formData.costPrice);
-            setCostPrice(numCost);
-            setCostPriceInput(numCost > 0 ? numCost.toString() : "");
-            if (numCost > 0 && formData.price > 0) {
-                setMarginInput((((formData.price - numCost) / numCost) * 100).toFixed(2));
+        if (!isDataLoadedRef.current && (formData.price > 0 || formData.barcode || formData.costPrice)) {
+            isDataLoadedRef.current = true;
+            if (formData.barcode) {
+                setBarcode(formData.barcode);
+            }
+            if (formData.costPrice !== undefined && formData.costPrice !== null) {
+                const numCost = Number(formData.costPrice);
+                setCostPrice(numCost);
+                setCostPriceInput(numCost > 0 ? numCost.toString() : "");
+                if (numCost > 0 && formData.price > 0) {
+                    setMarginInput((((formData.price - numCost) / numCost) * 100).toFixed(2));
+                }
+            }
+            if (formData.price > 0) {
+                setPriceInput(formData.price.toString());
             }
         }
-    }, [formData.barcode, formData.costPrice, formData.price]);
-
-    React.useEffect(() => {
-        if (formData.price > 0) {
-            setPriceInput(formData.price.toString());
-        }
-    }, [formData.price]);
+    }, [formData.barcode, formData.costPrice, formData.price, setPriceInput]);
 
     /*     const filteredSubCategories = subCategories.filter(
             (sub) => sub.categoryId === formData.categoryId,
