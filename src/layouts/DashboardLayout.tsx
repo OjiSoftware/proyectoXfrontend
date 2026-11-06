@@ -23,14 +23,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
 import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
+import { BlocksIcon, DollarSign } from "lucide-react";
 
 const navigation = [
-    { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon },
-    { name: "Ventas", href: "/management/sales", icon: ShoppingBagIcon },
+    /*     { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon }, */
+    { name: "Ventas", href: "/management/sales", icon: DollarSign },
     { name: "Productos", href: "/management/products", icon: TagIcon },
-    { name: "Marcas", href: "/management/brands", icon: BriefcaseIcon },
-    { name: "Categorías", href: "/management/categories", icon: DocumentChartBarIcon },
-    { name: "Subcategorías", href: "/management/subcategories", icon: DocumentChartBarIcon },
+    /*     { name: "Marcas", href: "/management/brands", icon: BriefcaseIcon }, */
+    { name: "Categorías", href: "/management/categories", icon: BlocksIcon },
+    /*     { name: "Subcategorías", href: "/management/subcategories", icon: DocumentChartBarIcon }, */
     { name: "Reportes", href: "/management/reports", icon: DocumentChartBarIcon },
 ];
 
