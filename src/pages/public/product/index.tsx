@@ -150,7 +150,11 @@ export default function ProductDetailPage() {
               alt={product.name}
               className="w-full h-full object-contain mix-blend-multiply"
             />
-
+            {product.isOffer && (
+              <span className="absolute top-4 right-4 rounded-full bg-rose-600 px-3 py-1.5 text-m font-bold text-white shadow">
+                OFERTA
+              </span>
+            )}
             {/* IN CART BADGE */}
             {(() => {
               const cartItem = cart.find(item => item.product.id === product.id);

@@ -33,6 +33,28 @@
     font-family: var(--font-management) !important;
   }
 
+  /* Estandarización de tablas del panel de gestión */
+  .management-table th {
+    font-size: 0.75rem !important; /* 12px (text-xs) */
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #cbd5e1 !important; /* slate-300 para óptimo contraste sobre fondo oscuro */
+  }
+
+  .management-table td {
+    font-size: 0.8125rem !important; /* 13px */
+  }
+
+  .management-table td .data-primary {
+    color: #f1f5f9 !important; /* slate-100 */
+    font-weight: 600;
+  }
+
+  .management-table td .data-secondary {
+    color: #94a3b8 !important; /* slate-400 */
+  }
+
   button,
   [role="button"],
   input[type="button"],

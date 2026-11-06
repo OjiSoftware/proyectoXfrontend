@@ -139,7 +139,7 @@ export default function DashboardLayout({
 
                     {/* Navegación Base Expandida */}
                     <div className="px-4">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 px-2">Menú Principal</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 px-2">Menú Principal</p>
                         <nav className="flex flex-col space-y-1">
                             {navigation.map((item) => {
                                 const isActive = location.pathname.startsWith(item.href);
@@ -149,9 +149,9 @@ export default function DashboardLayout({
                                         to={item.href}
                                         className={classNames(
                                             isActive
-                                                ? "bg-indigo-500/10 text-indigo-400 shadow-sm border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]"
-                                                : "text-slate-300 hover:bg-white/5 hover:text-white border border-transparent",
-                                            "group flex items-center px-4 py-3 text-xs font-medium rounded-2xl transition-all"
+                                                ? "bg-indigo-500/15 text-indigo-300 font-semibold shadow-sm border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.08)]"
+                                                : "text-slate-200 hover:bg-white/5 hover:text-white border border-transparent font-medium",
+                                            "group flex items-center px-4 py-2.5 text-sm rounded-2xl transition-all"
                                         )}
                                     >
                                         <item.icon
@@ -170,9 +170,9 @@ export default function DashboardLayout({
                         <div className="pt-4 mt-4 border-t border-white/5">
                             <Link
                                 to="/"
-                                className="group flex items-center px-4 py-2.5 text-xs font-medium rounded-2xl text-emerald-400/90 hover:text-emerald-300 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/15 hover:border-emerald-500/30 transition-all shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+                                className="group flex items-center px-4 py-2.5 text-sm font-medium rounded-2xl text-emerald-400 hover:text-emerald-300 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/15 hover:border-emerald-500/30 transition-all shadow-[0_0_15px_rgba(16,185,129,0.05)]"
                             >
-                                <GlobeAltIcon className="mr-3 h-5 w-5 text-emerald-400/80 group-hover:text-emerald-300 transition-colors" />
+                                <GlobeAltIcon className="mr-3 h-5 w-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
                                 <span>Ver tienda pública</span>
                             </Link>
                         </div>
@@ -188,8 +188,8 @@ export default function DashboardLayout({
                             className="inline-block h-10 w-10 rounded-full border border-white/10"
                         />
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-slate-200 truncate">{user?.name || "Admin"}</p>
-                            <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 truncate mt-0.5">{user?.email}</p>
+                            <p className="text-sm font-semibold text-slate-100 truncate">{user?.name || "Admin"}</p>
+                            <p className="text-xs text-slate-400 truncate mt-0.5">{user?.email}</p>
                         </div>
                         <button
                             onClick={handleLogout}
@@ -237,12 +237,12 @@ export default function DashboardLayout({
                                         to={item.href}
                                         className={classNames(
                                             isActive
-                                                ? "bg-brand-500/10 text-brand-400 border border-brand-500/20"
-                                                : "text-gray-300 hover:bg-white/5 hover:text-white border border-transparent",
-                                            "flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-medium transition-all"
+                                                ? "bg-brand-500/15 text-brand-300 border border-brand-500/30 font-semibold"
+                                                : "text-slate-200 hover:bg-white/5 hover:text-white border border-transparent font-medium",
+                                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all"
                                         )}
                                     >
-                                        <item.icon className="h-5 w-5 opacity-70" />
+                                        <item.icon className="h-5 w-5 opacity-80" />
                                         {item.name}
                                     </DisclosureButton>
                                 )
@@ -252,7 +252,7 @@ export default function DashboardLayout({
                                 <DisclosureButton
                                     as={Link}
                                     to="/"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 transition-all"
+                                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 transition-all"
                                 >
                                     <GlobeAltIcon className="h-5 w-5 text-emerald-400 opacity-80" />
                                     <span>Ver tienda pública</span>
@@ -264,8 +264,8 @@ export default function DashboardLayout({
                                 <div className="flex items-center min-w-0 flex-1">
                                     <img className="h-10 w-10 rounded-full border border-white/10 shrink-0" src={userImage} alt="" />
                                     <div className="ml-3 min-w-0 flex-1">
-                                        <div className="text-xs font-medium text-white truncate">{user?.name || "Admin"}</div>
-                                        <div className="text-[11px] uppercase tracking-wider text-gray-500 truncate mt-0.5">{user?.email}</div>
+                                        <div className="text-sm font-semibold text-white truncate">{user?.name || "Admin"}</div>
+                                        <div className="text-xs text-slate-400 truncate mt-0.5">{user?.email}</div>
                                     </div>
                                 </div>
                                 <button
@@ -290,7 +290,7 @@ export default function DashboardLayout({
                         <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center gap-4">
                             <div className="flex-1 min-w-0">
                                 <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
-                                {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+                                {subtitle && <p className="text-sm text-slate-300 mt-1">{subtitle}</p>}
                             </div>
 
                             {/* WIDGETS + ACCIONES agrupados a la derecha */}

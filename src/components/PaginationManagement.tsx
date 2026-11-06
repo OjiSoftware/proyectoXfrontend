@@ -41,18 +41,18 @@ export default function Pagination({
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-2xl text-slate-500 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                    className="p-2 rounded-2xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
                 >
                     <ChevronLeftIcon title="Anterior" className="size-5" />
                 </button>
 
-                <span className="text-xs text-slate-400 text-center">
+                <span className="text-sm text-slate-300 text-center">
                     Página{" "}
-                    <span className="text-slate-200 font-bold">
+                    <span className="text-white font-bold">
                         {currentPage}
                     </span>{" "}
                     de{" "}
-                    <span className="text-slate-200 font-bold">{totalPages}</span>
+                    <span className="text-white font-bold">{totalPages}</span>
                 </span>
 
                 <button
@@ -60,7 +60,7 @@ export default function Pagination({
                         onPageChange(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-2xl text-slate-500 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                    className="p-2 rounded-2xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
                 >
                     <ChevronRightIcon title="Siguiente" className="size-5" />
                 </button>
@@ -69,17 +69,17 @@ export default function Pagination({
             {/* DESKTOP */}
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between px-2">
                 <div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm text-slate-300">
                         Mostrando{" "}
-                        <span className="text-slate-200 font-bold">
+                        <span className="text-white font-bold">
                             {(currentPage - 1) * itemsPerPage + 1}
                         </span>{" "}
                         a{" "}
-                        <span className="text-slate-200 font-bold">
+                        <span className="text-white font-bold">
                             {Math.min(currentPage * itemsPerPage, totalItems)}
                         </span>{" "}
                         de{" "}
-                        <span className="text-slate-200 font-bold">
+                        <span className="text-white font-bold">
                             {totalItems}
                         </span>{" "}
                         resultados
@@ -94,7 +94,7 @@ export default function Pagination({
                                 onPageChange(Math.max(1, currentPage - 1))
                             }
                             disabled={currentPage === 1}
-                            className="relative inline-flex items-center rounded-l-2xl px-3 py-2 text-slate-500 hover:text-white hover:bg-white/5 border-r border-white/5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            className="relative inline-flex items-center rounded-l-2xl px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 border-r border-white/5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                             <ChevronLeftIcon className="size-4" />
                         </button>
@@ -104,7 +104,7 @@ export default function Pagination({
                             page === "..." ? (
                                 <span
                                     key={`dots-${i}`}
-                                    className="relative inline-flex items-center px-4 py-2 text-xs text-slate-500 border-r border-white/5"
+                                    className="relative inline-flex items-center px-4 py-2 text-sm text-slate-400 border-r border-white/5"
                                 >
                                     ...
                                 </span>
@@ -112,11 +112,11 @@ export default function Pagination({
                                 <button
                                     key={`page-${page}-${i}`}
                                     onClick={() => onPageChange(page)}
-                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-bold cursor-pointer transition-all duration-300 border-r border-white/5
+                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold cursor-pointer transition-all duration-300 border-r border-white/5
                 ${
                     currentPage === page
-                        ? "bg-indigo-600/20 text-indigo-400 border-indigo-500/30 shadow-[0_0_15px_rgba(79,70,229,0.15)] z-10"
-                        : "bg-transparent text-slate-400 hover:text-white hover:bg-white/5"
+                        ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/30 shadow-[0_0_15px_rgba(79,70,229,0.15)] z-10"
+                        : "bg-transparent text-slate-300 hover:text-white hover:bg-white/5"
                 }`}
                                 >
                                     {page}
@@ -132,7 +132,7 @@ export default function Pagination({
                                 )
                             }
                             disabled={currentPage === totalPages}
-                            className="relative inline-flex items-center rounded-r-2xl px-3 py-2 text-slate-500 hover:text-white hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            className="relative inline-flex items-center rounded-r-2xl px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                             <ChevronRightIcon className="size-4" />
                         </button>

@@ -89,8 +89,8 @@ export function ProductsTable({
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0C0A15] shadow-2xl">
-      <Table hoverable className="w-full">
-        <TableHead className="bg-[#151320] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white-5 [&_th]:font-semibold [&_th]:text-[10px] [&_th]:uppercase [&_th]:tracking-wider">
+      <Table hoverable className="w-full management-table">
+        <TableHead className="bg-[#151320] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white-5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
           <TableRow className="hover:bg-transparent border-none">
             <TableHeadCell
               className="px-4 w-14 cursor-pointer select-none"
@@ -180,41 +180,41 @@ export function ProductsTable({
           {products.map((product) => (
             <TableRow
               key={product.id}
-              className="bg-transparent hover:bg-white/5 transition-colors text-xs border-white/5 group"
+              className="bg-transparent hover:bg-white/5 transition-colors text-sm border-white/5 group"
             >
-              <TableCell className="px-4 font-bold text-slate-400 group-hover:text-indigo-400 transition-colors">
+              <TableCell className="px-4 font-bold text-slate-300 group-hover:text-indigo-400 transition-colors">
                 {product.originalIndex}
               </TableCell>
 
               <TableCell className="text-left py-3">
                 <div className="flex flex-col items-start justify-center">
-                  <span className="font-bold text-slate-200">{product.name}</span>
+                  <span className="font-semibold text-slate-100">{product.name}</span>
                 </div>
               </TableCell>
 
               {isVisible('barcode') && (
-                <TableCell className="text-center font-mono text-slate-400">
-                  {product.barcode || <span className="text-slate-600 italic">-</span>}
+                <TableCell className="text-center font-mono text-slate-300">
+                  {product.barcode || <span className="text-slate-500 italic">-</span>}
                 </TableCell>
               )}
 
               {isVisible('category') && (
-                <TableCell className={`${hideOnTablet} text-center text-slate-400`}>
-                  {product.category?.name || 'Sin categoría'}
+                <TableCell className={`${hideOnTablet} text-center text-slate-300`}>
+                  {product.category?.name || <span className="text-slate-500 italic">Sin categoría</span>}
                 </TableCell>
               )}
 
 
               {isVisible('stock') && (
                 <TableCell className={`${hideOnMobile} font-bold text-center`}>
-                  <span className={product.stock === 0 ? 'text-rose-500 drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'text-slate-300'}>
+                  <span className={product.stock === 0 ? 'text-rose-400 font-bold drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'text-slate-200'}>
                     {product.stock ?? 0}
                   </span>
                 </TableCell>
               )}
 
               {isVisible('price') && (
-                <TableCell className={`${hideOnMobile} font-mono text-emerald-400 text-center font-medium`}>
+                <TableCell className={`${hideOnMobile} font-mono text-emerald-400 text-center font-semibold text-sm`}>
                   {formatARS.format(product.price ?? 0)}
                 </TableCell>
               )}
@@ -223,24 +223,24 @@ export function ProductsTable({
                 <div className="flex items-center justify-center gap-3">
                   <button
                     title="Ver detalles"
-                    className="text-slate-500 hover:text-indigo-400 transition-colors active:scale-95 cursor-pointer"
+                    className="text-slate-400 hover:text-indigo-400 transition-colors active:scale-95 cursor-pointer"
                     onClick={() => handleOpenDetails(product)}
                   >
-                    <EyeIcon className="w-4 h-4" />
+                    <EyeIcon className="w-5 h-5" />
                   </button>
                   <Link
                     title="Editar producto"
                     to={ROUTES.products.edit(product.id)}
-                    className="text-slate-500 hover:text-amber-400 transition-colors active:scale-95"
+                    className="text-slate-400 hover:text-amber-400 transition-colors active:scale-95"
                   >
-                    <PencilIcon className="w-4 h-4" />
+                    <PencilIcon className="w-5 h-5" />
                   </Link>
                   <button
                     title="Eliminar producto"
                     onClick={() => onDelete(product)}
-                    className="text-slate-500 hover:text-rose-500 transition-colors active:scale-95 cursor-pointer"
+                    className="text-slate-400 hover:text-rose-400 transition-colors active:scale-95 cursor-pointer"
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <TrashIcon className="w-5 h-5" />
                   </button>
                 </div>
               </TableCell>

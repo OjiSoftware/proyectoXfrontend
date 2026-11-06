@@ -137,8 +137,8 @@ export function SalesTable({
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0C0A15] shadow-2xl relative w-full">
-      <Table hoverable className="w-full ">
-        <TableHead className="bg-[#151320] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white-5 [&_th]:font-semibold [&_th]:text-[10px] [&_th]:uppercase [&_th]:tracking-wider">
+      <Table hoverable className="w-full management-table">
+        <TableHead className="bg-[#151320] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white-5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
           <TableRow className="hover:bg-transparent border-none">
             <TableHeadCell
               className="px-4 w-14 cursor-pointer select-none"
@@ -205,14 +205,14 @@ export function SalesTable({
           {displaySales.map((sale) => (
             <TableRow
               key={sale.id}
-              className={`bg-transparent transition-colors text-xs border-white/5 group ${(sale as any).notes
+              className={`bg-transparent transition-colors text-sm border-white/5 group ${(sale as any).notes
                 ? 'hover:bg-amber-500/15 bg-amber-500/5'
                 : 'hover:bg-white/5'
                 }`}
             >
               <TableCell className="px-4 font-bold align-top py-3 lg:align-middle">
                 <div className="flex flex-col">
-                  <span className="text-slate-400 group-hover:text-indigo-400 transition-colors">{(sale as any).originalIndex}</span>
+                  <span className="text-slate-300 group-hover:text-indigo-400 transition-colors">{(sale as any).originalIndex}</span>
                   <span className="sm:hidden font-mono text-emerald-400 mt-0.5">
                     {formatARS.format(Number(sale.total) ?? 0)}
                   </span>
@@ -220,7 +220,7 @@ export function SalesTable({
               </TableCell>
 
               {isVisible('createdAt') && (
-                <TableCell className="hidden md:table-cell! text-center text-slate-400 align-top py-4 lg:align-middle">
+                <TableCell className="hidden md:table-cell! text-center text-slate-300 align-top py-4 lg:align-middle">
                   {sale.createdAt ? new Date(sale.createdAt).toLocaleDateString('es-AR') : '---'}
                 </TableCell>
               )}
@@ -252,15 +252,15 @@ export function SalesTable({
               )}
 
               {isVisible('total') && (
-                <TableCell className="hidden md:table-cell! text-center font-mono text-emerald-400 font-medium align-top py-4 lg:align-middle">
+                <TableCell className="hidden md:table-cell! text-center font-mono text-emerald-400 font-semibold align-top py-4 lg:align-middle">
                   {formatARS.format(Number(sale.total) ?? 0)}
                 </TableCell>
               )}
 
               {isVisible('client') && (
-                <TableCell className="hidden md:table-cell! text-slate-300 font-medium align-top py-4 lg:align-middle">
+                <TableCell className="hidden md:table-cell! text-slate-200 font-medium align-top py-4 lg:align-middle">
                   {sale.client ? `${sale.client.surname}, ${sale.client.name}` : (
-                    <span className="text-slate-400 italic text-xs font-normal">Sin cliente</span>
+                    <span className="text-slate-400 italic text-sm font-normal">Sin cliente</span>
                   )}
                 </TableCell>
               )}
@@ -272,7 +272,7 @@ export function SalesTable({
                     className="text-slate-400 hover:text-indigo-400 transition-colors active:scale-95 cursor-pointer"
                     onClick={() => handleOpenDetails(sale)}
                   >
-                    <EyeIcon className="w-4 h-4" />
+                    <EyeIcon className="w-5 h-5" />
                   </button>
 
                   {sale.status === 'COMPLETED' ? (
@@ -282,7 +282,7 @@ export function SalesTable({
                       onClick={() => handleOpenNotes(sale)}
                       className="text-slate-400 hover:text-amber-400 transition-colors active:scale-95 cursor-pointer"
                     >
-                      <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+                      <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
                     </button>
                   ) : (
                     <div
@@ -310,7 +310,7 @@ export function SalesTable({
                           sale.status === 'CANCELLED' && e.preventDefault()
                         }
                       >
-                        <PencilIcon className="w-4 h-4" />
+                        <PencilIcon className="w-5 h-5" />
                       </Link>
                     </div>
                   )}
@@ -325,14 +325,14 @@ export function SalesTable({
                     className={
                       sale.status === 'CANCELLED'
                         ? 'text-slate-500 cursor-not-allowed opacity-40'
-                        : 'text-slate-400 hover:text-rose-500 transition-colors active:scale-95 cursor-pointer'
+                        : 'text-slate-400 hover:text-rose-400 transition-colors active:scale-95 cursor-pointer'
                     }
                     onClick={() =>
                       sale.status !== 'CANCELLED' && onDelete(sale)
                     }
                     disabled={sale.status === 'CANCELLED'}
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <TrashIcon className="w-5 h-5" />
                   </button>
                 </div>
               </TableCell>
