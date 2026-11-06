@@ -29,29 +29,44 @@ export default function EditProductPage() {
     const [barcode, setBarcode] = useState("");
     const [costPriceInput, setCostPriceInput] = useState("");
     const [costPrice, setCostPrice] = useState(0);
+    const [marginInput, setMarginInput] = useState("");
     const [minStock, setMinStock] = useState("");
 
-    // Sincronizar el barcode y costPrice cuando formData se carga desde la API
+    // Helper para parsear números con comas o puntos
+    const parseCurrency = (raw: string): number => {
+        let parseableRaw = raw.trim();
+        if (parseableRaw.includes(",") && parseableRaw.includes(".")) {
+            if (parseableRaw.lastIndexOf(",") > parseableRaw.lastIndexOf(".")) {
+                parseableRaw = parseableRaw.replace(/\./g, "").replace(",", ".");
+            } else {
+                parseableRaw = parseableRaw.replace(/,/g, "");
+            }
+        } else {
+            parseableRaw = parseableRaw.replace(/,/g, ".");
+        }
+        const numeric = parseFloat(parseableRaw);
+        return isNaN(numeric) ? 0 : Math.max(0, numeric);
+    };
+
+    // Sincronizar el barcode, costPrice y margen inicial cuando formData se carga desde la API
     React.useEffect(() => {
         if (formData.barcode) {
             setBarcode(formData.barcode);
         }
         if (formData.costPrice !== undefined && formData.costPrice !== null) {
-            const num = Number(formData.costPrice);
-            setCostPrice(num);
+            const numCost = Number(formData.costPrice);
+            setCostPrice(numCost);
             setCostPriceInput(
-                num.toLocaleString("es-AR", {
+                numCost.toLocaleString("es-AR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                 })
             );
+            if (numCost > 0 && formData.price > 0) {
+                setMarginInput((((formData.price - numCost) / numCost) * 100).toFixed(1));
+            }
         }
-    }, [formData.barcode, formData.costPrice]);
-
-    // Profit Margin Calculation
-    const profitMargin = costPrice > 0 && formData.price > 0
-        ? (((formData.price - costPrice) / costPrice) * 100).toFixed(1)
-        : null;
+    }, [formData.barcode, formData.costPrice, formData.price]);
 
     /*     const filteredSubCategories = subCategories.filter(
             (sub) => sub.categoryId === formData.categoryId,
@@ -112,26 +127,23 @@ export default function EditProductPage() {
         setFormData((prev) => ({ ...prev, [name]: finalValue }));
     };
 
+    // ---------------- Handlers de Precios y Margen ----------------
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = e.target.value;
         setPriceInput(raw);
 
-        let parseableRaw = raw;
-        if (raw.includes(",") && raw.includes(".")) {
-            if (raw.lastIndexOf(",") > raw.lastIndexOf(".")) {
-                parseableRaw = raw.replace(/\./g, "").replace(",", ".");
-            } else {
-                parseableRaw = raw.replace(/,/g, "");
-            }
-        } else {
-            parseableRaw = raw.replace(/,/g, ".");
-        }
-
-        const numericValue = parseFloat(parseableRaw);
+        const newPrice = parseCurrency(raw);
         setFormData((prev) => ({
             ...prev,
-            price: isNaN(numericValue) ? 0 : Math.max(0, numericValue),
+            price: newPrice,
         }));
+
+        if (costPrice > 0 && newPrice > 0) {
+            const calculatedMargin = (((newPrice - costPrice) / costPrice) * 100).toFixed(1);
+            setMarginInput(calculatedMargin);
+        } else {
+            setMarginInput("");
+        }
     };
 
     const handlePriceFocus = () => {
@@ -143,30 +155,43 @@ export default function EditProductPage() {
     };
 
     const handlePriceBlur = () => {
-        setPriceInput(
-            formData.price.toLocaleString("es-AR", {
-                minimumFractionDigits: 2,
-            }),
-        );
+        if (formData.price > 0) {
+            setPriceInput(
+                formData.price.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                }),
+            );
+        } else {
+            setPriceInput("");
+        }
     };
 
     const handleCostPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = e.target.value;
         setCostPriceInput(raw);
 
-        let parseableRaw = raw;
-        if (raw.includes(",") && raw.includes(".")) {
-            if (raw.lastIndexOf(",") > raw.lastIndexOf(".")) {
-                parseableRaw = raw.replace(/\./g, "").replace(",", ".");
-            } else {
-                parseableRaw = raw.replace(/,/g, "");
-            }
-        } else {
-            parseableRaw = raw.replace(/,/g, ".");
-        }
+        const newCost = parseCurrency(raw);
+        setCostPrice(newCost);
 
-        const numericValue = parseFloat(parseableRaw);
-        setCostPrice(isNaN(numericValue) ? 0 : Math.max(0, numericValue));
+        const currentMargin = parseFloat(marginInput.replace(/,/g, "."));
+        if (!isNaN(currentMargin) && currentMargin > 0 && newCost > 0) {
+            // Si ya hay margen ingresado, se actualiza el precio de venta en base al costo
+            const calculatedPrice = Number((newCost * (1 + currentMargin / 100)).toFixed(2));
+            setFormData((prev) => ({ ...prev, price: calculatedPrice }));
+            setPriceInput(
+                calculatedPrice.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                })
+            );
+        } else if (newCost > 0 && formData.price > 0) {
+            // Si ya hay un precio de venta, recalcula el margen
+            const calculatedMargin = (((formData.price - newCost) / newCost) * 100).toFixed(1);
+            setMarginInput(calculatedMargin);
+        } else {
+            setMarginInput("");
+        }
     };
 
     const handleCostPriceFocus = () => {
@@ -187,6 +212,26 @@ export default function EditProductPage() {
             );
         } else {
             setCostPriceInput("");
+        }
+    };
+
+    const handleMarginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const raw = e.target.value;
+        setMarginInput(raw);
+
+        const numericMargin = parseFloat(raw.replace(/,/g, "."));
+        if (!isNaN(numericMargin) && costPrice > 0) {
+            const calculatedPrice = Number((costPrice * (1 + numericMargin / 100)).toFixed(2));
+            setFormData((prev) => ({
+                ...prev,
+                price: calculatedPrice,
+            }));
+            setPriceInput(
+                calculatedPrice.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                })
+            );
         }
     };
 
@@ -502,30 +547,41 @@ export default function EditProductPage() {
                                 </div>
                                 <div className="col-span-1">
                                     <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                                        Venta ($){" "}
-                                        <span className="font-bold text-indigo-400">*</span>
+                                        Margen (%)
                                     </label>
-                                    <input
-                                        type="text"
-                                        name="price"
-                                        autoComplete="off"
-                                        value={priceInput}
-                                        onChange={handlePriceChange}
-                                        onFocus={handlePriceFocus}
-                                        onBlur={handlePriceBlur}
-                                        placeholder="0,00"
-                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
-                                        required
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={marginInput}
+                                            onChange={handleMarginChange}
+                                            placeholder="Ej: 30"
+                                            className="w-full bg-[#151320] border border-white/10 rounded-xl pl-3 pr-7 py-2 text-xs text-indigo-300 font-semibold focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500">
+                                            %
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {profitMargin && (
-                                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-lg p-2 flex justify-between items-center -mt-1">
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Margen de ganancia</span>
-                                    <span className="text-[10px] font-black text-emerald-400">+{profitMargin}%</span>
-                                </div>
-                            )}
+                            <div>
+                                <label className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                                    Venta ($){" "}
+                                    <span className="font-bold text-indigo-400">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="price"
+                                    autoComplete="off"
+                                    value={priceInput}
+                                    onChange={handlePriceChange}
+                                    onFocus={handlePriceFocus}
+                                    onBlur={handlePriceBlur}
+                                    placeholder="0,00"
+                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                                    required
+                                />
+                            </div>
 
                             <div className="grid grid-cols-2 gap-3 mt-1">
                                 <div className="col-span-1">

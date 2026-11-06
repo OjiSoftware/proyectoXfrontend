@@ -109,7 +109,7 @@ export function ProductDetailsModal({
                                         {product.category?.name || "Sin categoría"}
                                     </span>
                                     {product.isOffer && (
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-red-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-red-500/15 text-red-300 border border-red-500/30 flex items-center gap-1">
                                             <Sparkles size={11} />
                                             En oferta
                                         </span>
