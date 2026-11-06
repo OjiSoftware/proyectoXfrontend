@@ -32,20 +32,23 @@ export default function EditProductPage() {
     const [marginInput, setMarginInput] = useState("");
     const [minStock, setMinStock] = useState("");
 
-    // Helper para parsear números con comas o puntos
+    // Helper para parsear números con coma o punto
     const parseCurrency = (raw: string): number => {
-        let parseableRaw = raw.trim();
-        if (parseableRaw.includes(",") && parseableRaw.includes(".")) {
-            if (parseableRaw.lastIndexOf(",") > parseableRaw.lastIndexOf(".")) {
-                parseableRaw = parseableRaw.replace(/\./g, "").replace(",", ".");
-            } else {
-                parseableRaw = parseableRaw.replace(/,/g, "");
-            }
-        } else {
-            parseableRaw = parseableRaw.replace(/,/g, ".");
-        }
-        const numeric = parseFloat(parseableRaw);
+        const clean = raw.replace(/\s+/g, "").replace(",", ".");
+        const numeric = parseFloat(clean);
         return isNaN(numeric) ? 0 : Math.max(0, numeric);
+    };
+
+    // Permite escribir solo números con coma o punto decimal sin formatear durante la escritura
+    const sanitizeDecimalInput = (value: string): string => {
+        let sanitized = value.replace(/[^0-9.,]/g, "");
+        const firstSeparatorIdx = sanitized.search(/[.,]/);
+        if (firstSeparatorIdx !== -1) {
+            const before = sanitized.slice(0, firstSeparatorIdx + 1);
+            const after = sanitized.slice(firstSeparatorIdx + 1).replace(/[.,]/g, "");
+            sanitized = before + after;
+        }
+        return sanitized;
     };
 
     // Sincronizar el barcode, costPrice y margen inicial cuando formData se carga desde la API
@@ -56,14 +59,9 @@ export default function EditProductPage() {
         if (formData.costPrice !== undefined && formData.costPrice !== null) {
             const numCost = Number(formData.costPrice);
             setCostPrice(numCost);
-            setCostPriceInput(
-                numCost.toLocaleString("es-AR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                })
-            );
+            setCostPriceInput(numCost > 0 ? numCost.toString() : "");
             if (numCost > 0 && formData.price > 0) {
-                setMarginInput((((formData.price - numCost) / numCost) * 100).toFixed(1));
+                setMarginInput((((formData.price - numCost) / numCost) * 100).toFixed(2));
             }
         }
     }, [formData.barcode, formData.costPrice, formData.price]);
@@ -129,7 +127,7 @@ export default function EditProductPage() {
 
     // ---------------- Handlers de Precios y Margen ----------------
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const raw = e.target.value;
+        const raw = sanitizeDecimalInput(e.target.value);
         setPriceInput(raw);
 
         const newPrice = parseCurrency(raw);
@@ -139,36 +137,15 @@ export default function EditProductPage() {
         }));
 
         if (costPrice > 0 && newPrice > 0) {
-            const calculatedMargin = (((newPrice - costPrice) / costPrice) * 100).toFixed(1);
+            const calculatedMargin = (((newPrice - costPrice) / costPrice) * 100).toFixed(2);
             setMarginInput(calculatedMargin);
         } else {
             setMarginInput("");
         }
     };
 
-    const handlePriceFocus = () => {
-        if (formData.price > 0) {
-            setPriceInput(formData.price.toString());
-        } else {
-            setPriceInput("");
-        }
-    };
-
-    const handlePriceBlur = () => {
-        if (formData.price > 0) {
-            setPriceInput(
-                formData.price.toLocaleString("es-AR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                }),
-            );
-        } else {
-            setPriceInput("");
-        }
-    };
-
     const handleCostPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const raw = e.target.value;
+        const raw = sanitizeDecimalInput(e.target.value);
         setCostPriceInput(raw);
 
         const newCost = parseCurrency(raw);
@@ -179,44 +156,18 @@ export default function EditProductPage() {
             // Si ya hay margen ingresado, se actualiza el precio de venta en base al costo
             const calculatedPrice = Number((newCost * (1 + currentMargin / 100)).toFixed(2));
             setFormData((prev) => ({ ...prev, price: calculatedPrice }));
-            setPriceInput(
-                calculatedPrice.toLocaleString("es-AR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                })
-            );
+            setPriceInput(calculatedPrice.toString());
         } else if (newCost > 0 && formData.price > 0) {
             // Si ya hay un precio de venta, recalcula el margen
-            const calculatedMargin = (((formData.price - newCost) / newCost) * 100).toFixed(1);
+            const calculatedMargin = (((formData.price - newCost) / newCost) * 100).toFixed(2);
             setMarginInput(calculatedMargin);
         } else {
             setMarginInput("");
         }
     };
 
-    const handleCostPriceFocus = () => {
-        if (costPrice > 0) {
-            setCostPriceInput(costPrice.toString());
-        } else {
-            setCostPriceInput("");
-        }
-    };
-
-    const handleCostPriceBlur = () => {
-        if (costPrice > 0) {
-            setCostPriceInput(
-                costPrice.toLocaleString("es-AR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                }),
-            );
-        } else {
-            setCostPriceInput("");
-        }
-    };
-
     const handleMarginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const raw = e.target.value;
+        const raw = sanitizeDecimalInput(e.target.value);
         setMarginInput(raw);
 
         const numericMargin = parseFloat(raw.replace(/,/g, "."));
@@ -226,12 +177,7 @@ export default function EditProductPage() {
                 ...prev,
                 price: calculatedPrice,
             }));
-            setPriceInput(
-                calculatedPrice.toLocaleString("es-AR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                })
-            );
+            setPriceInput(calculatedPrice.toString());
         }
     };
 
@@ -537,11 +483,10 @@ export default function EditProductPage() {
                                     </label>
                                     <input
                                         type="text"
+                                        inputMode="decimal"
                                         value={costPriceInput}
                                         onChange={handleCostPriceChange}
-                                        onFocus={handleCostPriceFocus}
-                                        onBlur={handleCostPriceBlur}
-                                        placeholder="0,00"
+                                        placeholder="0"
                                         className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
                                     />
                                 </div>
@@ -552,9 +497,10 @@ export default function EditProductPage() {
                                     <div className="relative">
                                         <input
                                             type="text"
+                                            inputMode="decimal"
                                             value={marginInput}
                                             onChange={handleMarginChange}
-                                            placeholder="Ej: 30"
+                                            placeholder="30"
                                             className="w-full bg-[#151320] border border-white/10 rounded-xl pl-3 pr-7 py-2 text-xs text-indigo-300 font-semibold focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
                                         />
                                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500">
@@ -572,12 +518,11 @@ export default function EditProductPage() {
                                 <input
                                     type="text"
                                     name="price"
+                                    inputMode="decimal"
                                     autoComplete="off"
                                     value={priceInput}
                                     onChange={handlePriceChange}
-                                    onFocus={handlePriceFocus}
-                                    onBlur={handlePriceBlur}
-                                    placeholder="0,00"
+                                    placeholder="0"
                                     className="w-full bg-[#151320] border border-white/10 rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
                                     required
                                 />
