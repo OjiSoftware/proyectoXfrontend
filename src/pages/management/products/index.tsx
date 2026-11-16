@@ -503,21 +503,21 @@ export default function ProductsPage() {
                     </div>
 
                     {/* BUSCADOR Y FILTROS ESCRITORIO (md+): EXACTAMENTE EL ORIGINAL */}
-                    <div className="hidden md:flex flex-col lg:flex-row lg:items-center gap-3">
+                    <div className="hidden md:flex items-center justify-between gap-3 w-full">
                         {/* Buscador */}
-                        <div className="flex-1 min-w-[200px]">
+                        <div className="flex-1">
                             <SearchBar
                                 value={query}
                                 onChange={setQuery}
                                 placeholder="Buscar por nombre del producto..."
-                                containerClassName="max-w-full"
-                                inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
+                                containerClassName="!max-w-none w-full"
+                                inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11 w-full"
                                 iconClassName="text-slate-500 group-focus-within:text-indigo-400"
                             />
                         </div>
 
                         {/* Contenedor de Filtros y Acciones */}
-                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                        <div className="flex items-center gap-2 lg:gap-3 shrink-0">
 
 
 

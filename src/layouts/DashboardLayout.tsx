@@ -239,7 +239,7 @@ export default function DashboardLayout({
 
                         {/* HEADER DESKTOP (md+): Sin tocar, mantiene widgets de alertas y botón crear */}
                         <header className="hidden md:block shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-30 shadow-sm overflow-visible">
-                            <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center gap-4">
+                            <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
                                     {subtitle && <p className="text-sm text-slate-300 mt-1 truncate">{subtitle}</p>}
