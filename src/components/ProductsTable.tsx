@@ -16,7 +16,7 @@ import {
 import { Product } from "@/types/product.types";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Package } from "lucide-react";
 import { ProductDetailsModal } from "@/components/ProductDetailsModal";
 
 // Extendemos Product internamente para que TS sepa que trae el originalIndex
@@ -88,8 +88,114 @@ export function ProductsTable({
   const hideOnMobile = "hidden md:table-cell!";
 
   return (
-    <div className="overflow-x-auto rounded-2xl management-table-container">
-      <Table hoverable className="w-full management-table">
+    <div className="w-full">
+      {/* VISTA MÓVIL: CARDS TÁCTILES (< md) */}
+      <div className="md:hidden space-y-2.5">
+        {products.length === 0 ? (
+          <div className="text-center py-8 text-slate-400 text-xs bg-[#12101F]/60 rounded-2xl border border-white/5">
+            No se encontraron productos.
+          </div>
+        ) : (
+          products.map((product) => {
+            const stock = product.stock ?? 0;
+            const isOut = stock <= 0;
+            const isLow = stock > 0 && stock <= 5;
+
+            const borderClass = isOut
+              ? "border-rose-500/25 hover:border-rose-500/40"
+              : isLow
+                ? "border-amber-500/25 hover:border-amber-500/40"
+                : "border-white/10 hover:border-indigo-500/30";
+
+            const badgeClass = isOut
+              ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+              : isLow
+                ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+
+            const badgeText = isOut
+              ? "Agotado"
+              : isLow
+                ? `Stock: ${stock} (Bajo)`
+                : `Stock: ${stock}`;
+
+            return (
+              <div
+                key={product.id}
+                className={`bg-[#12101F]/90 border ${borderClass} rounded-2xl p-3 shadow-md transition active:bg-[#171427]`}
+              >
+                <div className="flex gap-3 items-start">
+                  {/* Miniatura / Icono */}
+                  <div className="w-14 h-14 rounded-xl bg-slate-800/80 border border-white/5 flex items-center justify-center shrink-0 overflow-hidden text-slate-500">
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package className="w-6 h-6" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <h3 className="text-xs font-semibold text-white truncate">
+                        {product.name}
+                      </h3>
+                      <span
+                        className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${badgeClass}`}
+                      >
+                        {badgeText}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                      {product.barcode ? `SKU: #${product.barcode}` : `#${product.originalIndex}`}
+                      {product.category?.name ? ` · ${product.category.name}` : ""}
+                      {!product.showingInCatalog && " · (Oculto)"}
+                    </p>
+
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                      <span className="text-sm font-bold text-emerald-400 font-mono">
+                        {formatARS.format(product.price ?? 0)}
+                      </span>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleOpenDetails(product)}
+                          className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition active:scale-95"
+                          title="Ver detalles"
+                        >
+                          <EyeIcon className="w-4 h-4" />
+                        </button>
+                        <Link
+                          to={ROUTES.products.edit(product.id)}
+                          className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition active:scale-95"
+                          title="Editar producto"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </Link>
+                        <button
+                          onClick={() => onDelete(product)}
+                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition active:scale-95"
+                          title="Eliminar producto"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* VISTA ESCRITORIO: TABLA ORIGINAL (md+) */}
+      <div className="hidden md:block overflow-x-auto rounded-2xl management-table-container">
+        <Table hoverable className="w-full management-table">
         <TableHead className="bg-[#151124] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
           <TableRow className="hover:bg-transparent border-none">
             <TableHeadCell
@@ -276,6 +382,7 @@ export function ProductsTable({
           ))}
         </TableBody>
       </Table>
+      </div>
 
       {isDetailsModalOpen && selectedProduct && (
         <ProductDetailsModal

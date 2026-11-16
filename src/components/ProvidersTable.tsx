@@ -47,8 +47,69 @@ export function ProvidersTable({
     };
 
     return (
-        <div className="overflow-x-auto rounded-2xl management-table-container relative w-full">
-            <Table hoverable className="w-full border-collapse management-table">
+        <div className="w-full">
+            {/* VISTA MÓVIL: CARDS TÁCTILES (< md) */}
+            <div className="md:hidden space-y-2.5">
+                {providers.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-xs bg-[#12101F]/60 rounded-2xl border border-white/5">
+                        No se encontraron proveedores registrados.
+                    </div>
+                ) : (
+                    providers.map((provider: ProviderWithIndex) => (
+                        <div
+                            key={provider.id}
+                            className="bg-[#12101F]/90 border border-white/10 hover:border-indigo-500/30 rounded-2xl p-3.5 shadow-md transition active:bg-[#171427]"
+                        >
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-start gap-2.5 min-w-0">
+                                    <span className="w-7 h-7 rounded-xl bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                        {provider.originalIndex}
+                                    </span>
+                                    <div className="min-w-0">
+                                        <h3 className="text-xs font-semibold text-white truncate">
+                                            {provider.businessName || provider.name || "Sin razón social"}
+                                        </h3>
+                                        {provider.name && provider.businessName && (
+                                            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                                                {provider.name}
+                                            </p>
+                                        )}
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[11px] text-slate-400">
+                                            {provider.phoneNumber && (
+                                                <span className="font-mono">{provider.phoneNumber}</span>
+                                            )}
+                                            {provider.email && (
+                                                <span className="truncate max-w-[180px]">{provider.email}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <Link
+                                        title="Editar proveedor"
+                                        to={ROUTES.providers.edit(provider.id)}
+                                        className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition active:scale-95"
+                                    >
+                                        <PencilIcon className="w-4 h-4" />
+                                    </Link>
+                                    <button
+                                        title="Eliminar proveedor"
+                                        onClick={() => onDelete(provider)}
+                                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition active:scale-95"
+                                    >
+                                        <TrashIcon className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* VISTA ESCRITORIO: TABLA ORIGINAL (md+) */}
+            <div className="hidden md:block overflow-x-auto rounded-2xl management-table-container relative w-full">
+                <Table hoverable className="w-full border-collapse management-table">
                 <TableHead className="bg-[#151124] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
                     <TableRow className="hover:bg-transparent border-none">
                         {/* # */}
@@ -189,6 +250,7 @@ export function ProvidersTable({
                     )}
                 </TableBody>
             </Table>
+            </div>
         </div>
     );
 }

@@ -49,8 +49,52 @@ export function CategoriesTable({
     };
 
     return (
-        <div className="overflow-x-auto rounded-2xl management-table-container relative w-full">
-            <Table hoverable className="w-full border-collapse management-table">
+        <div className="w-full">
+            {/* VISTA MÓVIL: CARDS TÁCTILES (< md) */}
+            <div className="md:hidden space-y-2.5">
+                {categories.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-xs bg-[#12101F]/60 rounded-2xl border border-white/5">
+                        No se encontraron categorías.
+                    </div>
+                ) : (
+                    categories.map((category: CategoryWithIndex) => (
+                        <div
+                            key={category.id}
+                            className="bg-[#12101F]/90 border border-white/10 hover:border-indigo-500/30 rounded-2xl p-3.5 shadow-md flex items-center justify-between gap-3 transition active:bg-[#171427]"
+                        >
+                            <div className="flex items-center gap-3 min-w-0">
+                                <span className="w-7 h-7 rounded-xl bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-xs font-bold flex items-center justify-center shrink-0">
+                                    {category.originalIndex}
+                                </span>
+                                <span className="text-xs font-semibold text-white truncate">
+                                    {category.name}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                                <Link
+                                    title="Editar categoría"
+                                    to={ROUTES.categories.edit(category.id)}
+                                    className="p-2 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition active:scale-95"
+                                >
+                                    <PencilIcon className="w-4 h-4" />
+                                </Link>
+                                <button
+                                    title="Eliminar categoría"
+                                    onClick={() => onDelete(category)}
+                                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition active:scale-95"
+                                >
+                                    <TrashIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* VISTA ESCRITORIO: TABLA ORIGINAL (md+) */}
+            <div className="hidden md:block overflow-x-auto rounded-2xl management-table-container relative w-full">
+                <Table hoverable className="w-full border-collapse management-table">
                 <TableHead className="bg-[#151124] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
                     <TableRow className="hover:bg-transparent border-none">
                         {/* 1. ROW NUM (Cambiamos el onClick de id a rowNum) */}
@@ -124,6 +168,7 @@ export function CategoriesTable({
                     ))}
                 </TableBody>
             </Table>
+            </div>
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown } from "lucide-react";
+import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown, SlidersHorizontal } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { ProductsTable } from "@/components/ProductsTable";
 import Pagination from "@/components/PaginationManagement";
@@ -49,6 +49,7 @@ export default function ProductsPage() {
     const [providerOpen, setProviderOpen] = useState(false);
     const [subCategoryOpen, setSubCategoryOpen] = useState(false);
     const [paramsOpen, setParamsOpen] = useState(false);
+    const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
     const brandRef = useRef<HTMLDivElement>(null);
     const categoryRef = useRef<HTMLDivElement>(null);
@@ -426,20 +427,82 @@ export default function ProductsPage() {
                 <div className="space-y-3 ">
                     {/* BUSCADOR + FILTROS + PARÁMETROS */}
                     <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                        {/* Buscador */}
-                        <div className="flex-1 min-w-[200px]">
-                            <SearchBar
-                                value={query}
-                                onChange={setQuery}
-                                placeholder="Buscar por nombre del producto..."
-                                containerClassName="max-w-full"
-                                inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
-                                iconClassName="text-slate-500 group-focus-within:text-indigo-400"
-                            />
+                        {/* Buscador + Botón Filtro Móvil */}
+                        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                            <div className="flex-1">
+                                <SearchBar
+                                    value={query}
+                                    onChange={setQuery}
+                                    placeholder="Buscar por nombre del producto..."
+                                    containerClassName="max-w-full"
+                                    inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
+                                    iconClassName="text-slate-500 group-focus-within:text-indigo-400"
+                                />
+                            </div>
+                            <button
+                                onClick={() => setMobileFilterOpen(true)}
+                                className={`md:hidden relative h-11 w-11 shrink-0 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
+                                    filterStock !== 'all' || filterVisibility !== 'all' || filterCategory !== 'all' || filterProvider !== 'all'
+                                        ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+                                        : 'bg-[#151519] border-white/10 text-slate-300'
+                                }`}
+                                title="Filtros"
+                            >
+                                <SlidersHorizontal className="w-4 h-4" />
+                                {(filterStock !== 'all' || filterVisibility !== 'all' || filterCategory !== 'all' || filterProvider !== 'all') && (
+                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-[#07050C]" />
+                                )}
+                            </button>
                         </div>
 
-                        {/* Contenedor de Filtros y Acciones */}
-                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                        {/* CHIPS RÁPIDOS MOBILE (< md) */}
+                        <div className="md:hidden flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
+                            <button
+                                onClick={() => { setFilterStock('all'); setFilterVisibility('all'); }}
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                                    filterStock === 'all' && filterVisibility === 'all'
+                                        ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                                        : 'bg-white/5 border-white/10 text-slate-400'
+                                }`}
+                            >
+                                Todos ({products.filter(p => p.status).length})
+                            </button>
+                            <button
+                                onClick={() => { setFilterStock(filterStock === 'low' ? 'all' : 'low'); setFilterVisibility('all'); }}
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
+                                    filterStock === 'low'
+                                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                        : 'bg-white/5 border-white/10 text-slate-400'
+                                }`}
+                            >
+                                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                                Bajo stock ({lowStockCount})
+                            </button>
+                            <button
+                                onClick={() => { setFilterStock(filterStock === 'out' ? 'all' : 'out'); setFilterVisibility('all'); }}
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
+                                    filterStock === 'out'
+                                        ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                                        : 'bg-white/5 border-white/10 text-slate-400'
+                                }`}
+                            >
+                                <span className="w-2 h-2 rounded-full bg-rose-400" />
+                                Agotados ({outOfStockCount})
+                            </button>
+                            <button
+                                onClick={() => { setFilterVisibility(filterVisibility === 'hidden' ? 'all' : 'hidden'); setFilterStock('all'); }}
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                                    filterVisibility === 'hidden'
+                                        ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                                        : 'bg-white/5 border-white/10 text-slate-400'
+                                }`}
+                            >
+                                Ocultos ({hiddenProductsCount})
+                            </button>
+                        </div>
+
+                        {/* Contenedor de Filtros y Acciones (DESKTOP md+) */}
+                        <div className="hidden md:flex flex-wrap items-center gap-2 lg:gap-3">
 
 
 
@@ -715,6 +778,141 @@ export default function ProductsPage() {
                         currentPage={currentPage}
                         onPageChange={setCurrentPage}
                     />
+
+                    {/* BOTTOM SHEET FILTROS MOBILE (< md) */}
+                    {mobileFilterOpen && (
+                        <div
+                            className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end"
+                            onClick={() => setMobileFilterOpen(false)}
+                        >
+                            <div
+                                className="bg-[#12101F] border-t border-white/10 rounded-t-[28px] p-5 space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto -mt-1 mb-2" />
+
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-base font-bold text-white">Filtros de productos</h3>
+                                    <button
+                                        onClick={() => setMobileFilterOpen(false)}
+                                        className="p-1 text-slate-400 hover:text-white rounded-lg"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Estado de Stock */}
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                                        Estado de Stock
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {([
+                                            ['all', 'Todos'],
+                                            ['ok', 'Con stock'],
+                                            ['low', 'Bajo stock'],
+                                            ['out', 'Agotados'],
+                                        ] as const).map(([val, lbl]) => (
+                                            <button
+                                                key={val}
+                                                onClick={() => setFilterStock(val)}
+                                                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
+                                                    filterStock === val
+                                                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                                                        : 'bg-white/5 text-slate-400 border-white/10'
+                                                }`}
+                                            >
+                                                {lbl}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Visibilidad */}
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                                        Visibilidad en Catálogo
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {([
+                                            ['all', 'Todos'],
+                                            ['visible', 'Visibles'],
+                                            ['hidden', 'Ocultos'],
+                                        ] as const).map(([val, lbl]) => (
+                                            <button
+                                                key={val}
+                                                onClick={() => setFilterVisibility(val)}
+                                                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
+                                                    filterVisibility === val
+                                                        ? 'bg-violet-500/20 text-violet-300 border-violet-500/40'
+                                                        : 'bg-white/5 text-slate-400 border-white/10'
+                                                }`}
+                                            >
+                                                {lbl}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Categoría */}
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                                        Categoría
+                                    </label>
+                                    <select
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                        className="w-full bg-[#0A0812] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                                    >
+                                        <option value="all">Todas las categorías</option>
+                                        {uniqueCategories.map((cat) => (
+                                            <option key={cat} value={cat}>
+                                                {cat}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Proveedor */}
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                                        Proveedor
+                                    </label>
+                                    <select
+                                        value={filterProvider}
+                                        onChange={(e) => setFilterProvider(e.target.value)}
+                                        className="w-full bg-[#0A0812] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                                    >
+                                        <option value="all">Todos los proveedores</option>
+                                        {uniqueProviders.map((prov) => (
+                                            <option key={prov} value={prov}>
+                                                {prov}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Botones de Acción */}
+                                <div className="flex items-center gap-2 pt-2">
+                                    <button
+                                        onClick={() => {
+                                            resetFilters();
+                                            setMobileFilterOpen(false);
+                                        }}
+                                        className="flex-1 py-2.5 rounded-xl bg-white/5 text-slate-300 text-xs font-semibold hover:bg-white/10 transition"
+                                    >
+                                        Limpiar
+                                    </button>
+                                    <button
+                                        onClick={() => setMobileFilterOpen(false)}
+                                        className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/30"
+                                    >
+                                        Aplicar Filtros
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {productToDelete && (
                         <ConfirmDeleteModal

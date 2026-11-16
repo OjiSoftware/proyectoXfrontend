@@ -1,7 +1,4 @@
 import {
-    Disclosure,
-    DisclosureButton,
-    DisclosurePanel,
     Menu,
     MenuButton,
     MenuItem,
@@ -12,10 +9,7 @@ import {
     XMarkIcon,
     ArrowRightOnRectangleIcon,
     PlusIcon,
-    ChartBarIcon,
-    ShoppingBagIcon,
     TagIcon,
-    BriefcaseIcon,
     DocumentChartBarIcon,
     GlobeAltIcon,
 } from "@heroicons/react/24/outline";
@@ -23,7 +17,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
 import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
-import { BlocksIcon, DollarSign, Truck } from "lucide-react";
+import { BlocksIcon, DollarSign, Truck, MoreHorizontal } from "lucide-react";
 
 const navigation = [
     /*     { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon }, */
@@ -57,6 +51,8 @@ export default function DashboardLayout({
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [mobileQuickCreateOpen, setMobileQuickCreateOpen] = useState(false);
+    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
     useEffect(() => {
         document.body.classList.add("bg-[#07050C]", "overflow-hidden");
@@ -209,94 +205,42 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* NAVBAR MÓVIL (Small screen) */}
             {/* --------------------------- */}
-            <div className="md:hidden absolute inset-x-0 top-0 z-50">
-                <Disclosure as="nav" className="bg-[#0A0812]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl">
-                    <div className="mx-auto px-4 sm:px-6">
-                        <div className="flex h-16 items-center justify-between">
-                            <div className="flex items-center">
-                                <Link to="/" title="Ir a la web pública" className="shrink-0">
-                                    <img alt="OJI" src={logo} className="h-8 w-auto" />
-                                </Link>
-                            </div>
-                            <div className="-mr-2 flex items-center">
-                                <DisclosureButton className="inline-flex items-center justify-center rounded-lg p-2 text-gray-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all">
-                                    <span className="sr-only">Menu</span>
-                                    <Bars3Icon className="block h-7 w-7 group-data-[open]:hidden" aria-hidden="true" />
-                                    <XMarkIcon className="hidden h-7 w-7 group-data-[open]:block" aria-hidden="true" />
-                                </DisclosureButton>
-                            </div>
+            <div className="md:hidden absolute inset-x-0 top-0 z-40">
+                <nav className="bg-[#0A0812]/95 backdrop-blur-xl border-b border-white/10 shadow-lg">
+                    <div className="mx-auto px-4">
+                        <div className="flex h-14 items-center justify-between">
+                            <Link to="/" title="Ir a la web pública" className="flex items-center gap-2.5 shrink-0">
+                                <img alt="OJI" src={logo} className="h-7 w-auto" />
+                                <span className="text-[11px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
+                                    Management
+                                </span>
+                            </Link>
+                            <button
+                                onClick={() => setMobileDrawerOpen(true)}
+                                className="inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all"
+                            >
+                                <span className="sr-only">Menú</span>
+                                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+                            </button>
                         </div>
                     </div>
-
-                    <DisclosurePanel className="border-t border-white/10 bg-[#00001A] shadow-2xl">
-                        <div className="space-y-1 px-3 py-3">
-                            {navigation.map((item) => {
-                                const isActive = location.pathname.startsWith(item.href);
-                                return (
-                                    <DisclosureButton
-                                        key={item.name}
-                                        as={Link}
-                                        to={item.href}
-                                        className={classNames(
-                                            isActive
-                                                ? "bg-brand-500/15 text-brand-300 border border-brand-500/30 font-semibold"
-                                                : "text-slate-200 hover:bg-white/5 hover:text-white border border-transparent font-medium",
-                                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all"
-                                        )}
-                                    >
-                                        <item.icon className="h-5 w-5 opacity-80" />
-                                        {item.name}
-                                    </DisclosureButton>
-                                )
-                            })}
-
-                            <div className="pt-2 mt-2 border-t border-white/10">
-                                <DisclosureButton
-                                    as={Link}
-                                    to="/"
-                                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 transition-all"
-                                >
-                                    <GlobeAltIcon className="h-5 w-5 text-emerald-400 opacity-80" />
-                                    <span>Ver tienda pública</span>
-                                </DisclosureButton>
-                            </div>
-                        </div>
-                        <div className="border-t border-white/10 pb-4 pt-4 bg-gray-800/30">
-                            <div className="flex items-center justify-between px-5">
-                                <div className="flex items-center min-w-0 flex-1">
-                                    <img className="h-10 w-10 rounded-full border border-white/10 shrink-0" src={userImage} alt="" />
-                                    <div className="ml-3 min-w-0 flex-1">
-                                        <div className="text-sm font-semibold text-white truncate">{user?.name || "Admin"}</div>
-                                        <div className="text-xs text-slate-400 truncate mt-0.5">{user?.email}</div>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={handleLogout}
-                                    disabled={isLoggingOut}
-                                    className="ml-auto shrink-0 rounded-full p-2.5 text-red-400 hover:bg-red-500/10 transition-colors focus:outline-none"
-                                >
-                                    <ArrowRightOnRectangleIcon className="h-6 w-6" aria-hidden="true" />
-                                </button>
-                            </div>
-                        </div>
-                    </DisclosurePanel>
-                </Disclosure>
+                </nav>
             </div>
 
             {/* --------------------------- */}
             {/* AREA PRINCIPAL 100% WIDTH   */}
             {/* --------------------------- */}
-            <div className="flex flex-1 flex-col overflow-hidden pt-16 md:pt-0 bg-[#07050C]">
+            <div className="flex flex-1 flex-col overflow-hidden pt-14 md:pt-0 bg-[#07050C]">
                 {title && (
-                    <header className="shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-50 shadow-sm overflow-visible">
-                        <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center gap-4">
+                    <header className="shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-30 shadow-sm overflow-visible">
+                        <div className="w-full px-4 py-3.5 md:py-5 sm:px-6 lg:px-8 flex items-center gap-3 md:gap-4">
                             <div className="flex-1 min-w-0">
-                                <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
-                                {subtitle && <p className="text-sm text-slate-300 mt-1">{subtitle}</p>}
+                                <h1 className="text-lg md:text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
+                                {subtitle && <p className="text-xs md:text-sm text-slate-400 md:text-slate-300 mt-0.5 md:mt-1 truncate">{subtitle}</p>}
                             </div>
 
                             {/* WIDGETS + ACCIONES agrupados a la derecha */}
-                            <div className="flex items-center gap-3 shrink-0 overflow-visible">
+                            <div className="flex items-center gap-2 md:gap-3 shrink-0 overflow-visible">
                                 {headerWidgets && headerWidgets}
                                 {actions && actions}
                             </div>
@@ -306,12 +250,237 @@ export default function DashboardLayout({
 
                 {/* CONTENIDO (Scroll interno, ancho completo w-full sin límites) */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.08),rgba(7,5,12,0))]">
-                    <div className="w-full px-4 py-8 sm:px-6 lg:px-8 pb-20">
+                    <div className="w-full px-3.5 py-4 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-28 md:pb-20">
                         {/* W-FULL reemplazando al max-w de tailwind, para que todo toque los bordes del flex */}
                         {children}
                     </div>
                 </main>
             </div>
+
+            {/* --------------------------- */}
+            {/* BOTTOM NAVIGATION BAR MÓVIL */}
+            {/* --------------------------- */}
+            <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 z-40 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+                <Link
+                    to="/management/sales"
+                    className={classNames(
+                        location.pathname.startsWith("/management/sales")
+                            ? "text-indigo-400 font-semibold"
+                            : "text-slate-400 hover:text-slate-200 font-medium",
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                    )}
+                >
+                    <DollarSign className="w-5 h-5" />
+                    <span className="text-[10px]">Ventas</span>
+                </Link>
+
+                <Link
+                    to="/management/products"
+                    className={classNames(
+                        location.pathname.startsWith("/management/products")
+                            ? "text-indigo-400 font-semibold"
+                            : "text-slate-400 hover:text-slate-200 font-medium",
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                    )}
+                >
+                    <TagIcon className="w-5 h-5" />
+                    <span className="text-[10px]">Productos</span>
+                </Link>
+
+                {/* Botón Central Flotante (+) */}
+                <div className="-mt-5">
+                    <button
+                        onClick={() => setMobileQuickCreateOpen(true)}
+                        className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(79,70,229,0.5)] border-2 border-[#07050C] active:scale-90 transition-all"
+                        title="Crear Nuevo"
+                    >
+                        <PlusIcon className="w-6 h-6 stroke-[2.5]" />
+                    </button>
+                </div>
+
+                <Link
+                    to="/management/categories"
+                    className={classNames(
+                        location.pathname.startsWith("/management/categories")
+                            ? "text-indigo-400 font-semibold"
+                            : "text-slate-400 hover:text-slate-200 font-medium",
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                    )}
+                >
+                    <BlocksIcon className="w-5 h-5" />
+                    <span className="text-[10px]">Categorías</span>
+                </Link>
+
+                <button
+                    onClick={() => setMobileDrawerOpen(true)}
+                    className={classNames(
+                        mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/reports")
+                            ? "text-indigo-400 font-semibold"
+                            : "text-slate-400 hover:text-slate-200 font-medium",
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                    )}
+                >
+                    <MoreHorizontal className="w-5 h-5" />
+                    <span className="text-[10px]">Más</span>
+                </button>
+            </nav>
+
+            {/* --------------------------- */}
+            {/* BOTTOM SHEET: CREAR NUEVO   */}
+            {/* --------------------------- */}
+            {mobileQuickCreateOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end"
+                    onClick={() => setMobileQuickCreateOpen(false)}
+                >
+                    <div
+                        className="bg-[#12101F] border-t border-white/10 rounded-t-[28px] p-5 space-y-3 shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-10 h-1 bg-white/20 rounded-full mx-auto -mt-1 mb-2" />
+                        <div className="flex items-center justify-between pb-1">
+                            <h3 className="text-sm font-bold text-white">¿Qué deseas crear?</h3>
+                            <button
+                                onClick={() => setMobileQuickCreateOpen(false)}
+                                className="p-1 text-slate-400 hover:text-white rounded-lg"
+                            >
+                                <XMarkIcon className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2">
+                            <Link
+                                to="/management/sales/create"
+                                onClick={() => setMobileQuickCreateOpen(false)}
+                                className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-indigo-500/10 border border-white/5 text-left transition"
+                            >
+                                <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400">
+                                    <DollarSign className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-white">Nueva venta</p>
+                                    <p className="text-[11px] text-slate-400">Registrar cobro y operación</p>
+                                </div>
+                            </Link>
+                            <Link
+                                to="/management/products/create"
+                                onClick={() => setMobileQuickCreateOpen(false)}
+                                className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-indigo-500/10 border border-white/5 text-left transition"
+                            >
+                                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400">
+                                    <TagIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-white">Nuevo producto</p>
+                                    <p className="text-[11px] text-slate-400">Cargar artículo al catálogo y stock</p>
+                                </div>
+                            </Link>
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                <Link
+                                    to="/management/categories/create"
+                                    onClick={() => setMobileQuickCreateOpen(false)}
+                                    className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/5 hover:bg-indigo-500/10 border border-white/5 text-left transition"
+                                >
+                                    <div className="p-2 rounded-xl bg-violet-500/15 text-violet-400">
+                                        <BlocksIcon className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-xs font-semibold text-white">Categoría</span>
+                                </Link>
+                                <Link
+                                    to="/management/providers/create"
+                                    onClick={() => setMobileQuickCreateOpen(false)}
+                                    className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/5 hover:bg-indigo-500/10 border border-white/5 text-left transition"
+                                >
+                                    <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400">
+                                        <Truck className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-xs font-semibold text-white">Proveedor</span>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --------------------------- */}
+            {/* DRAWER LATERAL MÓVIL ("MÁS")*/}
+            {/* --------------------------- */}
+            {mobileDrawerOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-end"
+                    onClick={() => setMobileDrawerOpen(false)}
+                >
+                    <div
+                        className="w-4/5 max-w-xs h-full bg-[#0A0812] border-l border-white/10 p-5 flex flex-col justify-between shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                <div className="flex items-center gap-2">
+                                    <img alt="OJI" src={logo} className="h-6 w-auto" />
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Menú General</span>
+                                </div>
+                                <button
+                                    onClick={() => setMobileDrawerOpen(false)}
+                                    className="p-1.5 text-slate-400 hover:text-white rounded-lg"
+                                >
+                                    <XMarkIcon className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <nav className="space-y-1">
+                                {navigation.map((item) => {
+                                    const isActive = location.pathname.startsWith(item.href);
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            to={item.href}
+                                            onClick={() => setMobileDrawerOpen(false)}
+                                            className={classNames(
+                                                isActive
+                                                    ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold"
+                                                    : "text-slate-200 hover:bg-white/5 hover:text-white border border-transparent font-medium",
+                                                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs transition-all"
+                                            )}
+                                        >
+                                            <item.icon className="h-4 w-4 opacity-80" />
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
+
+                                <div className="pt-3 mt-3 border-t border-white/10">
+                                    <Link
+                                        to="/"
+                                        onClick={() => setMobileDrawerOpen(false)}
+                                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 transition-all"
+                                    >
+                                        <GlobeAltIcon className="h-4 w-4 text-emerald-400" />
+                                        <span>Ver tienda pública</span>
+                                    </Link>
+                                </div>
+                            </nav>
+                        </div>
+
+                        <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                            <div className="flex items-center min-w-0 flex-1 gap-2.5">
+                                <img className="h-9 w-9 rounded-full border border-white/10 shrink-0" src={userImage} alt="" />
+                                <div className="min-w-0 flex-1">
+                                    <div className="text-xs font-semibold text-white truncate">{user?.name || "Admin"}</div>
+                                    <div className="text-[11px] text-slate-400 truncate">{user?.email}</div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                disabled={isLoggingOut}
+                                className="ml-2 shrink-0 rounded-xl p-2 text-red-400 hover:bg-red-500/10 transition-colors focus:outline-none"
+                                title="Cerrar sesión"
+                            >
+                                <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

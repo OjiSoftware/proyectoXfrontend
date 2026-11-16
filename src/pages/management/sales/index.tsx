@@ -255,8 +255,31 @@ export default function SalesPage() {
             />
           </div>
 
-          {/* Contenedor de Filtros y Acciones */}
-          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+          {/* CHIPS RÁPIDOS MOBILE (< md) */}
+          <div className="md:hidden flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
+            {([
+              ['all', 'Todas'],
+              ['PENDING', 'Pendientes'],
+              ['IN_PROGRESS', 'En curso'],
+              ['COMPLETED', 'Completadas'],
+              ['CANCELLED', 'Canceladas'],
+            ] as const).map(([val, lbl]) => (
+              <button
+                key={val}
+                onClick={() => setFilterStatus(val)}
+                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                  filterStatus === val
+                    ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                    : 'bg-white/5 border-white/10 text-slate-400'
+                }`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+
+          {/* Contenedor de Filtros y Acciones (DESKTOP md+) */}
+          <div className="hidden md:flex flex-wrap items-center gap-2 lg:gap-3">
             {/* Dropdown FILTROS */}
             <div ref={filterRef} className="relative shrink-0">
               <button

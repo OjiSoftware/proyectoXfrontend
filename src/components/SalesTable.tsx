@@ -136,8 +136,146 @@ export function SalesTable({
   }, [sales]);
 
   return (
-    <div className="overflow-x-auto rounded-2xl management-table-container relative w-full">
-      <Table hoverable className="w-full management-table">
+    <div className="w-full relative">
+      {/* VISTA MÓVIL: CARDS TÁCTILES (< md) */}
+      <div className="md:hidden space-y-2.5">
+        {displaySales.length === 0 ? (
+          <div className="text-center py-8 text-slate-400 text-xs bg-[#12101F]/60 rounded-2xl border border-white/5">
+            No se encontraron ventas registradas.
+          </div>
+        ) : (
+          displaySales.map((sale) => {
+            const statusInfo = SALE_STATUS_MAP[sale.status] || {
+              label: sale.status,
+              style: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+            };
+            const hasNotes = Boolean((sale as any).notes);
+
+            return (
+              <div
+                key={sale.id}
+                className={`bg-[#12101F]/90 border ${
+                  hasNotes ? 'border-amber-500/30 bg-amber-500/[0.03]' : 'border-white/10'
+                } rounded-2xl p-3.5 shadow-md transition active:bg-[#171427]`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white">
+                        Venta #{sale.id}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-mono">
+                        (Fila {(sale as any).originalIndex})
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 mt-0.5 truncate">
+                      {sale.client
+                        ? `${sale.client.surname}, ${sale.client.name}`
+                        : 'Sin cliente asignado'}
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      {sale.createdAt
+                        ? new Date(sale.createdAt).toLocaleDateString('es-AR')
+                        : '---'}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase tracking-wider ${statusInfo.style}`}
+                    >
+                      {statusInfo.label}
+                    </span>
+                    {hasNotes && (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-amber-400">
+                        {isCriticalNote((sale as any).notes) ? (
+                          <ExclamationTriangleIcon className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                        ) : (
+                          <ChatBubbleBottomCenterTextIcon className="w-3.5 h-3.5 text-slate-300" />
+                        )}
+                        Con nota
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-white/5">
+                  <span className="text-sm font-bold text-emerald-400 font-mono">
+                    {formatARS.format(Number(sale.total) ?? 0)}
+                  </span>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleOpenDetails(sale)}
+                      className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition active:scale-95"
+                      title="Ver detalles"
+                    >
+                      <EyeIcon className="w-4 h-4" />
+                    </button>
+
+                    {sale.status === 'COMPLETED' ? (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenNotes(sale)}
+                        className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition active:scale-95"
+                        title="Agregar / Ver notas"
+                      >
+                        <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <Link
+                        to={
+                          sale.status === 'CANCELLED'
+                            ? '#'
+                            : ROUTES.sales.edit(sale.id)
+                        }
+                        onClick={(e) =>
+                          sale.status === 'CANCELLED' && e.preventDefault()
+                        }
+                        className={`p-1.5 rounded-lg transition ${
+                          sale.status === 'CANCELLED'
+                            ? 'text-slate-600 pointer-events-none opacity-40'
+                            : 'text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 active:scale-95'
+                        }`}
+                        title={
+                          sale.status === 'CANCELLED'
+                            ? 'Venta cancelada'
+                            : 'Editar venta'
+                        }
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </Link>
+                    )}
+
+                    <button
+                      onClick={() =>
+                        sale.status !== 'CANCELLED' && onDelete(sale)
+                      }
+                      disabled={sale.status === 'CANCELLED'}
+                      className={`p-1.5 rounded-lg transition ${
+                        sale.status === 'CANCELLED'
+                          ? 'text-slate-600 cursor-not-allowed opacity-40'
+                          : 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 active:scale-95'
+                      }`}
+                      title={
+                        sale.status === 'CANCELLED'
+                          ? 'Esta venta ya ha sido cancelada'
+                          : 'Cancelar venta'
+                      }
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* VISTA ESCRITORIO: TABLA ORIGINAL (md+) */}
+      <div className="hidden md:block overflow-x-auto rounded-2xl management-table-container relative w-full">
+        <Table hoverable className="w-full management-table">
         <TableHead className="bg-[#151124] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
           <TableRow className="hover:bg-transparent border-none">
             <TableHeadCell
@@ -340,6 +478,7 @@ export function SalesTable({
           ))}
         </TableBody>
       </Table>
+      </div>
 
       {/* Modal de Detalles Original */}
       <SaleDetailsModal
