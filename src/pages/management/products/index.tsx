@@ -27,6 +27,7 @@ export default function ProductsPage() {
     const [filterVisibility, setFilterVisibility] = useState<'all' | 'visible' | 'hidden'>('all');
     const [filterBrand, setFilterBrand] = useState<string>('all');
     const [filterCategory, setFilterCategory] = useState<string>('all');
+    const [filterProvider, setFilterProvider] = useState<string>('all');
     const [filterSubCategory, setFilterSubCategory] = useState<string>('all');
 
     // ---------------- Columnas visibles ----------------
@@ -45,11 +46,13 @@ export default function ProductsPage() {
     const [filterOpen, setFilterOpen] = useState(false);
     const [brandOpen, setBrandOpen] = useState(false);
     const [categoryOpen, setCategoryOpen] = useState(false);
+    const [providerOpen, setProviderOpen] = useState(false);
     const [subCategoryOpen, setSubCategoryOpen] = useState(false);
     const [paramsOpen, setParamsOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
     const brandRef = useRef<HTMLDivElement>(null);
     const categoryRef = useRef<HTMLDivElement>(null);
+    const providerRef = useRef<HTMLDivElement>(null);
     const subCategoryRef = useRef<HTMLDivElement>(null);
     const paramsRef = useRef<HTMLDivElement>(null);
 
@@ -58,6 +61,7 @@ export default function ProductsPage() {
             if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
             if (brandRef.current && !brandRef.current.contains(e.target as Node)) setBrandOpen(false);
             if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) setCategoryOpen(false);
+            if (providerRef.current && !providerRef.current.contains(e.target as Node)) setProviderOpen(false);
             if (subCategoryRef.current && !subCategoryRef.current.contains(e.target as Node)) setSubCategoryOpen(false);
             if (paramsRef.current && !paramsRef.current.contains(e.target as Node)) setParamsOpen(false);
         };
@@ -122,10 +126,14 @@ export default function ProductsPage() {
             if (filterVisibility === 'visible' && !p.showingInCatalog) return false;
             if (filterVisibility === 'hidden' && p.showingInCatalog) return false;
 
-
             // Filtro de categoría
-            /*             if (filterCategory !== 'all' && (p.subCategory?.category?.name ?? '') !== filterCategory) return false;
-             */
+            if (filterCategory !== 'all' && (p.category?.name ?? '') !== filterCategory) return false;
+
+            // Filtro de proveedor
+            if (filterProvider !== 'all') {
+                const pName = p.provider?.businessName || p.provider?.name || '';
+                if (pName !== filterProvider) return false;
+            }
 
             return true;
         });
@@ -155,10 +163,10 @@ export default function ProductsPage() {
             } else if (sortColumn === "category.name") {
                 aVal = a.category?.name || "";
                 bVal = b.category?.name || "";
-            } /* else if (sortColumn === "subCategory.name") {
-                aVal = a.subCategory?.name || "";
-                bVal = b.subCategory?.name || "";
-            } */ else {
+            } else if (sortColumn === "provider.businessName") {
+                aVal = a.provider?.businessName || a.provider?.name || "";
+                bVal = b.provider?.businessName || b.provider?.name || "";
+            } else {
                 aVal = a[sortColumn as keyof Product] ?? "";
                 bVal = b[sortColumn as keyof Product] ?? "";
             }
@@ -181,7 +189,7 @@ export default function ProductsPage() {
                 ? String(aVal).localeCompare(String(bVal))
                 : String(bVal).localeCompare(String(aVal));
         });
-    }, [products, query, sortColumn, sortDirection, filterStock, filterVisibility, filterBrand, filterCategory, filterSubCategory]);
+    }, [products, query, sortColumn, sortDirection, filterStock, filterVisibility, filterBrand, filterCategory, filterProvider, filterSubCategory]);
 
     // ---------------- Paginación ----------------
     const lastIndex = currentPage * itemsPerPage;
@@ -226,19 +234,15 @@ export default function ProductsPage() {
         fetchProducts();
     }, []);
 
-    useEffect(() => setCurrentPage(1), [itemsPerPage, query, filterStock, filterVisibility, filterBrand, filterCategory, filterSubCategory]);
+    useEffect(() => setCurrentPage(1), [itemsPerPage, query, filterStock, filterVisibility, filterBrand, filterCategory, filterProvider, filterSubCategory]);
 
     // Valores únicos derivados de los datos reales
     const uniqueBrands = useMemo(() =>
         [...new Set(products.map(p => p.brand?.name).filter(Boolean) as string[])].sort(), [products]);
     const uniqueCategories = useMemo(() =>
         [...new Set(products.map(p => p.category?.name).filter(Boolean) as string[])].sort(), [products]);
-    /* const uniqueSubCategories = useMemo(() => {
-        const source = filterCategory !== 'all'
-            ? products.filter(p => (p.subCategory?.category?.name ?? '') === filterCategory)
-            : products;
-        return [...new Set(source.map(p => p.subCategory?.name).filter(Boolean) as string[])].sort();
-    }, [products, filterCategory]); */
+    const uniqueProviders = useMemo(() =>
+        [...new Set(products.map(p => p.provider?.businessName || p.provider?.name).filter(Boolean) as string[])].sort(), [products]);
 
     const resetFilters = () => {
         setQuery('');
@@ -246,10 +250,11 @@ export default function ProductsPage() {
         setFilterVisibility('all');
         setFilterBrand('all');
         setFilterCategory('all');
+        setFilterProvider('all');
         setFilterSubCategory('all');
     };
 
-    const hasActiveFilters = query !== '' || filterStock !== 'all' || filterVisibility !== 'all' || filterBrand !== 'all' || filterCategory !== 'all' || filterSubCategory !== 'all';
+    const hasActiveFilters = query !== '' || filterStock !== 'all' || filterVisibility !== 'all' || filterBrand !== 'all' || filterCategory !== 'all' || filterProvider !== 'all' || filterSubCategory !== 'all';
 
 
     return (
@@ -475,7 +480,7 @@ export default function ProductsPage() {
                             {/* Dropdown CATEGORÍA */}
                             <div ref={categoryRef} className="relative shrink-0">
                                 <button
-                                    onClick={() => { setCategoryOpen(o => !o); setFilterOpen(false); setBrandOpen(false); setParamsOpen(false); }}
+                                    onClick={() => { setCategoryOpen(o => !o); setFilterOpen(false); setBrandOpen(false); setProviderOpen(false); setParamsOpen(false); }}
                                     className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${categoryOpen || filterCategory !== 'all'
                                         ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
                                         : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
@@ -499,6 +504,40 @@ export default function ProductsPage() {
                                                     className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterCategory === cat ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
                                                         }`}>
                                                     {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Dropdown PROVEEDOR */}
+                            <div ref={providerRef} className="relative shrink-0">
+                                <button
+                                    onClick={() => { setProviderOpen(o => !o); setFilterOpen(false); setBrandOpen(false); setCategoryOpen(false); setParamsOpen(false); }}
+                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${providerOpen || filterProvider !== 'all'
+                                        ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+                                        : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
+                                        }`}
+                                >
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${providerOpen ? 'rotate-180' : ''}`} />
+                                    {filterProvider !== 'all' ? filterProvider : 'Proveedor'}
+                                    {filterProvider !== 'all' && (
+                                        <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
+                                    )}
+                                </button>
+                                {providerOpen && (
+                                    <div className="absolute left-0 top-full mt-2 w-56 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3">
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Proveedor</p>
+                                        <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+                                            <button onClick={() => setFilterProvider('all')}
+                                                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterProvider === 'all' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                    }`}>Todos los proveedores</button>
+                                            {uniqueProviders.map(prov => (
+                                                <button key={prov} onClick={() => setFilterProvider(prov)}
+                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterProvider === prov ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                        }`}>
+                                                    {prov}
                                                 </button>
                                             ))}
                                         </div>
