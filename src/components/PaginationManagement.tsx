@@ -35,39 +35,36 @@ export default function Pagination({
     const pages = getPages();
 
     return (
-        <div className="flex items-center justify-between border-t border-white/10 px-3 py-2 sm:px-6 sm:py-3">
-            {/* MOBILE */}
-            <div className="sm:hidden w-full flex items-center justify-center gap-3">
+        <div className="border-t border-white/10">
+            {/* MOBILE (< sm): Ultra compacto y eficiente */}
+            <div className="sm:hidden w-full flex items-center justify-between px-2 py-2">
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="p-1.5 rounded-xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                    className="px-2.5 py-1.5 rounded-xl text-xs text-slate-300 bg-white/[0.03] border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center gap-1 active:scale-95"
                 >
-                    <ChevronLeftIcon title="Anterior" className="size-4" />
+                    <ChevronLeftIcon className="size-4" />
+                    <span>Ant.</span>
                 </button>
 
-                <span className="text-xs text-slate-300 text-center">
-                    Página{" "}
-                    <span className="text-white font-semibold">
-                        {currentPage}
-                    </span>{" "}
-                    de{" "}
-                    <span className="text-white font-semibold">{totalPages}</span>
+                <span className="text-xs text-slate-400">
+                    Pág. <span className="text-white font-bold">{currentPage}</span> / <span className="text-white font-bold">{totalPages || 1}</span>
                 </span>
 
                 <button
                     onClick={() =>
                         onPageChange(Math.min(totalPages, currentPage + 1))
                     }
-                    disabled={currentPage === totalPages}
-                    className="p-1.5 rounded-xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="px-2.5 py-1.5 rounded-xl text-xs text-slate-300 bg-white/[0.03] border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center gap-1 active:scale-95"
                 >
-                    <ChevronRightIcon title="Siguiente" className="size-4" />
+                    <span>Sig.</span>
+                    <ChevronRightIcon className="size-4" />
                 </button>
             </div>
 
-            {/* DESKTOP */}
-            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between px-2">
+            {/* DESKTOP (sm+): Intacto */}
+            <div className="hidden sm:flex sm:items-center sm:justify-between px-4 py-3 sm:px-6">
                 <div>
                     <p className="text-sm text-slate-300">
                         Mostrando{" "}

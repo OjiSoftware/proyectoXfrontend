@@ -27,7 +27,7 @@ export default function SearchBar({
     return (
         <div className={`relative w-full max-w-3xl ${containerClassName}`}>
             <MagnifyingGlassIcon
-                className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none ${iconClassName}`}
+                className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 pointer-events-none ${iconClassName}`}
             />
 
             <input
@@ -37,7 +37,7 @@ export default function SearchBar({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 className={`
-                    w-full pl-10 pr-3 rounded-lg
+                    w-full pl-9 md:pl-10 pr-3 rounded-lg
                     outline-none transition
                     ${inputClassName}
                 `}

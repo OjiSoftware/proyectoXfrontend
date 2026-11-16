@@ -424,7 +424,7 @@ export default function ProductsPage() {
                     </div>
                 }
             >
-                <div className="space-y-2 md:space-y-3 ">
+                <div className="space-y-3 ">
                     {/* BUSCADOR + FILTROS + PARÁMETROS */}
                     <div className="flex flex-col lg:flex-row lg:items-center gap-2 md:gap-3">
                         {/* Buscador + Botón Filtro Móvil */}
@@ -436,7 +436,7 @@ export default function ProductsPage() {
                                     placeholder="Buscar por nombre del producto..."
                                     containerClassName="max-w-full"
                                     inputClassName="bg-[#151519] text-white text-xs md:text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9 md:h-11"
-                                    iconClassName="text-slate-500 group-focus-within:text-indigo-400 h-4 w-4 md:h-5 md:w-5"
+                                    iconClassName="text-slate-500 group-focus-within:text-indigo-400"
                                 />
                             </div>
                             <button
@@ -456,10 +456,10 @@ export default function ProductsPage() {
                         </div>
 
                         {/* CHIPS RÁPIDOS MOBILE (< md) */}
-                        <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-[11px]">
+                        <div className="md:hidden flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
                             <button
                                 onClick={() => { setFilterStock('all'); setFilterVisibility('all'); }}
-                                className={`shrink-0 px-2.5 py-1 rounded-full border font-medium transition-colors ${
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${
                                     filterStock === 'all' && filterVisibility === 'all'
                                         ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'
@@ -469,29 +469,29 @@ export default function ProductsPage() {
                             </button>
                             <button
                                 onClick={() => { setFilterStock(filterStock === 'low' ? 'all' : 'low'); setFilterVisibility('all'); }}
-                                className={`shrink-0 px-2.5 py-1 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
                                     filterStock === 'low'
                                         ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'
                                 }`}
                             >
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                <span className="w-2 h-2 rounded-full bg-amber-400" />
                                 Bajo stock ({lowStockCount})
                             </button>
                             <button
                                 onClick={() => { setFilterStock(filterStock === 'out' ? 'all' : 'out'); setFilterVisibility('all'); }}
-                                className={`shrink-0 px-2.5 py-1 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
                                     filterStock === 'out'
                                         ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'
                                 }`}
                             >
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                                <span className="w-2 h-2 rounded-full bg-rose-400" />
                                 Agotados ({outOfStockCount})
                             </button>
                             <button
                                 onClick={() => { setFilterVisibility(filterVisibility === 'hidden' ? 'all' : 'hidden'); setFilterStock('all'); }}
-                                className={`shrink-0 px-2.5 py-1 rounded-full border font-medium transition-colors ${
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${
                                     filterVisibility === 'hidden'
                                         ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'

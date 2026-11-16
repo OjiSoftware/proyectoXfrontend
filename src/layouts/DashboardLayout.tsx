@@ -81,17 +81,20 @@ export default function DashboardLayout({
         "&background=6366f1&color=fff";
 
     return (
-        <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-[#07050C] overflow-hidden font-poppins">
+        <div className="flex h-screen w-full bg-[#07050C] overflow-hidden font-poppins">
 
             {/* --------------------------- */}
             {/* SIDEBAR ESCRITORIO          */}
             {/* --------------------------- */}
             <aside className="hidden md:flex md:w-64 md:flex-col bg-[#0A0812] backdrop-blur-xl border-r border-white/5 shadow-2xl relative z-20">
                 {/* Header Layout Lateral (Logo) */}
-                <div className="flex shrink-0 items-center justify-center px-4 h-25">
+                <Link
+                    to="/"
+                    title="Ir a la web pública"
+                    className="flex shrink-0 items-center justify-center px-4 h-25 hover:opacity-80 transition-opacity"
+                >
                     <img alt="OJI" src={logo} className="h-18 w-auto" />
-                </div>
-
+                </Link>
 
                 {/* Zona central scrolleable con Menu */}
                 <div className="flex-1 overflow-y-auto w-full no-scrollbar pb-6">
@@ -202,19 +205,19 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* NAVBAR MÓVIL (Small screen) */}
             {/* --------------------------- */}
-            <div className="md:hidden shrink-0 w-full z-40">
+            <div className="md:hidden absolute inset-x-0 top-0 z-40">
                 <nav className="bg-[#0A0812]/95 backdrop-blur-xl border-b border-white/10 shadow-lg">
                     <div className="mx-auto px-4">
-                        <div className="flex h-12 items-center justify-between">
-                            <div className="flex items-center gap-2 shrink-0">
-                                <img alt="OJI" src={logo} className="h-6 w-auto" />
-                                <span className="text-[10px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
-                                    Gestión
+                        <div className="flex h-14 items-center justify-between">
+                            <Link to="/" title="Ir a la web pública" className="flex items-center gap-2.5 shrink-0">
+                                <img alt="OJI" src={logo} className="h-7 w-auto" />
+                                <span className="text-[11px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
+                                    Management
                                 </span>
-                            </div>
+                            </Link>
                             <button
                                 onClick={() => setMobileDrawerOpen(true)}
-                                className="inline-flex items-center justify-center rounded-xl p-1.5 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all"
+                                className="inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all"
                             >
                                 <span className="sr-only">Menú</span>
                                 <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -227,28 +230,36 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* AREA PRINCIPAL 100% WIDTH   */}
             {/* --------------------------- */}
-            <div className="flex flex-1 flex-col overflow-hidden pt-16 md:pt-0 bg-[#07050C]">
+            <div className="flex flex-1 flex-col overflow-hidden pt-14 md:pt-0 bg-[#07050C]">
                 {title && (
-                    <header className="shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-50 shadow-sm overflow-visible">
-                        <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center gap-4">
-                            <div className="flex-1 min-w-0">
-                                <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
-                                {subtitle && <p className="text-sm text-slate-300 mt-1">{subtitle}</p>}
-                            </div>
+                    <>
+                        {/* HEADER MOBILE (< md): Ultracompacto, sin widgets de stock ni botón crear */}
+                        <header className="md:hidden shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-30 shadow-sm px-3.5 py-2">
+                            <h1 className="text-sm font-bold tracking-tight text-white truncate">{title}</h1>
+                            {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
+                        </header>
 
+                        {/* HEADER DESKTOP (md+): Sin tocar, mantiene widgets de alertas y botón crear */}
+                        <header className="hidden md:block shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-30 shadow-sm overflow-visible">
+                            <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
+                                    {subtitle && <p className="text-sm text-slate-300 mt-1 truncate">{subtitle}</p>}
+                                </div>
 
-                            {/* WIDGETS + ACCIONES agrupados a la derecha */}
-                            <div className="hidden md:flex items-center gap-3 shrink-0 overflow-visible">
-                                {headerWidgets && headerWidgets}
-                                {actions && actions}
+                                {/* WIDGETS + ACCIONES agrupados a la derecha */}
+                                <div className="flex items-center gap-3 shrink-0 overflow-visible">
+                                    {headerWidgets && headerWidgets}
+                                    {actions && actions}
+                                </div>
                             </div>
-                        </div>
-                    </header>
+                        </header>
+                    </>
                 )}
 
                 {/* CONTENIDO (Scroll interno, ancho completo w-full sin límites) */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.08),rgba(7,5,12,0))]">
-                    <div className="w-full px-4 py-4 md:py-8 sm:px-6 lg:px-8 pb-24 md:pb-20">
+                    <div className="w-full px-3.5 py-3 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-28 md:pb-20">
                         {/* W-FULL reemplazando al max-w de tailwind, para que todo toque los bordes del flex */}
                         {children}
                     </div>
@@ -258,14 +269,14 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* BOTTOM NAVIGATION BAR MÓVIL */}
             {/* --------------------------- */}
-            <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 px-1 py-1.5 z-40 grid grid-cols-5 items-center shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+            <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 z-40 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
                 <Link
                     to="/management/sales"
                     className={classNames(
                         location.pathname.startsWith("/management/sales")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 transition-colors"
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
                     )}
                 >
                     <DollarSign className="w-5 h-5" />
@@ -278,15 +289,15 @@ export default function DashboardLayout({
                         location.pathname.startsWith("/management/products")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 transition-colors"
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
                     )}
                 >
                     <TagIcon className="w-5 h-5" />
                     <span className="text-[10px]">Productos</span>
                 </Link>
 
-                {/* Botón Central Flotante (+) - Columna 3 centrada al 50% exacto */}
-                <div className="flex items-center justify-center -mt-5">
+                {/* Botón Central Flotante (+) */}
+                <div className="-mt-5">
                     <button
                         onClick={() => setMobileQuickCreateOpen(true)}
                         className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(79,70,229,0.5)] border-2 border-[#07050C] active:scale-90 transition-all"
@@ -302,7 +313,7 @@ export default function DashboardLayout({
                         location.pathname.startsWith("/management/categories")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 transition-colors"
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
                     )}
                 >
                     <BlocksIcon className="w-5 h-5" />
@@ -315,7 +326,7 @@ export default function DashboardLayout({
                         mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/reports")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 transition-colors"
+                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
                     )}
                 >
                     <MoreHorizontal className="w-5 h-5" />
