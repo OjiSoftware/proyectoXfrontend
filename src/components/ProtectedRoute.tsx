@@ -9,8 +9,8 @@ export const ProtectedRoute = () => {
     // 1. Mientras le pregunta al backend si el usuario es válido, mostramos un spinner
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-                <Loader2 data-testid="loader" className="w-12 h-12 text-brand-500 animate-spin" />
+            <div className="min-h-screen bg-[#07050c]  flex items-center justify-center">
+                <Loader2 data-testid="loader" className="w-12 h-12 #5e5cf7 animate-spin" />
             </div>
         );
     }
