@@ -424,7 +424,7 @@ export default function ProductsPage() {
                     </div>
                 }
             >
-                <div className="space-y-3 ">
+                <div className="space-y-2 ">
                     {/* BUSCADOR + FILTROS + PARÁMETROS */}
                     {/* BUSCADOR MÓVIL (< md) */}
                     <div className="md:hidden flex flex-col gap-2">
@@ -441,11 +441,10 @@ export default function ProductsPage() {
                             </div>
                             <button
                                 onClick={() => setMobileFilterOpen(true)}
-                                className={`relative h-9 w-9 shrink-0 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
-                                    filterStock !== 'all' || filterVisibility !== 'all' || filterCategory !== 'all' || filterProvider !== 'all'
+                                className={`relative h-9 w-9 shrink-0 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${filterStock !== 'all' || filterVisibility !== 'all' || filterCategory !== 'all' || filterProvider !== 'all'
                                         ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
                                         : 'bg-[#151519] border-white/10 text-slate-300'
-                                }`}
+                                    }`}
                                 title="Filtros"
                             >
                                 <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -459,43 +458,39 @@ export default function ProductsPage() {
                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
                             <button
                                 onClick={() => { setFilterStock('all'); setFilterVisibility('all'); }}
-                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${
-                                    filterStock === 'all' && filterVisibility === 'all'
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${filterStock === 'all' && filterVisibility === 'all'
                                         ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'
-                                }`}
+                                    }`}
                             >
                                 Todos ({products.filter(p => p.status).length})
                             </button>
                             <button
                                 onClick={() => { setFilterStock(filterStock === 'low' ? 'all' : 'low'); setFilterVisibility('all'); }}
-                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
-                                    filterStock === 'low'
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${filterStock === 'low'
                                         ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'
-                                }`}
+                                    }`}
                             >
                                 <span className="w-2 h-2 rounded-full bg-amber-400" />
                                 Bajo stock ({lowStockCount})
                             </button>
                             <button
                                 onClick={() => { setFilterStock(filterStock === 'out' ? 'all' : 'out'); setFilterVisibility('all'); }}
-                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
-                                    filterStock === 'out'
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${filterStock === 'out'
                                         ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'
-                                }`}
+                                    }`}
                             >
                                 <span className="w-2 h-2 rounded-full bg-rose-400" />
                                 Agotados ({outOfStockCount})
                             </button>
                             <button
                                 onClick={() => { setFilterVisibility(filterVisibility === 'hidden' ? 'all' : 'hidden'); setFilterStock('all'); }}
-                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${
-                                    filterVisibility === 'hidden'
+                                className={`shrink-0 px-3 py-1.5 rounded-full border font-medium transition-colors ${filterVisibility === 'hidden'
                                         ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
                                         : 'bg-white/5 border-white/10 text-slate-400'
-                                }`}
+                                    }`}
                             >
                                 Ocultos ({hiddenProductsCount})
                             </button>
@@ -831,11 +826,10 @@ export default function ProductsPage() {
                                             <button
                                                 key={val}
                                                 onClick={() => setFilterStock(val)}
-                                                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
-                                                    filterStock === val
+                                                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${filterStock === val
                                                         ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
                                                         : 'bg-white/5 text-slate-400 border-white/10'
-                                                }`}
+                                                    }`}
                                             >
                                                 {lbl}
                                             </button>
@@ -857,11 +851,10 @@ export default function ProductsPage() {
                                             <button
                                                 key={val}
                                                 onClick={() => setFilterVisibility(val)}
-                                                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
-                                                    filterVisibility === val
+                                                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${filterVisibility === val
                                                         ? 'bg-violet-500/20 text-violet-300 border-violet-500/40'
                                                         : 'bg-white/5 text-slate-400 border-white/10'
-                                                }`}
+                                                    }`}
                                             >
                                                 {lbl}
                                             </button>
