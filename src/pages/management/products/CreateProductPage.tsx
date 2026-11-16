@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useProductForm } from "@/hooks/useProductForm";
 import { useNavigate } from "react-router-dom";
 import { getDriveDirectLink } from "@/helpers/url.helper";
+import { MobileProductForm } from "@/components/MobileProductForm";
 
 export default function CreateProductPage() {
     const {
@@ -129,7 +130,35 @@ export default function CreateProductPage() {
 
     return (
         <DashboardLayout>
-            <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 h-full flex flex-col justify-center">
+            {/* VISTA MOBILE (< md) */}
+            <div className="md:hidden w-full">
+                <MobileProductForm
+                    mode="create"
+                    formData={formData}
+                    setFormData={setFormData}
+                    categories={categories}
+                    providers={providers}
+                    handleChange={handleChange}
+                    barcode={barcode}
+                    setBarcode={setBarcode}
+                    costPriceInput={costPriceInput}
+                    costPrice={costPrice}
+                    handleCostPriceChange={handleCostPriceChange}
+                    marginInput={marginInput}
+                    handleMarginChange={handleMarginChange}
+                    priceInput={priceInput}
+                    handlePriceChange={handlePriceChange}
+                    minStock={minStock}
+                    setMinStock={setMinStock}
+                    isFormInvalid={isFormInvalid}
+                    isLoading={isLoading}
+                    onCancel={() => navigate("/management/products")}
+                    onSubmitRequest={() => setShowConfirmModal(true)}
+                />
+            </div>
+
+            {/* VISTA DESKTOP (md+) */}
+            <div className="hidden md:flex w-full max-w-7xl mx-auto px-2 sm:px-4 h-full flex-col justify-center">
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <div className="mb-2">
@@ -541,24 +570,24 @@ export default function CreateProductPage() {
                         </div>
                     </div>
                 </form>
-
-                <ConfirmModal
-                    isOpen={showConfirmModal}
-                    title="Crear producto"
-                    variant="success"
-                    message={
-                        <>
-                            ¿Seguro que querés crear el producto{" "}
-                            <b>{formData.name}</b>?
-                        </>
-                    }
-                    isLoading={isLoading}
-                    onCancel={() => setShowConfirmModal(false)}
-                    onConfirm={handleSubmit}
-                    confirmText="Crear"
-                    cancelText="Cancelar"
-                />
             </div>
+
+            <ConfirmModal
+                isOpen={showConfirmModal}
+                title="Crear producto"
+                variant="success"
+                message={
+                    <>
+                        ¿Seguro que querés crear el producto{" "}
+                        <b>{formData.name}</b>?
+                    </>
+                }
+                isLoading={isLoading}
+                onCancel={() => setShowConfirmModal(false)}
+                onConfirm={handleSubmit}
+                confirmText="Crear"
+                cancelText="Cancelar"
+            />
         </DashboardLayout>
     );
 }

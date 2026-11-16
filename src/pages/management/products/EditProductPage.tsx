@@ -8,6 +8,7 @@ import { useProductEdit } from "@/hooks/useProductEdit";
 import { SquarePen, Image as ImageIcon } from "lucide-react";
 import type { ProductEditBackend } from "@/types/product.types";
 import { getDriveDirectLink } from "@/helpers/url.helper";
+import { MobileProductForm } from "@/components/MobileProductForm";
 
 export default function EditProductPage() {
     const {
@@ -226,7 +227,36 @@ export default function EditProductPage() {
 
     return (
         <DashboardLayout>
-            <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 h-full flex flex-col justify-center">
+            {/* VISTA MOBILE (< md) */}
+            <div className="md:hidden w-full">
+                <MobileProductForm
+                    mode="edit"
+                    productId={id}
+                    formData={formData}
+                    setFormData={setFormData}
+                    categories={categories}
+                    providers={providers}
+                    handleChange={handleChange}
+                    barcode={barcode}
+                    setBarcode={setBarcode}
+                    costPriceInput={costPriceInput}
+                    costPrice={costPrice}
+                    handleCostPriceChange={handleCostPriceChange}
+                    marginInput={marginInput}
+                    handleMarginChange={handleMarginChange}
+                    priceInput={priceInput}
+                    handlePriceChange={handlePriceChange}
+                    minStock={minStock}
+                    setMinStock={setMinStock}
+                    isFormInvalid={isFormInvalid || !barcode.trim()}
+                    isLoading={isLoading}
+                    onCancel={() => navigate(-1)}
+                    onSubmitRequest={() => setShowConfirmModal(true)}
+                />
+            </div>
+
+            {/* VISTA DESKTOP (md+) */}
+            <div className="hidden md:flex w-full max-w-7xl mx-auto px-2 sm:px-4 h-full flex-col justify-center">
                 {/* Volver y Encabezado */}
                 <div className="flex justify-between items-end mb-4">
                     <div>
@@ -647,24 +677,24 @@ export default function EditProductPage() {
                         </div>
                     </div>
                 </form>
-
-                <ConfirmModal
-                    isOpen={showConfirmModal}
-                    title="Guardar cambios"
-                    variant="success"
-                    message={
-                        <>
-                            ¿Seguro que querés guardar los cambios de{" "}
-                            <b>{formData.name}</b>?
-                        </>
-                    }
-                    isLoading={isLoading}
-                    onCancel={() => setShowConfirmModal(false)}
-                    onConfirm={handleSubmit}
-                    confirmText="Guardar"
-                    cancelText="Cancelar"
-                />
             </div>
+
+            <ConfirmModal
+                isOpen={showConfirmModal}
+                title="Guardar cambios"
+                variant="success"
+                message={
+                    <>
+                        ¿Seguro que querés guardar los cambios de{" "}
+                        <b>{formData.name}</b>?
+                    </>
+                }
+                isLoading={isLoading}
+                onCancel={() => setShowConfirmModal(false)}
+                onConfirm={handleSubmit}
+                confirmText="Guardar"
+                cancelText="Cancelar"
+            />
         </DashboardLayout>
     );
 }
