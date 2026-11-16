@@ -135,6 +135,18 @@ export function ProductsTable({
               </TableHeadCell>
             )}
 
+            {isVisible('provider') && (
+              <TableHeadCell
+                className={`${hideOnTablet} cursor-pointer select-none text-center`}
+                onClick={() => onSort('provider.businessName')}
+              >
+                <div className="relative inline-flex items-center justify-center">
+                  <span>Proveedor</span>
+                  <div className="absolute -right-6">{renderSortArrow('provider.businessName')}</div>
+                </div>
+              </TableHeadCell>
+            )}
+
             {isVisible('stock') && (
               <TableHeadCell
                 className={`${hideOnMobile} cursor-pointer select-none text-center`}
@@ -201,6 +213,14 @@ export function ProductsTable({
               {isVisible('category') && (
                 <TableCell className={`${hideOnTablet} text-center text-slate-300`}>
                   {product.category?.name || <span className="text-slate-500 italic">Sin categoría</span>}
+                </TableCell>
+              )}
+
+              {isVisible('provider') && (
+                <TableCell className={`${hideOnTablet} text-center text-slate-300`}>
+                  {product.provider?.businessName || product.provider?.name || (
+                    <span className="text-slate-500 italic text-xs">Sin proveedor</span>
+                  )}
                 </TableCell>
               )}
 

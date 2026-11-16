@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Category } from "@/types/category.types";
+import { Provider } from "@/types/provider.types";
 import { productApi } from "@/services/ProductService";
 import { getDriveDirectLink } from "@/helpers/url.helper";
 
@@ -9,6 +10,7 @@ export const useProductForm = () => {
         price: number;
         stock: number;
         categoryId: number;
+        providerId: number | null;
         description: string;
         imageUrl: string;
         unit: string | null;
@@ -20,6 +22,7 @@ export const useProductForm = () => {
         price: 0,
         stock: 0,
         categoryId: 0,
+        providerId: null,
         description: "",
         imageUrl: "",
         unit: null,
@@ -29,20 +32,25 @@ export const useProductForm = () => {
     });
 
     const [categories, setCategories] = useState<Category[]>([]);
+    const [providers, setProviders] = useState<Provider[]>([]);
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const cat = await productApi.getAllCategories();
+                const [cat, prov] = await Promise.all([
+                    productApi.getAllCategories(),
+                    productApi.getAllProviders().catch(() => []),
+                ]);
                 setCategories(cat);
+                setProviders(prov);
             } catch (error) {
-                console.error("Error cargando categorías: ", error);
+                console.error("Error cargando datos para productos: ", error);
             }
         };
         loadData();
     }, []);
 
-    const updateField = (name: string, value: string | number | boolean) => {
+    const updateField = (name: string, value: string | number | boolean | null) => {
         setFormData((prev) => ({
             ...prev,
             [name]: value,
@@ -53,12 +61,14 @@ export const useProductForm = () => {
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, value, type } = e.target as HTMLInputElement;
-        const numericFields = ["price", "stock", "categoryId"];
+        const numericFields = ["price", "stock", "categoryId", "providerId"];
 
-        let finalValue: string | number | boolean = value;
+        let finalValue: string | number | boolean | null = value;
 
         if (type === "checkbox") {
             finalValue = (e.target as HTMLInputElement).checked;
+        } else if (name === "providerId") {
+            finalValue = value === "" ? null : Number(value);
         } else if (numericFields.includes(name)) {
             finalValue = value === "" ? "" : Number(value);
             if (typeof finalValue === "number" && (name === "stock" || name === "price")) {
@@ -94,6 +104,7 @@ export const useProductForm = () => {
                 price: 0,
                 stock: 0,
                 categoryId: 0,
+                providerId: null,
                 imageUrl: "",
                 unit: "",
                 brandId: null,
@@ -110,6 +121,7 @@ export const useProductForm = () => {
         formData,
         setFormData,
         categories,
+        providers,
         handleChange,
         handleSubmit,
     };

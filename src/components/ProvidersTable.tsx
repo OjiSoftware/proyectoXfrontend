@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "flowbite-react";
 import { Link } from "react-router-dom";
-import { ArrowUpIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ArrowUpIcon, PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { ROUTES } from "@/constants/routes";
 import { Provider } from "@/types/provider.types";
 
@@ -36,13 +36,12 @@ export function ProvidersTable({
         const isActive = currentSortColumn === column;
         return (
             <ArrowUpIcon
-                className={`w-3 h-3 ms-1 transition-all duration-150 ${
-                    isActive && currentSortDirection
+                className={`w-3 h-3 ms-1 transition-all duration-150 ${isActive && currentSortDirection
                         ? currentSortDirection === "desc"
                             ? "rotate-180 opacity-100"
                             : "opacity-100"
                         : "opacity-0"
-                }`}
+                    }`}
             />
         );
     };

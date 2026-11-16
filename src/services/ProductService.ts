@@ -45,6 +45,14 @@ export const productApi = {
         return response.json();
     },
 
+    getAllProviders: async () => {
+        const response = await fetch(`${BASE_URL}/providers`, {
+            credentials: "include",
+        });
+        if (!response.ok) throw new Error("Error al traer proveedores");
+        return response.json();
+    },
+
     getAllBrands: async () => {
         const response = await fetch(`${BASE_URL}/brands`);
         if (!response.ok) throw new Error("Error al traer marcas");

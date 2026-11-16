@@ -13,6 +13,7 @@ import {
     Eye,
     EyeOff,
     Sparkles,
+    Truck,
 } from "lucide-react";
 import { PencilIcon } from "@heroicons/react/20/solid";
 import { getDriveDirectLink } from "@/helpers/url.helper";
@@ -108,6 +109,12 @@ export function ProductDetailsModal({
                                         <Layers size={11} />
                                         {product.category?.name || "Sin categoría"}
                                     </span>
+                                    {product.provider && (
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-300 border border-violet-500/20 flex items-center gap-1">
+                                            <Truck size={11} />
+                                            {product.provider.businessName || product.provider.name}
+                                        </span>
+                                    )}
                                     {product.isOffer && (
                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-red-500/15 text-red-300 border border-red-500/30 flex items-center gap-1">
                                             <Sparkles size={11} />

@@ -5,6 +5,7 @@ import { productApi } from "@/services/ProductService";
 import toast from "react-hot-toast";
 import { ProductEditFrontend } from "@/types/product.types";
 import { Category } from "@/types/category.types";
+import { Provider } from "@/types/provider.types";
 /* import { SubCategory } from "@/types/subcategory.types"; */
 import { Brand } from "@/types/brand.types";
 
@@ -15,6 +16,7 @@ export function useProductEdit() {
         name: "",
         brandId: null,
         categoryId: 0,
+        providerId: null,
         price: 0,
         costPrice: null,
         description: "",
@@ -27,6 +29,7 @@ export function useProductEdit() {
 
     const [priceInput, setPriceInput] = useState<string>("0,00");
     const [categories, setCategories] = useState<Category[]>([]);
+    const [providers, setProviders] = useState<Provider[]>([]);
     const [brands, setBrands] = useState<Brand[]>([]);
     /*     const [subCategories, setSubCategories] = useState<SubCategory[]>([]); */
     const [isLoading, setLoading] = useState(false);
@@ -47,16 +50,19 @@ export function useProductEdit() {
                 const [
                     productData,
                     categoriesData,
+                    providersData,
                     brandsData,
                     /*                     subcategoriesData, */
                 ] = await Promise.all([
                     productApi.getById(id),
                     productApi.getAllCategories(),
+                    productApi.getAllProviders().catch(() => []),
                     productApi.getAllBrands(),
                     /*                     productApi.getAllSubcategories(), */
                 ]);
 
                 setCategories(categoriesData);
+                setProviders(providersData);
                 setBrands(brandsData);
                 /*                 setSubCategories(subcategoriesData); */
 
@@ -70,6 +76,7 @@ export function useProductEdit() {
                     barcode: productData.barcode || "",
                     brandId: productData.brandId ?? null,
                     categoryId: productData.categoryId || productData.category?.id || 0,
+                    providerId: productData.providerId ?? productData.provider?.id ?? null,
                     price: productData.price || 0,
                     costPrice: productData.costPrice != null ? Number(productData.costPrice) : null,
                     description: productData.description || "",
@@ -100,6 +107,7 @@ export function useProductEdit() {
         priceInput,
         setPriceInput,
         categories,
+        providers,
         brands,
         /*  subCategories, */
         isLoading,

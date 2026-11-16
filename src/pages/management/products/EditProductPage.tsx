@@ -17,6 +17,7 @@ export default function EditProductPage() {
         priceInput,
         setPriceInput,
         categories,
+        providers,
         /*         brands,
                 subCategories, */
         isLoading,
@@ -87,6 +88,12 @@ export default function EditProductPage() {
         if (type === "checkbox") {
             const { checked } = e.target as HTMLInputElement;
             setFormData((prev) => ({ ...prev, [name]: checked }));
+            return;
+        }
+
+        if (name === "providerId") {
+            const num = value === "" ? null : parseInt(value);
+            setFormData((prev) => ({ ...prev, providerId: num }));
             return;
         }
 
@@ -189,6 +196,7 @@ export default function EditProductPage() {
                 showingInCatalog: formData.showingInCatalog,
                 imageUrl: formData.imageUrl?.trim() || "",
                 isOffer: formData.isOffer ?? false,
+                providerId: formData.providerId ? Number(formData.providerId) : null,
                 unit: null,
                 brandId: null,
             };
@@ -394,27 +402,50 @@ export default function EditProductPage() {
                         </h3>
 
                         <div className="space-y-4 grow">
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Categoría{" "}
-                                    <span className="font-bold text-indigo-400">*</span>
-                                </label>
-                                <select
-                                    name="categoryId"
-                                    value={formData.categoryId || ""}
-                                    onChange={handleChange}
-                                    className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all cursor-pointer shadow-inner"
-                                    required
-                                >
-                                    <option value="" disabled className="text-slate-500">
-                                        Seleccionar...
-                                    </option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id} className="bg-[#151320] text-slate-100">
-                                            {cat.name}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Categoría{" "}
+                                        <span className="font-bold text-indigo-400">*</span>
+                                    </label>
+                                    <select
+                                        name="categoryId"
+                                        value={formData.categoryId || ""}
+                                        onChange={handleChange}
+                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all cursor-pointer shadow-inner"
+                                        required
+                                    >
+                                        <option value="" disabled className="text-slate-500">
+                                            Seleccionar...
                                         </option>
-                                    ))}
-                                </select>
+                                        {categories.map((cat) => (
+                                            <option key={cat.id} value={cat.id} className="bg-[#151320] text-slate-100">
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Proveedor
+                                    </label>
+                                    <select
+                                        name="providerId"
+                                        value={formData.providerId || ""}
+                                        onChange={handleChange}
+                                        className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all cursor-pointer shadow-inner"
+                                    >
+                                        <option value="" className="text-slate-500">
+                                            Sin proveedor
+                                        </option>
+                                        {providers.map((prov) => (
+                                            <option key={prov.id} value={prov.id} className="bg-[#151320] text-slate-100">
+                                                {prov.businessName || prov.name || `Proveedor #${prov.id}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             {/*                             <div className="grid grid-cols-2 gap-3">
