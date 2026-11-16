@@ -23,7 +23,7 @@ export default function CreateProviderPage() {
         await handleSubmit();
     };
 
-    const isFormInvalid = !formData.name.trim() || isLoading;
+    const isFormInvalid = (!formData.name.trim() && !formData.businessName.trim()) || isLoading;
 
     return (
         <DashboardLayout>
@@ -53,8 +53,13 @@ export default function CreateProviderPage() {
                 <div className="flex items-center gap-3 mb-4 bg-white/[0.02] p-3 rounded-2xl border border-white/5 shadow-inner">
                     <div>
                         <h2 className="text-base font-bold text-white leading-tight">
-                            {formData.name || "Nuevo proveedor"}
+                            {formData.businessName || formData.name || "Nuevo proveedor"}
                         </h2>
+                        {formData.name && formData.businessName && (
+                            <p className="text-slate-300 text-xs mt-0.5">
+                                Contacto / Fantasía: {formData.name}
+                            </p>
+                        )}
                         <p className="text-indigo-400 text-xs font-semibold tracking-wider uppercase mt-0.5">
                             ID: Nuevo
                         </p>
@@ -65,44 +70,27 @@ export default function CreateProviderPage() {
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        if (!formData.name.trim())
-                            return toast.error("El nombre del proveedor es obligatorio");
+                        if (!formData.name.trim() && !formData.businessName.trim())
+                            return toast.error("Complete al menos el nombre o la razón social");
                         setShowConfirmModal(true);
                     }}
                     className="bg-[#0C0A15]/95 border border-white/10 p-5 md:p-6 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl ring-1 ring-white/5 grid grid-cols-1 md:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-4"
                 >
                     <div className="space-y-4">
                         <h3 className="text-indigo-400 text-xs font-semibold tracking-wider border-b border-white/5 pb-1 uppercase">
-                            Información básica
+                            Identificación del proveedor
                         </h3>
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                Nombre del proveedor{" "}
-                                <span className="font-bold text-indigo-400">*</span>
+                                Nombre comercial / Fantasía
                             </label>
                             <input
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Ej: Distribuidora Central"
-                                autoComplete="off"
-                                className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                Persona de contacto
-                            </label>
-                            <input
-                                type="text"
-                                name="contact"
-                                value={formData.contact}
-                                onChange={handleChange}
-                                placeholder="Ej: Juan Pérez"
+                                placeholder="Ej: Oji Software"
                                 autoComplete="off"
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                             />
@@ -110,14 +98,14 @@ export default function CreateProviderPage() {
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                Dirección
+                                Razón social (Business Name)
                             </label>
                             <input
                                 type="text"
-                                name="address"
-                                value={formData.address}
+                                name="businessName"
+                                value={formData.businessName}
                                 onChange={handleChange}
-                                placeholder="Ej: Av. San Martín 1234"
+                                placeholder="Ej: OJI S.R.L."
                                 autoComplete="off"
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                             />
@@ -132,14 +120,14 @@ export default function CreateProviderPage() {
 
                             <div>
                                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Teléfono
+                                    Teléfono (Phone Number)
                                 </label>
                                 <input
                                     type="text"
-                                    name="phone"
-                                    value={formData.phone}
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
                                     onChange={handleChange}
-                                    placeholder="Ej: +54 11 4455-6677"
+                                    placeholder="Ej: +54 9 11 4455-6677"
                                     autoComplete="off"
                                     className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                                 />
@@ -154,7 +142,7 @@ export default function CreateProviderPage() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="Ej: contacto@distribuidora.com"
+                                    placeholder="Ej: contacto@empresa.com"
                                     autoComplete="off"
                                     className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                                 />
@@ -188,7 +176,7 @@ export default function CreateProviderPage() {
                             <div className="relative h-6 w-full">
                                 {isFormInvalid && !isLoading && (
                                     <p className="absolute top-3 right-0 text-amber-400/80 text-xs text-right font-medium">
-                                        * Complete el nombre del proveedor para guardar
+                                        * Complete al menos el nombre o la razón social
                                     </p>
                                 )}
                             </div>
@@ -203,7 +191,7 @@ export default function CreateProviderPage() {
                     message={
                         <>
                             ¿Seguro que querés crear el proveedor{" "}
-                            <b>{formData.name}</b>?
+                            <b>{formData.businessName || formData.name}</b>?
                         </>
                     }
                     isLoading={isLoading}

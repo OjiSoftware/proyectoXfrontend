@@ -4,13 +4,17 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export const providerApi = {
     getAll: async (): Promise<Provider[]> => {
-        const response = await fetch(`${BASE_URL}/providers`);
+        const response = await fetch(`${BASE_URL}/providers`, {
+            credentials: "include",
+        });
         if (!response.ok) throw new Error("Error al traer proveedores");
         return response.json();
     },
 
     getById: async (id: string | number): Promise<Provider> => {
-        const response = await fetch(`${BASE_URL}/providers/${id}`);
+        const response = await fetch(`${BASE_URL}/providers/${id}`, {
+            credentials: "include",
+        });
         if (!response.ok) throw new Error("Error al traer proveedor");
         return response.json();
     },
@@ -19,9 +23,13 @@ export const providerApi = {
         const response = await fetch(`${BASE_URL}/providers`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error("Error al crear proveedor");
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || errData.error || "Error al crear proveedor");
+        }
         return response.json();
     },
 
@@ -29,17 +37,25 @@ export const providerApi = {
         const response = await fetch(`${BASE_URL}/providers/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error("Error al actualizar proveedor");
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || errData.error || "Error al actualizar proveedor");
+        }
         return response.json();
     },
 
     delete: async (id: string | number): Promise<{ success: boolean }> => {
         const response = await fetch(`${BASE_URL}/providers/${id}`, {
             method: "DELETE",
+            credentials: "include",
         });
-        if (!response.ok) throw new Error("Error al eliminar proveedor");
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || errData.error || "Error al eliminar proveedor");
+        }
         return response.json();
     },
 };

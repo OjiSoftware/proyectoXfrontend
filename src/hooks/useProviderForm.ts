@@ -9,16 +9,15 @@ export function useCreateProvider() {
 
     const [formData, setFormData] = useState({
         name: "",
-        contact: "",
-        phone: "",
+        businessName: "",
+        phoneNumber: "",
         email: "",
-        address: "",
     });
 
     const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -28,8 +27,8 @@ export function useCreateProvider() {
     };
 
     const handleSubmit = async () => {
-        if (!formData.name.trim()) {
-            toast.error("El nombre del proveedor es obligatorio");
+        if (!formData.name.trim() && !formData.businessName.trim()) {
+            toast.error("El nombre o la razón social es obligatorio");
             return;
         }
 
@@ -38,18 +37,17 @@ export function useCreateProvider() {
 
         try {
             await providerApi.create({
-                name: formData.name.trim(),
-                contact: formData.contact.trim() || undefined,
-                phone: formData.phone.trim() || undefined,
+                name: formData.name.trim() || undefined,
+                businessName: formData.businessName.trim() || undefined,
+                phoneNumber: formData.phoneNumber.trim() || undefined,
                 email: formData.email.trim() || undefined,
-                address: formData.address.trim() || undefined,
             });
 
             toast.success("Proveedor creado con éxito", { id: loadingToast });
             navigate(ROUTES.providers.list);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error("Error al crear proveedor", { id: loadingToast });
+            toast.error(error.message || "Error al crear proveedor", { id: loadingToast });
         } finally {
             setIsLoading(false);
         }

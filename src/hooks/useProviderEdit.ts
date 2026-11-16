@@ -10,10 +10,9 @@ export function useProviderEdit() {
 
     const [formData, setFormData] = useState({
         name: "",
-        contact: "",
-        phone: "",
+        businessName: "",
+        phoneNumber: "",
         email: "",
-        address: "",
     });
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
@@ -30,14 +29,12 @@ export function useProviderEdit() {
                 } else {
                     setFormData({
                         name: provider.name || "",
-                        contact: provider.contact || "",
-                        phone: provider.phone || "",
+                        businessName: provider.businessName || "",
+                        phoneNumber: provider.phoneNumber || "",
                         email: provider.email || "",
-                        address: provider.address || "",
                     });
                 }
             } catch (error) {
-                // Si falla getById por ruta, intenta traer todos
                 try {
                     const providers = await providerApi.getAll();
                     const provider = providers.find((p) => p.id === parseInt(id));
@@ -47,10 +44,9 @@ export function useProviderEdit() {
                     } else {
                         setFormData({
                             name: provider.name || "",
-                            contact: provider.contact || "",
-                            phone: provider.phone || "",
+                            businessName: provider.businessName || "",
+                            phoneNumber: provider.phoneNumber || "",
                             email: provider.email || "",
-                            address: provider.address || "",
                         });
                     }
                 } catch (err) {
@@ -66,7 +62,7 @@ export function useProviderEdit() {
     }, [id, navigate]);
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -77,8 +73,8 @@ export function useProviderEdit() {
 
     const handleSubmit = async () => {
         if (!id) return;
-        if (!formData.name.trim()) {
-            toast.error("El nombre del proveedor es obligatorio");
+        if (!formData.name.trim() && !formData.businessName.trim()) {
+            toast.error("El nombre o la razón social es obligatorio");
             return;
         }
 
@@ -86,17 +82,16 @@ export function useProviderEdit() {
         const toastId = toast.loading("Guardando cambios...");
         try {
             await providerApi.update(id, {
-                name: formData.name.trim(),
-                contact: formData.contact.trim() || undefined,
-                phone: formData.phone.trim() || undefined,
+                name: formData.name.trim() || undefined,
+                businessName: formData.businessName.trim() || undefined,
+                phoneNumber: formData.phoneNumber.trim() || undefined,
                 email: formData.email.trim() || undefined,
-                address: formData.address.trim() || undefined,
             });
             toast.success("Proveedor actualizado con éxito", { id: toastId });
             navigate(ROUTES.providers.list);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error al actualizar proveedor:", error);
-            toast.error("Error al guardar cambios", { id: toastId });
+            toast.error(error.message || "Error al guardar cambios", { id: toastId });
         } finally {
             setLoading(false);
         }

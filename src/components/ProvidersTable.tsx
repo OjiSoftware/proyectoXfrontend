@@ -62,7 +62,20 @@ export function ProvidersTable({
                             </div>
                         </TableHeadCell>
 
-                        {/* Nombre */}
+                        {/* Razón Social */}
+                        <TableHeadCell
+                            className="cursor-pointer select-none text-left"
+                            onClick={() => onSort("businessName")}
+                        >
+                            <div className="relative inline-flex items-center">
+                                <span>Razón Social</span>
+                                <div className="absolute -right-6">
+                                    {renderSortArrow("businessName")}
+                                </div>
+                            </div>
+                        </TableHeadCell>
+
+                        {/* Nombre / Fantasía */}
                         <TableHeadCell
                             className="cursor-pointer select-none text-left"
                             onClick={() => onSort("name")}
@@ -75,14 +88,27 @@ export function ProvidersTable({
                             </div>
                         </TableHeadCell>
 
-                        {/* Contacto / Teléfono */}
+                        {/* Teléfono */}
                         <TableHeadCell className="hidden md:table-cell! text-left select-none">
-                            Contacto
+                            Teléfono
                         </TableHeadCell>
 
                         {/* Email */}
                         <TableHeadCell className="hidden lg:table-cell! text-left select-none">
                             Email
+                        </TableHeadCell>
+
+                        {/* Fecha */}
+                        <TableHeadCell
+                            className="hidden md:table-cell! text-center cursor-pointer select-none"
+                            onClick={() => onSort("createdAt")}
+                        >
+                            <div className="relative inline-flex items-center justify-center">
+                                <span>Fecha</span>
+                                <div className="absolute -right-6">
+                                    {renderSortArrow("createdAt")}
+                                </div>
+                            </div>
                         </TableHeadCell>
 
                         {/* Acciones */}
@@ -95,7 +121,7 @@ export function ProvidersTable({
                 <TableBody className="divide-y divide-white/5">
                     {providers.length === 0 ? (
                         <TableRow className="hover:bg-transparent">
-                            <TableCell colSpan={5} className="text-center py-8 text-slate-400 text-sm">
+                            <TableCell colSpan={7} className="text-center py-8 text-slate-400 text-sm">
                                 No se encontraron proveedores registrados.
                             </TableCell>
                         </TableRow>
@@ -112,29 +138,33 @@ export function ProvidersTable({
                                 <TableCell className="text-left py-3">
                                     <span
                                         className="text-sm font-semibold text-slate-100 truncate block max-w-[200px] md:max-w-none"
-                                        title={provider.name}
+                                        title={provider.businessName || provider.name || ""}
                                     >
-                                        {provider.name}
+                                        {provider.businessName || <span className="text-slate-500 italic text-xs">-</span>}
                                     </span>
                                 </TableCell>
 
-                                <TableCell className="hidden md:table-cell! text-left text-slate-300 py-3">
-                                    {provider.contact || provider.phone ? (
-                                        <div className="flex flex-col">
-                                            {provider.contact && <span>{provider.contact}</span>}
-                                            {provider.phone && (
-                                                <span className="text-xs text-slate-400 font-mono">
-                                                    {provider.phone}
-                                                </span>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <span className="text-slate-500 italic text-xs">-</span>
-                                    )}
+                                <TableCell className="text-left py-3">
+                                    <span
+                                        className="text-sm text-slate-200 truncate block max-w-[200px] md:max-w-none"
+                                        title={provider.name || ""}
+                                    >
+                                        {provider.name || <span className="text-slate-500 italic text-xs">-</span>}
+                                    </span>
+                                </TableCell>
+
+                                <TableCell className="hidden md:table-cell! text-left text-slate-300 py-3 font-mono text-xs">
+                                    {provider.phoneNumber || <span className="text-slate-500 italic text-xs">-</span>}
                                 </TableCell>
 
                                 <TableCell className="hidden lg:table-cell! text-left text-slate-300 py-3">
                                     {provider.email || <span className="text-slate-500 italic text-xs">-</span>}
+                                </TableCell>
+
+                                <TableCell className="hidden md:table-cell! text-center text-slate-300 py-3 text-xs">
+                                    {provider.createdAt
+                                        ? new Date(provider.createdAt).toLocaleDateString("es-AR")
+                                        : <span className="text-slate-500 italic">-</span>}
                                 </TableCell>
 
                                 <TableCell>

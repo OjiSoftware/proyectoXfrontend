@@ -5,6 +5,7 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { useProviderEdit } from "@/hooks/useProviderEdit";
 import { SquarePen } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
+import toast from "react-hot-toast";
 
 export default function EditProviderPage() {
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function EditProviderPage() {
 
     if (!id) return null;
 
-    const isFormInvalid = !formData.name.trim() || loading;
+    const isFormInvalid = (!formData.name.trim() && !formData.businessName.trim()) || loading;
 
     return (
         <DashboardLayout>
@@ -41,8 +42,13 @@ export default function EditProviderPage() {
                 <div className="flex items-center gap-3 mb-4 bg-white/[0.02] p-3 rounded-2xl border border-white/5 shadow-inner">
                     <div>
                         <h2 className="text-base font-bold text-white leading-tight">
-                            {formData.name || "Proveedor sin nombre"}
+                            {formData.businessName || formData.name || "Proveedor sin nombre"}
                         </h2>
+                        {formData.name && formData.businessName && (
+                            <p className="text-slate-300 text-xs mt-0.5">
+                                Contacto / Fantasía: {formData.name}
+                            </p>
+                        )}
                         <p className="text-indigo-400 text-xs font-semibold tracking-wider uppercase mt-0.5">
                             ID: #{id}
                         </p>
@@ -53,56 +59,43 @@ export default function EditProviderPage() {
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        if (!formData.name.trim()) return;
+                        if (!formData.name.trim() && !formData.businessName.trim()) {
+                            toast.error("Complete al menos el nombre o la razón social");
+                            return;
+                        }
                         setShowConfirmModal(true);
                     }}
                     className="bg-[#0C0A15]/95 border border-white/10 p-5 md:p-6 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl ring-1 ring-white/5 grid grid-cols-1 md:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-4"
                 >
                     <div className="space-y-4">
                         <h3 className="text-indigo-400 text-xs font-semibold tracking-wider border-b border-white/5 pb-1 uppercase">
-                            Información básica
+                            Identificación del proveedor
                         </h3>
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                Nombre del proveedor{" "}
-                                <span className="font-bold text-indigo-400">*</span>
+                                Nombre comercial / Fantasía
                             </label>
                             <input
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Ingrese el nombre del proveedor"
-                                className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                Persona de contacto
-                            </label>
-                            <input
-                                type="text"
-                                name="contact"
-                                value={formData.contact}
-                                onChange={handleChange}
-                                placeholder="Ej: Juan Pérez"
+                                placeholder="Ingrese el nombre comercial"
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                             />
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                Dirección
+                                Razón social (Business Name)
                             </label>
                             <input
                                 type="text"
-                                name="address"
-                                value={formData.address}
+                                name="businessName"
+                                value={formData.businessName}
                                 onChange={handleChange}
-                                placeholder="Ej: Av. San Martín 1234"
+                                placeholder="Ingrese la razón social"
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                             />
                         </div>
@@ -116,14 +109,14 @@ export default function EditProviderPage() {
 
                             <div>
                                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Teléfono
+                                    Teléfono (Phone Number)
                                 </label>
                                 <input
                                     type="text"
-                                    name="phone"
-                                    value={formData.phone}
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
                                     onChange={handleChange}
-                                    placeholder="Ej: +54 11 4455-6677"
+                                    placeholder="Ej: +54 9 11 4455-6677"
                                     className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                                 />
                             </div>
@@ -137,7 +130,7 @@ export default function EditProviderPage() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="Ej: contacto@distribuidora.com"
+                                    placeholder="Ej: contacto@empresa.com"
                                     className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                                 />
                             </div>
@@ -170,7 +163,7 @@ export default function EditProviderPage() {
                             <div className="relative h-6 w-full">
                                 {isFormInvalid && !loading && !isFetching && (
                                     <p className="absolute top-3 right-0 text-amber-400/80 text-xs text-right font-medium">
-                                        * Complete el nombre del proveedor para guardar
+                                        * Complete al menos el nombre o la razón social
                                     </p>
                                 )}
                             </div>
@@ -185,7 +178,7 @@ export default function EditProviderPage() {
                     message={
                         <>
                             ¿Seguro que querés guardar los cambios de{" "}
-                            <b>{formData.name}</b>?
+                            <b>{formData.businessName || formData.name}</b>?
                         </>
                     }
                     isLoading={loading}

@@ -31,10 +31,11 @@ export default function ProvidersPage() {
         const searchTerm = query.trim().toLowerCase();
 
         const filtered = providers.filter((p) => {
-            const matchesName = p.name.toLowerCase().includes(searchTerm);
-            const matchesContact = p.contact ? p.contact.toLowerCase().includes(searchTerm) : false;
+            const matchesName = p.name ? p.name.toLowerCase().includes(searchTerm) : false;
+            const matchesBusiness = p.businessName ? p.businessName.toLowerCase().includes(searchTerm) : false;
+            const matchesPhone = p.phoneNumber ? p.phoneNumber.toLowerCase().includes(searchTerm) : false;
             const matchesEmail = p.email ? p.email.toLowerCase().includes(searchTerm) : false;
-            return matchesName || matchesContact || matchesEmail;
+            return matchesName || matchesBusiness || matchesPhone || matchesEmail;
         });
 
         const withIndex = filtered.map((provider, index) => ({
@@ -88,7 +89,7 @@ export default function ProvidersPage() {
         const fetchProviders = async () => {
             try {
                 const data = await providerApi.getAll();
-                setProviders(data);
+                setProviders(Array.isArray(data) ? data : []);
             } catch (error) {
                 console.error("Error cargando proveedores", error);
             }
@@ -119,7 +120,7 @@ export default function ProvidersPage() {
                         <SearchBar
                             value={query}
                             onChange={setQuery}
-                            placeholder="Buscar por nombre, contacto o email..."
+                            placeholder="Buscar por nombre, razón social, teléfono o email..."
                             containerClassName="max-w-full"
                             inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
                             iconClassName="text-slate-500 group-focus-within:text-indigo-400"
@@ -147,7 +148,7 @@ export default function ProvidersPage() {
                 {providerToDelete && (
                     <ConfirmDeleteModal
                         isOpen={true}
-                        itemName={providerToDelete.name}
+                        itemName={providerToDelete.businessName || providerToDelete.name || "Proveedor"}
                         isLoading={loading}
                         onCancel={() => setProviderToDelete(null)}
                         onConfirm={async () => {
