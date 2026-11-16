@@ -233,14 +233,14 @@ export default function DashboardLayout({
             <div className="flex flex-1 flex-col overflow-hidden pt-14 md:pt-0 bg-[#07050C]">
                 {title && (
                     <header className="shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-30 shadow-sm overflow-visible">
-                        <div className="w-full px-4 py-3.5 md:py-5 sm:px-6 lg:px-8 flex items-center gap-3 md:gap-4">
+                        <div className="w-full px-3.5 py-2 md:px-4 md:py-5 sm:px-6 lg:px-8 flex items-center gap-3 md:gap-4">
                             <div className="flex-1 min-w-0">
-                                <h1 className="text-lg md:text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
-                                {subtitle && <p className="text-xs md:text-sm text-slate-400 md:text-slate-300 mt-0.5 md:mt-1 truncate">{subtitle}</p>}
+                                <h1 className="text-sm md:text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
+                                {subtitle && <p className="hidden md:block text-sm text-slate-300 mt-1 truncate">{subtitle}</p>}
                             </div>
 
-                            {/* WIDGETS + ACCIONES agrupados a la derecha */}
-                            <div className="flex items-center gap-2 md:gap-3 shrink-0 overflow-visible">
+                            {/* WIDGETS + ACCIONES agrupados a la derecha (Solo en Desktop md+, en Mobile están en BottomBar / Chips) */}
+                            <div className="hidden md:flex items-center gap-3 shrink-0 overflow-visible">
                                 {headerWidgets && headerWidgets}
                                 {actions && actions}
                             </div>
@@ -250,7 +250,7 @@ export default function DashboardLayout({
 
                 {/* CONTENIDO (Scroll interno, ancho completo w-full sin límites) */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.08),rgba(7,5,12,0))]">
-                    <div className="w-full px-3.5 py-4 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-28 md:pb-20">
+                    <div className="w-full px-3 py-2.5 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-24 md:pb-20">
                         {/* W-FULL reemplazando al max-w de tailwind, para que todo toque los bordes del flex */}
                         {children}
                     </div>

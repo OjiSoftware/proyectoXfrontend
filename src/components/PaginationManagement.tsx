@@ -35,24 +35,24 @@ export default function Pagination({
     const pages = getPages();
 
     return (
-        <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 sm:px-6">
+        <div className="flex items-center justify-between border-t border-white/10 px-3 py-2 sm:px-6 sm:py-3">
             {/* MOBILE */}
-            <div className="sm:hidden w-full flex items-center justify-center gap-4">
+            <div className="sm:hidden w-full flex items-center justify-center gap-3">
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-2xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                    className="p-1.5 rounded-xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
                 >
-                    <ChevronLeftIcon title="Anterior" className="size-5" />
+                    <ChevronLeftIcon title="Anterior" className="size-4" />
                 </button>
 
-                <span className="text-sm text-slate-300 text-center">
+                <span className="text-xs text-slate-300 text-center">
                     Página{" "}
-                    <span className="text-white font-bold">
+                    <span className="text-white font-semibold">
                         {currentPage}
                     </span>{" "}
                     de{" "}
-                    <span className="text-white font-bold">{totalPages}</span>
+                    <span className="text-white font-semibold">{totalPages}</span>
                 </span>
 
                 <button
@@ -60,9 +60,9 @@ export default function Pagination({
                         onPageChange(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-2xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                    className="p-1.5 rounded-xl text-slate-400 bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
                 >
-                    <ChevronRightIcon title="Siguiente" className="size-5" />
+                    <ChevronRightIcon title="Siguiente" className="size-4" />
                 </button>
             </div>
 

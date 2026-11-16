@@ -125,17 +125,17 @@ export default function CategoriesPage() {
                 </button>
             }
         >
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
                 {/* BUSCADOR */}
-                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-2 md:gap-3">
                     <div className="flex-1 min-w-[200px]">
                         <SearchBar
                             value={query}
                             onChange={setQuery}
                             placeholder="Buscar por nombre de la categoría..."
                             containerClassName="max-w-full"
-                            inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
-                            iconClassName="text-slate-500 group-focus-within:text-indigo-400"
+                            inputClassName="bg-[#151519] text-white text-xs md:text-sm border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9 md:h-11"
+                            iconClassName="text-slate-500 group-focus-within:text-indigo-400 h-4 w-4 md:h-5 md:w-5"
                         />
                     </div>
                 </div>

@@ -12,7 +12,7 @@ type Props = Pick<SearchBarProps, "value" | "onChange" | "placeholder"> & {
 export default function SearchBar({
     value,
     onChange,
-    placeholder = "Encontrá lo que tu campo necesita...",
+    placeholder = "Encontrá lo que necesitas...",
     containerClassName = "",
     inputClassName = "",
     iconClassName = "",
