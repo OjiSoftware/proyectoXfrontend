@@ -205,26 +205,24 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* NAVBAR MÓVIL (Small screen) */}
             {/* --------------------------- */}
-            <div className="md:hidden absolute inset-x-0 top-0 z-40">
-                <nav className="bg-[#0A0812]/95 backdrop-blur-xl border-b border-white/10 shadow-lg">
-                    <div className="mx-auto px-4">
-                        <div className="flex h-14 items-center justify-between">
-                            <Link to="/" title="Ir a la web pública" className="flex items-center gap-2.5 shrink-0">
-                                <img alt="OJI" src={logo} className="h-7 w-auto" />
-                                <span className="text-[11px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
-                                    Management
-                                </span>
-                            </Link>
-                            <button
-                                onClick={() => setMobileDrawerOpen(true)}
-                                className="inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all"
-                            >
-                                <span className="sr-only">Menú</span>
-                                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-                            </button>
+            <div className="md:hidden shrink-0 fixed top-0 inset-x-0 z-40 bg-[#0A0812]/95 backdrop-blur-xl border-b border-white/10 shadow-lg">
+                <div className="mx-auto px-4">
+                    <div className="flex h-14 items-center justify-between">
+                        <div className="flex items-center gap-2.5 shrink-0 select-none">
+                            <img alt="OJI" src={logo} className="h-7 w-auto shrink-0" />
+                            <span className="text-[11px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full shrink-0">
+                                Gestión
+                            </span>
                         </div>
+                        <button
+                            onClick={() => setMobileDrawerOpen(true)}
+                            className="shrink-0 inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all"
+                        >
+                            <span className="sr-only">Menú</span>
+                            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+                        </button>
                     </div>
-                </nav>
+                </div>
             </div>
 
             {/* --------------------------- */}
@@ -269,17 +267,17 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* BOTTOM NAVIGATION BAR MÓVIL */}
             {/* --------------------------- */}
-            <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 z-40 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+            <nav className="md:hidden shrink-0 fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 z-40 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
                 <Link
                     to="/management/sales"
                     className={classNames(
                         location.pathname.startsWith("/management/sales")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
                     )}
                 >
-                    <DollarSign className="w-5 h-5" />
+                    <DollarSign className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">Ventas</span>
                 </Link>
 
@@ -289,21 +287,21 @@ export default function DashboardLayout({
                         location.pathname.startsWith("/management/products")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
                     )}
                 >
-                    <TagIcon className="w-5 h-5" />
+                    <TagIcon className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">Productos</span>
                 </Link>
 
                 {/* Botón Central Flotante (+) */}
-                <div className="-mt-5">
+                <div className="-mt-5 shrink-0 flex items-center justify-center">
                     <button
                         onClick={() => setMobileQuickCreateOpen(true)}
-                        className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(79,70,229,0.5)] border-2 border-[#07050C] active:scale-90 transition-all"
+                        className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(79,70,229,0.5)] border-2 border-[#07050C] active:scale-90 transition-all shrink-0"
                         title="Crear Nuevo"
                     >
-                        <PlusIcon className="w-6 h-6 stroke-[2.5]" />
+                        <PlusIcon className="w-6 h-6 stroke-[2.5] shrink-0" />
                     </button>
                 </div>
 
@@ -313,10 +311,10 @@ export default function DashboardLayout({
                         location.pathname.startsWith("/management/categories")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
                     )}
                 >
-                    <BlocksIcon className="w-5 h-5" />
+                    <BlocksIcon className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">Categorías</span>
                 </Link>
 
@@ -326,10 +324,10 @@ export default function DashboardLayout({
                         mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/reports")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
                     )}
                 >
-                    <MoreHorizontal className="w-5 h-5" />
+                    <MoreHorizontal className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">Más</span>
                 </button>
             </nav>

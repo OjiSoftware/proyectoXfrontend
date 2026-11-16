@@ -242,21 +242,21 @@ export default function SalesPage() {
     >
       <div className="space-y-3">
         {/* BUSCADOR + FILTROS + PARÁMETROS */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-2 md:gap-3">
-          {/* Buscador */}
-          <div className="flex-1 min-w-[200px]">
+        {/* BUSCADOR Y FILTROS MOBILE (< md) */}
+        <div className="md:hidden flex flex-col gap-2">
+          <div className="flex-1">
             <SearchBar
               value={query}
               onChange={setQuery}
               placeholder="Buscar por ID o nombre del cliente..."
               containerClassName="max-w-full"
-              inputClassName="bg-[#151519] text-white text-xs md:text-sm border-white/10 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9 md:h-11"
+              inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
               iconClassName="text-slate-400 group-focus-within:text-indigo-400"
             />
           </div>
 
           {/* CHIPS RÁPIDOS MOBILE (< md) */}
-          <div className="md:hidden flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
             {([
               ['all', 'Todas'],
               ['PENDING', 'Pendientes'],
@@ -277,9 +277,24 @@ export default function SalesPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* BUSCADOR Y FILTROS ESCRITORIO (md+): EXACTAMENTE EL ORIGINAL */}
+        <div className="hidden md:flex flex-col lg:flex-row lg:items-center gap-3">
+          {/* Buscador */}
+          <div className="flex-1 min-w-[200px]">
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              placeholder="Buscar por ID o nombre del cliente..."
+              containerClassName="max-w-full"
+              inputClassName="bg-[#151519] text-white text-sm border-white/10 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-11"
+              iconClassName="text-slate-400 group-focus-within:text-indigo-400"
+            />
+          </div>
 
           {/* Contenedor de Filtros y Acciones (DESKTOP md+) */}
-          <div className="hidden md:flex flex-wrap items-center gap-2 lg:gap-3">
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
             {/* Dropdown FILTROS */}
             <div ref={filterRef} className="relative shrink-0">
               <button
