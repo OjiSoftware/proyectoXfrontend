@@ -227,14 +227,15 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* AREA PRINCIPAL 100% WIDTH   */}
             {/* --------------------------- */}
-            <div className="flex flex-1 flex-col overflow-hidden bg-[#07050C]">
+            <div className="flex flex-1 flex-col overflow-hidden pt-16 md:pt-0 bg-[#07050C]">
                 {title && (
                     <header className="shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-50 shadow-sm overflow-visible">
-                        <div className="w-full px-4 py-2.5 sm:px-6 md:py-5 lg:px-8 flex items-center gap-3 md:gap-4">
+                        <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center gap-4">
                             <div className="flex-1 min-w-0">
-                                <h1 className="text-base sm:text-lg md:text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
-                                <p className="text-xs md:text-sm text-slate-400 md:text-slate-300 mt-0.5 md:mt-1 truncate">{subtitle}</p>
+                                <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
+                                {subtitle && <p className="text-sm text-slate-300 mt-1">{subtitle}</p>}
                             </div>
+
 
                             {/* WIDGETS + ACCIONES agrupados a la derecha */}
                             <div className="hidden md:flex items-center gap-3 shrink-0 overflow-visible">
