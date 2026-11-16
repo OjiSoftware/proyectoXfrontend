@@ -20,10 +20,16 @@ import CategoriesPage from "@/pages/management/categories";
 import CreateCategoryPage from "@/pages/management/categories/CreateCategoryPage";
 import EditCategoryPage from "@/pages/management/categories/EditCategoryPage";
 
+// Proveedores
+import ProvidersPage from "@/pages/management/providers";
+import CreateProviderPage from "@/pages/management/providers/CreateProviderPage";
+import EditProviderPage from "@/pages/management/providers/EditProviderPage";
+
 // Subcategorias
 import SubCategoriesPage from "@/pages/management/subcategories";
 import CreateSubCategoryPage from "@/pages/management/subcategories/CreateSubCategoryPage";
 import EditSubCategoryPage from "@/pages/management/subcategories/EditSubCategoryPage";
+
 
 // Ventas
 import SalesPage from "@/pages/management/sales";
@@ -164,6 +170,17 @@ export const AppRoutes = () => {
                         element={<EditSubCategoryPage />}
                     />
                      */}
+
+                    {/* PROVIDERS */}
+                    <Route path="/management/providers" element={<ProvidersPage />} />
+                    <Route
+                        path="/management/providers/create"
+                        element={<CreateProviderPage />}
+                    />
+                    <Route
+                        path="/management/providers/edit/:id"
+                        element={<EditProviderPage />}
+                    />
 
                     {/* SALES */}
                     <Route path="/management/sales" element={<SalesPage />} />

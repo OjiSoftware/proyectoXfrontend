@@ -14,6 +14,11 @@ export const ROUTES = {
         create: "/management/categories/create",
         edit: (id: number) => `/management/categories/edit/${id}`,
     },
+    providers: {
+        list: "/management/providers",
+        create: "/management/providers/create",
+        edit: (id: number) => `/management/providers/edit/${id}`,
+    },
     /*     subcategories: {
             list: "/management/subcategories",
             create: "/management/subcategories/create",

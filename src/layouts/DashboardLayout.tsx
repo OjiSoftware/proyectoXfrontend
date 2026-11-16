@@ -23,7 +23,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
 import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
-import { BlocksIcon, DollarSign } from "lucide-react";
+import { BlocksIcon, DollarSign, Truck } from "lucide-react";
 
 const navigation = [
     /*     { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon }, */
@@ -31,6 +31,7 @@ const navigation = [
     { name: "Productos", href: "/management/products", icon: TagIcon },
     /*     { name: "Marcas", href: "/management/brands", icon: BriefcaseIcon }, */
     { name: "Categorías", href: "/management/categories", icon: BlocksIcon },
+    { name: "Proveedores", href: "/management/providers", icon: Truck },
     /*     { name: "Subcategorías", href: "/management/subcategories", icon: DocumentChartBarIcon }, */
     { name: "Reportes", href: "/management/reports", icon: DocumentChartBarIcon },
 ];
@@ -130,8 +131,8 @@ export default function DashboardLayout({
                                     </Link>
                                 </MenuItem>
                                 <MenuItem>
-                                    <Link to="/management/subcategories/create" className="block px-4 py-3 text-xs font-medium text-white hover:bg-white/5 transition-colors text-center w-full focus:outline-none">
-                                        Nuevo proovedor
+                                    <Link to="/management/providers/create" className="block px-4 py-3 text-xs font-medium text-white hover:bg-white/5 transition-colors text-center w-full focus:outline-none">
+                                        Nuevo proveedor
                                     </Link>
                                 </MenuItem>
                             </MenuItems>
