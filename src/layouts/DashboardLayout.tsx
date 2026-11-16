@@ -267,18 +267,18 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* BOTTOM NAVIGATION BAR MÓVIL */}
             {/* --------------------------- */}
-            <nav className="md:hidden shrink-0 fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 z-40 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+            <nav className="md:hidden shrink-0 fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 z-40 grid grid-cols-5 items-center shadow-[0_-10px_30px_rgba(0,0,0,0.6)] py-1">
                 <Link
                     to="/management/sales"
                     className={classNames(
                         location.pathname.startsWith("/management/sales")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-1 transition-colors w-full"
                     )}
                 >
                     <DollarSign className="w-5 h-5 shrink-0" />
-                    <span className="text-[10px]">Ventas</span>
+                    <span className="text-[10px] truncate">Ventas</span>
                 </Link>
 
                 <Link
@@ -287,15 +287,15 @@ export default function DashboardLayout({
                         location.pathname.startsWith("/management/products")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-1 transition-colors w-full"
                     )}
                 >
                     <TagIcon className="w-5 h-5 shrink-0" />
-                    <span className="text-[10px]">Productos</span>
+                    <span className="text-[10px] truncate">Productos</span>
                 </Link>
 
                 {/* Botón Central Flotante (+) */}
-                <div className="-mt-5 shrink-0 flex items-center justify-center">
+                <div className="-mt-5 flex items-center justify-center w-full">
                     <button
                         onClick={() => setMobileQuickCreateOpen(true)}
                         className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(79,70,229,0.5)] border-2 border-[#07050C] active:scale-90 transition-all shrink-0"
@@ -311,11 +311,11 @@ export default function DashboardLayout({
                         location.pathname.startsWith("/management/categories")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-1 transition-colors w-full"
                     )}
                 >
                     <BlocksIcon className="w-5 h-5 shrink-0" />
-                    <span className="text-[10px]">Categorías</span>
+                    <span className="text-[10px] truncate">Categorías</span>
                 </Link>
 
                 <button
@@ -324,11 +324,11 @@ export default function DashboardLayout({
                         mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/reports")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
-                        "flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors shrink-0"
+                        "flex flex-col items-center justify-center gap-0.5 py-1 px-1 transition-colors w-full"
                     )}
                 >
                     <MoreHorizontal className="w-5 h-5 shrink-0" />
-                    <span className="text-[10px]">Más</span>
+                    <span className="text-[10px] truncate">Más</span>
                 </button>
             </nav>
 
