@@ -101,8 +101,8 @@ export default function DashboardLayout({
                     {/* Botón Global '+'  */}
                     <div className="p-4">
                         <Menu as="div" className="relative w-full">
-                            <MenuButton className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-indigo-500/10 text-indigo-400 font-bold hover:bg-indigo-500/20 transition-all cursor-pointer border border-indigo-500/20 hover:border-indigo-400/50 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] focus:outline-none active:scale-[0.98]">
-                                <PlusIcon className="w-4 h-4 font-bold drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" strokeWidth={2.5} />
+                            <MenuButton className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-indigo-500/10 text-indigo-400 font-bold hover:bg-indigo-500/20 transition-all cursor-pointer border border-indigo-500/20 hover:border-indigo-400/50 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] focus:outline-none active:scale-[0.98]">
+                                <PlusIcon className="w-5 h-5 font-bold drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" strokeWidth={2.5} />
                                 <span>Crear Nuevo</span>
                             </MenuButton>
                             <MenuItems transition className="absolute left-0 mt-3 w-full rounded-2xl bg-[#151320]/95 backdrop-blur-2xl shadow-2xl ring-1 ring-white/10 focus:outline-none overflow-hidden z-50">
