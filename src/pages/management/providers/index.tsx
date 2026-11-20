@@ -10,7 +10,9 @@ import { useDeleteProvider } from "@/hooks/useDeleteProvider";
 import { providerApi } from "@/services/ProviderService";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Download } from "lucide-react";
+import toast from "react-hot-toast";
+import { buildProviderExportSheet } from "@/helpers/providerExport";
 
 export default function ProvidersPage() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -71,6 +73,25 @@ export default function ProvidersPage() {
     const lastIndex = currentPage * itemsPerPage;
     const firstIndex = lastIndex - itemsPerPage;
     const currentProviders = filteredProviders.slice(firstIndex, lastIndex);
+
+
+    const handleExportProviders = async () => {
+        try {
+            const sheet = buildProviderExportSheet(filteredProviders);
+            const { exportExcel } = await import("@/helpers/excelExport");
+
+            exportExcel({
+                fileName: "proveedores.xlsx",
+                sheets: [sheet],
+            });
+
+            toast.success("Proveedores exportados a Excel.");
+        } catch (error) {
+            console.error("Error al exportar proveedores:", error);
+            toast.error("No se pudieron exportar los proveedores.");
+        }
+    };
+
 
     const handleSort = (col: string) => {
         if (sortColumn === col) {
@@ -140,6 +161,19 @@ export default function ProvidersPage() {
                         />
                     </div>
                 </div>
+
+
+                <div className="flex justify-end">
+                    <button
+                        type="button"
+                        onClick={handleExportProviders}
+                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                    >
+                        <Download className="h-4 w-4" />
+                        Exportar a Excel
+                    </button>
+                </div>
+
 
                 <ProvidersTable
                     providers={currentProviders}
