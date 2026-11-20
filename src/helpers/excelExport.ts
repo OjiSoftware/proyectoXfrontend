@@ -33,6 +33,23 @@ export function exportExcel({
             ...dataRows,
         ]);
 
+        sheet.rows.forEach((row, rowIndex) => {
+            sheet.headers.forEach((header, columnIndex) => {
+                if (row[header] instanceof Date) {
+                    const address = utils.encode_cell({
+                        r: rowIndex + 1,
+                        c: columnIndex,
+                    });
+                    const cell = worksheet[address];
+
+                    if (cell) {
+                        cell.z = "dd/mm/yyyy";
+                    }
+                }
+            });
+        });
+
+
         utils.book_append_sheet(workbook, worksheet, sheet.name);
     }
 
