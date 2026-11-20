@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown, SlidersHorizontal, Download } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { ProductsTable } from "@/components/ProductsTable";
 import Pagination from "@/components/PaginationManagement";
@@ -11,6 +11,8 @@ import { ConfirmDeleteModal } from "../../../components/ConfirmDeleteModal";
 import { useDisableProduct } from "@/hooks/useDisableProduct";
 import { productApi } from "@/services/ProductService";
 import { ROUTES } from "@/constants/routes";
+import toast from "react-hot-toast";
+import { buildProductExportSheet } from "@/helpers/productExport";
 
 export default function ProductsPage() {
     const location = useLocation();
@@ -191,6 +193,26 @@ export default function ProductsPage() {
                 : String(bVal).localeCompare(String(aVal));
         });
     }, [products, query, sortColumn, sortDirection, filterStock, filterVisibility, filterBrand, filterCategory, filterProvider, filterSubCategory]);
+
+    // ---------------- Manejo Datos Excel ----------------
+
+    const handleExportProducts = async () => {
+        try {
+            const sheet = buildProductExportSheet(filteredProducts);
+            const { exportExcel } = await import("@/helpers/excelExport");
+
+            exportExcel({
+                fileName: "productos.xlsx",
+                sheets: [sheet],
+            });
+
+            toast.success("Productos exportados a planilla Excel.");
+        } catch (error) {
+            console.error("Error al exportar productos:", error);
+            toast.error("No se pudieron exportar los productos.");
+        }
+    };
+
 
     // ---------------- Paginación ----------------
     const lastIndex = currentPage * itemsPerPage;
@@ -769,6 +791,17 @@ export default function ProductsPage() {
                                 )}
                             </div>
                         </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={handleExportProducts}
+                            className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                        >
+                            <Download className="h-4 w-4" />
+                            Exportar a Excel
+                        </button>
                     </div>
 
                     <ProductsTable

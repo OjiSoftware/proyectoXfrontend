@@ -10,7 +10,9 @@ import { useDeleteCategory } from "@/hooks/useDeleteCategory";
 import { categoryApi } from "@/services/CategoryService";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Download } from "lucide-react";
+import toast from "react-hot-toast";
+import { buildCategoryExportSheet } from "@/helpers/categoryExport";
 
 export default function CategoriesPage() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -76,6 +78,26 @@ export default function CategoriesPage() {
                 : String(bVal).localeCompare(String(aVal));
         });
     }, [categories, query, sortColumn, sortDirection]);
+
+
+    const handleExportCategories = async () => {
+        try {
+            const sheet = buildCategoryExportSheet(filteredCategories);
+            const { exportExcel } = await import("@/helpers/excelExport");
+
+            exportExcel({
+                fileName: "categorias.xlsx",
+                sheets: [sheet],
+            });
+
+            toast.success("Categorías exportadas a Excel.");
+        } catch (error) {
+            console.error("Error al exportar categorías:", error);
+            toast.error("No se pudieron exportar las categorías.");
+        }
+    };
+
+
 
     // ---------------- Paginación ----------------
     const lastIndex = currentPage * itemsPerPage;
@@ -152,6 +174,19 @@ export default function CategoriesPage() {
                         />
                     </div>
                 </div>
+
+
+                <div className="flex justify-end">
+                    <button
+                        type="button"
+                        onClick={handleExportCategories}
+                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                    >
+                        <Download className="h-4 w-4" />
+                        Exportar a Excel
+                    </button>
+                </div>
+
 
                 <CategoriesTable
                     categories={currentCategories}
