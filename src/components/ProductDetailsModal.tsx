@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Product } from "@/types/product.types";
 import { ROUTES } from "@/constants/routes";
@@ -55,17 +56,17 @@ export function ProductDetailsModal({
         : null;
     const netProfit = hasCost && price > 0 ? price - cost : null;
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-md p-0 md:p-4"
+            className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-md p-0 md:p-4 font-poppins"
             onClick={onClose}
         >
             <div
-                className="bg-[#0C0A15]/95 backdrop-blur-3xl border-t md:border border-white/10 rounded-t-[32px] md:rounded-3xl p-5 md:p-6 w-full max-w-3xl shadow-[0_0_60px_rgba(0,0,0,0.7)] text-left transform transition-all animate-fade-in max-h-[92vh] md:max-h-[90vh] overflow-y-auto flex flex-col ring-1 ring-white/5"
+                className="bg-[#0C0A15]/95 backdrop-blur-3xl border-t md:border border-white/10 rounded-t-[32px] md:rounded-3xl p-5 md:p-6 w-full max-w-3xl shadow-[0_0_60px_rgba(0,0,0,0.7)] text-left transform transition-all animate-fade-in max-h-[90dvh] overflow-hidden flex flex-col ring-1 ring-white/5"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Cabecera */}
-                <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5">
+                <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5 shrink-0">
                     <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
                             <Package size={20} />
@@ -85,7 +86,7 @@ export function ProductDetailsModal({
                     </button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-4 flex-1 overflow-y-auto min-h-0 pr-0.5">
                     {/* Tarjeta Superior: Imagen + Info Principal */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/[0.02] p-4 rounded-2xl border border-white/5 shadow-inner">
                         <div className="sm:col-span-1 flex justify-center items-center">
@@ -272,7 +273,7 @@ export function ProductDetailsModal({
                 </div>
 
                 {/* Footer */}
-                <div className="mt-5 flex justify-end border-t border-white/5 pt-4 gap-2.5">
+                <div className="mt-4 flex justify-end border-t border-white/5 pt-4 gap-2.5 shrink-0 pb-1 md:pb-0">
                     <button
                         type="button"
                         className="px-5 py-2.5 font-bold rounded-xl text-xs flex-1 sm:flex-none border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white active:scale-95"
@@ -289,7 +290,8 @@ export function ProductDetailsModal({
                     </Link>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
