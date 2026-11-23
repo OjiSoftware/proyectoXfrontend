@@ -324,7 +324,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                             </div>
                         </div>
 
-                        {/* CATEGORÍA - CHIPS TÁCTILES + SELECTOR */}
+                        {/* CATEGORÍA - SELECTOR */}
                         <div>
                             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                                 Categoría <span className="text-indigo-400">*</span>
@@ -397,24 +397,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 {/* 2. TAB: PRECIOS Y MARGEN */}
                 {activeTab === "pricing" && (
                     <div className="space-y-4 animate-in fade-in duration-150">
-                        {/* CARD RESUMEN FINANCIERO */}
-                        <div className="bg-linear-to-br from-indigo-950/60 to-purple-950/40 border border-indigo-500/20 rounded-2xl p-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-bold uppercase text-indigo-300">
-                                    Ganancia Neta Estimada
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                                    +{profitMargin}%
-                                </span>
-                            </div>
-                            <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">
-                                ${profit.toLocaleString("es-AR")}
-                            </div>
-                            <p className="text-[10px] text-slate-400 mt-1">
-                                Costo (${costPrice.toLocaleString("es-AR")}) vs Venta ($
-                                {(Number(formData.price) || 0).toLocaleString("es-AR")})
-                            </p>
-                        </div>
+
 
                         {/* COSTO ($) */}
                         <div>
@@ -446,21 +429,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                                 <span className="text-xs font-bold text-indigo-400 font-mono">
                                     {marginInput ? `${marginInput}%` : "0%"}
                                 </span>
-                            </div>
-                            <div className="grid grid-cols-4 gap-2 mb-2.5">
-                                {[15, 30, 50, 100].map((m) => (
-                                    <button
-                                        key={m}
-                                        type="button"
-                                        onClick={() => handleMarginChipClick(m)}
-                                        className={`py-2 rounded-xl text-xs font-bold transition active:scale-95 ${Number(marginInput) === m
-                                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                                            : "bg-[#161328] text-indigo-300 border border-white/5 hover:border-white/20"
-                                            }`}
-                                    >
-                                        +{m}%
-                                    </button>
-                                ))}
+
                             </div>
                             <div className="relative">
                                 <input
@@ -512,55 +481,34 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 {/* 3. TAB: STOCK E INVENTARIO */}
                 {activeTab === "stock" && (
                     <div className="space-y-4 animate-in fade-in duration-150">
-                        {/* STEPPER TÁCTIL DE STOCK */}
-                        <div className="bg-[#141124] border border-white/10 rounded-2xl p-4">
-                            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        {/* STOCK ACTUAL */}
+                        <div>
+                            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                                 Stock Actual <span className="text-indigo-400">*</span>
-                            </span>
-
-                            <div className="flex items-center justify-between gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => adjustStock(-10)}
-                                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center active:scale-90 transition"
-                                >
-                                    -10
-                                </button>
+                            </label>
+                            <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() => adjustStock(-1)}
-                                    className="w-11 h-11 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 flex items-center justify-center active:scale-90 transition"
+                                    className="w-11 h-11 shrink-0 rounded-xl bg-[#151226] border border-white/10 hover:border-indigo-500/50 text-indigo-300 flex items-center justify-center active:scale-95 transition"
                                 >
-                                    <Minus size={18} />
+                                    <Minus size={16} />
                                 </button>
-
-                                <div className="flex-1 text-center">
-                                    <input
-                                        type="number"
-                                        name="stock"
-                                        step="1"
-                                        value={formData.stock}
-                                        onChange={handleChange}
-                                        className="w-full text-center bg-transparent text-2xl font-black font-mono text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    />
-                                    <span className="text-[10px] text-slate-400 uppercase font-semibold">
-                                        unidades
-                                    </span>
-                                </div>
-
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    step="1"
+                                    value={formData.stock}
+                                    onChange={handleChange}
+                                    placeholder="0"
+                                    className="w-full bg-[#151226] border border-white/10 rounded-xl px-3.5 py-3 text-sm font-mono text-center text-white focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
                                 <button
                                     type="button"
                                     onClick={() => adjustStock(1)}
-                                    className="w-11 h-11 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 flex items-center justify-center active:scale-90 transition"
+                                    className="w-11 h-11 shrink-0 rounded-xl bg-[#151226] border border-white/10 hover:border-indigo-500/50 text-indigo-300 flex items-center justify-center active:scale-95 transition"
                                 >
-                                    <Plus size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => adjustStock(10)}
-                                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center active:scale-90 transition"
-                                >
-                                    +10
+                                    <Plus size={16} />
                                 </button>
                             </div>
                         </div>
