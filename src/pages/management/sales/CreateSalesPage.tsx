@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import {
-  ShoppingCart,
   Search,
   Barcode,
   Plus,
@@ -17,41 +16,35 @@ import {
   ArrowLeftRight,
   PauseCircle,
   PlayCircle,
-  CheckCircle2,
   Percent,
-  Package,
-  Keyboard,
   X,
-  Sparkles,
-  Receipt,
-  ChevronRight,
-  RotateCcw,
+  ArrowUp,
+  ArrowDown,
+  Zap,
+  LogOut,
+  Pencil,
   Check,
+  Keyboard,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { productApi } from "@/services/ProductService";
 import { saleApi } from "@/services/SaleService";
 import { clientApi } from "@/services/ClientService";
 import { Product } from "@/types/product.types";
-import { Category } from "@/types/category.types";
 import { Client } from "@/types/client.types";
-import { getDriveDirectLink } from "@/helpers/url.helper";
 
-// --- TIPOS DEL POS ---
 interface CartItem {
   productId: number;
+  code: string;
   name: string;
-  barcode?: string | null;
   price: number;
   quantity: number;
   stock: number;
-  imageUrl?: string;
-  categoryName?: string;
 }
 
-type PaymentMethodType = "CASH" | "TRANSFER" | "CARD" | "QR";
+type PaymentMethodType = "CASH" | "CARD" | "TRANSFER" | "QR";
 
-interface CustomerForm {
+interface CustomerData {
   mode: "FINAL_CONSUMER" | "EXISTING" | "NEW";
   existingClientId?: number;
   name: string;
@@ -59,1097 +52,1531 @@ interface CustomerForm {
   dni: string;
   phoneNumber: string;
   email: string;
-  street: string;
-  number: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  country: string;
-  floor: string;
-  apartment: string;
-  reference: string;
 }
 
 interface PosTicket {
   id: string;
   label: string;
-  createdAt: string;
   items: CartItem[];
   discountPercent: number;
   paymentMethod: PaymentMethodType;
   cashTendered: string;
-  saleStatus: "COMPLETED" | "PENDING" | "IN_PROGRESS";
-  sendEmail: boolean;
-  customer: CustomerForm;
+  customer: CustomerData;
 }
 
-const DEFAULT_CUSTOMER: CustomerForm = {
+const DEFAULT_CUSTOMER: CustomerData = {
   mode: "FINAL_CONSUMER",
   name: "Consumidor",
   surname: "Final",
   dni: "99999999",
   phoneNumber: "1100000000",
   email: "consumidorfinal@oji.local",
-  street: "Mostrador",
-  number: "1",
-  city: "Local",
-  province: "Buenos Aires",
-  postalCode: "1000",
-  country: "Argentina",
-  floor: "",
-  apartment: "",
-  reference: "Venta en Caja POS",
 };
 
 const createEmptyTicket = (num: number): PosTicket => ({
-  id: `ticket-${Date.now()}-${num}`,
-  label: `Ticket #${num}`,
-  createdAt: new Date().toLocaleTimeString("es-AR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }),
+  id: `t-${Date.now()}-${num}`,
+  label: `#${num}`,
   items: [],
   discountPercent: 0,
   paymentMethod: "CASH",
   cashTendered: "",
-  saleStatus: "COMPLETED",
-  sendEmail: false,
   customer: { ...DEFAULT_CUSTOMER },
 });
 
 export default function CreateSalePage() {
   const navigate = useNavigate();
 
-  // --- DATOS DE CATÁLOGO Y CLIENTES ---
+  // --- DATOS CACHEADOS EN MEMORIA PARA RESPUESTA INSTANTÁNEA ---
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [defaultClientId, setDefaultClientId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- TICKETS / CARRITOS EN ESPERA ---
+  // --- ESTADO DE CAJA Y TICKETS ---
   const [tickets, setTickets] = useState<PosTicket[]>(() => [createEmptyTicket(1)]);
   const [activeTicketIndex, setActiveTicketIndex] = useState(0);
   const [ticketCounter, setTicketCounter] = useState(2);
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
 
-  // --- FILTROS Y ESCÁNER ---
-  const [searchQuery, setSearchQuery] = useState("");
-  const [barcodeInput, setBarcodeInput] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "ALL" | "OFFERS">("ALL");
-  const [mobileActivePane, setMobileActivePane] = useState<"CATALOG" | "TICKET">("CATALOG");
+  // --- ENTRADA PRINCIPAL (ESCÁNER / TECLADO NUMÉRICO / MULTIPLICADOR) ---
+  const [commandInput, setCommandInput] = useState("");
+  const [pendingMultiplier, setPendingMultiplier] = useState<number | null>(null);
+  const [clockText, setClockText] = useState("");
 
-  // --- MODALES ---
+  // --- MODALES PUNTUALES (SOLO CUANDO SE NECESITAN) ---
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchModalQuery, setSearchModalQuery] = useState("");
+  const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
+
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
-  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [showQtyEditModal, setShowQtyEditModal] = useState(false);
+  const [qtyEditValue, setQtyEditValue] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
-  // --- REFS PARA ATAJOS DE TECLADO ---
-  const barcodeInputRef = useRef<HTMLInputElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  // --- REFS PARA FOCO PERMANENTE (CERO CLICS) ---
+  const commandInputRef = useRef<HTMLInputElement>(null);
+  const searchModalInputRef = useRef<HTMLInputElement>(null);
   const cashInputRef = useRef<HTMLInputElement>(null);
 
   const activeTicket = tickets[activeTicketIndex] || tickets[0];
 
-  // Helper para actualizar el ticket activo
-  const updateActiveTicket = (updater: (prev: PosTicket) => PosTicket) => {
-    setTickets((prev) =>
-      prev.map((t, idx) => (idx === activeTicketIndex ? updater(t) : t))
-    );
-  };
+  const isAnyModalOpen =
+    showSearchModal ||
+    showCheckoutModal ||
+    showClientModal ||
+    showDiscountModal ||
+    showQtyEditModal ||
+    showClearConfirm ||
+    showHelpModal;
 
-  // --- CARGA INICIAL ---
+  // Reloj operativo estilo POS clásico
   useEffect(() => {
-    const loadPosData = async () => {
+    const updateClock = () => {
+      const now = new Date();
+      setClockText(
+        now.toLocaleDateString("es-AR") +
+          " " +
+          now.toLocaleTimeString("es-AR", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })
+      );
+    };
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Carga inicial en paralelo
+  useEffect(() => {
+    const loadInitial = async () => {
       try {
         setIsLoading(true);
-        const [prodData, catData, cliData] = await Promise.all([
+        const [prodData, cliData] = await Promise.all([
           productApi.getAllProducts().catch(() => []),
-          productApi.getAllCategories().catch(() => []),
           clientApi.getAllClients().catch(() => []),
         ]);
-        setProducts(Array.isArray(prodData) ? prodData : []);
-        setCategories(Array.isArray(catData) ? catData : []);
-        setClients(Array.isArray(cliData) ? cliData : []);
-      } catch (err) {
-        console.error("Error cargando datos del POS:", err);
-        toast.error("Error al cargar catálogo de productos");
+        const validProds = Array.isArray(prodData)
+          ? prodData.filter((p) => p.status !== false)
+          : [];
+        const validClients = Array.isArray(cliData) ? cliData : [];
+
+        setProducts(validProds);
+        setClients(validClients);
+
+        const existingCF = validClients.find(
+          (c) =>
+            c.dni === "99999999" ||
+            (c.name?.toLowerCase() === "consumidor" &&
+              c.surname?.toLowerCase() === "final")
+        );
+        if (existingCF?.id) {
+          setDefaultClientId(existingCF.id);
+        }
+      } catch (error) {
+        console.error("Error cargando POS:", error);
+        toast.error("Error al cargar datos de caja");
       } finally {
         setIsLoading(false);
       }
     };
-    loadPosData();
+    loadInitial();
   }, []);
 
-  // --- CÁLCULOS DE TOTALES DEL TICKET ACTIVO ---
-  const subtotal = useMemo(() => {
-    return activeTicket.items.reduce(
-      (acc, item) => acc + Number(item.price) * item.quantity,
-      0
-    );
-  }, [activeTicket.items]);
+  // Mantener foco siempre en la lectora cuando no hay un modal abierto
+  const focusScanner = useCallback(() => {
+    if (!isAnyModalOpen) {
+      setTimeout(() => commandInputRef.current?.focus(), 10);
+    }
+  }, [isAnyModalOpen]);
+
+  useEffect(() => {
+    focusScanner();
+  }, [isAnyModalOpen, activeTicketIndex, focusScanner]);
+
+  // --- HELPER ACTUALIZACIÓN TICKET ---
+  const updateActiveTicket = useCallback(
+    (updater: (prev: PosTicket) => PosTicket) => {
+      setTickets((prev) =>
+        prev.map((t, idx) => (idx === activeTicketIndex ? updater(t) : t))
+      );
+    },
+    [activeTicketIndex]
+  );
+
+  // Mantener fila seleccionada válida
+  useEffect(() => {
+    if (activeTicket.items.length === 0) {
+      setSelectedRowId(null);
+    } else if (
+      selectedRowId === null ||
+      !activeTicket.items.some((i) => i.productId === selectedRowId)
+    ) {
+      setSelectedRowId(
+        activeTicket.items[activeTicket.items.length - 1].productId
+      );
+    }
+  }, [activeTicket.items, selectedRowId]);
+
+  // --- TOTALES ---
+  const subtotal = useMemo(
+    () =>
+      activeTicket.items.reduce(
+        (acc, item) => acc + item.price * item.quantity,
+        0
+      ),
+    [activeTicket.items]
+  );
 
   const discountAmount = useMemo(() => {
     const pct = Math.min(100, Math.max(0, activeTicket.discountPercent || 0));
     return Number(((subtotal * pct) / 100).toFixed(2));
   }, [subtotal, activeTicket.discountPercent]);
 
-  const finalTotal = useMemo(() => {
-    return Math.max(0, Number((subtotal - discountAmount).toFixed(2)));
-  }, [subtotal, discountAmount]);
+  const finalTotal = useMemo(
+    () => Math.max(0, Number((subtotal - discountAmount).toFixed(2))),
+    [subtotal, discountAmount]
+  );
 
-  const totalItemsCount = useMemo(() => {
-    return activeTicket.items.reduce((acc, item) => acc + item.quantity, 0);
-  }, [activeTicket.items]);
+  const totalUnits = useMemo(
+    () => activeTicket.items.reduce((acc, i) => acc + i.quantity, 0),
+    [activeTicket.items]
+  );
 
   const cashTenderedNum = parseFloat(activeTicket.cashTendered) || 0;
-  const changeAmount = Math.max(0, Number((cashTenderedNum - finalTotal).toFixed(2)));
+  const changeAmount = Math.max(
+    0,
+    Number((cashTenderedNum - finalTotal).toFixed(2))
+  );
 
-  // --- FORMATEADOR MONEDA ---
-  const formatARS = (amount: number) =>
-    Number(amount || 0).toLocaleString("es-AR", {
+  const formatARS = (val: number) =>
+    Number(val || 0).toLocaleString("es-AR", {
       style: "currency",
       currency: "ARS",
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
 
-  // --- FUNCIONES DE CARRITO ---
-  const addProductToTicket = (product: Product, customQty = 1) => {
-    const availableStock = product.stock ?? 0;
-    if (availableStock <= 0) {
-      toast.error(`"${product.name}" no tiene stock disponible`);
-      return;
-    }
+  // --- OPERACIONES DE LÍNEAS DEL TICKET ---
+  const addProduct = useCallback(
+    (product: Product, qtyToAdd?: number) => {
+      const qty = qtyToAdd ?? pendingMultiplier ?? 1;
+      const available = product.stock ?? 0;
 
-    updateActiveTicket((ticket) => {
-      const existing = ticket.items.find((i) => i.productId === product.id);
-      let nextItems: CartItem[];
+      if (available <= 0) {
+        toast.error(`SIN STOCK: ${product.name}`, { duration: 1800 });
+        setPendingMultiplier(null);
+        return false;
+      }
 
-      if (existing) {
-        if (existing.quantity + customQty > availableStock) {
-          toast.error(`Stock máximo alcanzado (${availableStock} un.)`);
+      let addedOk = true;
+      updateActiveTicket((ticket) => {
+        const existing = ticket.items.find((i) => i.productId === product.id);
+        if (existing) {
+          if (existing.quantity + qty > available) {
+            toast.error(`Stock máximo disponible: ${available}`, {
+              duration: 1800,
+            });
+            addedOk = false;
+            return ticket;
+          }
+          return {
+            ...ticket,
+            items: ticket.items.map((i) =>
+              i.productId === product.id
+                ? { ...i, quantity: i.quantity + qty }
+                : i
+            ),
+          };
+        }
+
+        if (qty > available) {
+          toast.error(`Solo hay ${available} u. disponibles`, {
+            duration: 1800,
+          });
+          addedOk = false;
           return ticket;
         }
-        nextItems = ticket.items.map((i) =>
-          i.productId === product.id
-            ? { ...i, quantity: Math.min(i.quantity + customQty, availableStock) }
-            : i
-        );
-      } else {
-        nextItems = [
-          ...ticket.items,
-          {
-            productId: product.id,
-            name: product.name,
-            barcode: product.barcode,
-            price: Number(product.price),
-            quantity: Math.min(customQty, availableStock),
-            stock: availableStock,
-            imageUrl: product.imageUrl,
-            categoryName: product.category?.name,
-          },
-        ];
-      }
 
-      return { ...ticket, items: nextItems };
-    });
-  };
-
-  const updateItemQuantity = (productId: number, newQty: number) => {
-    updateActiveTicket((ticket) => {
-      if (newQty <= 0) {
         return {
           ...ticket,
-          items: ticket.items.filter((i) => i.productId !== productId),
+          items: [
+            ...ticket.items,
+            {
+              productId: product.id,
+              code: product.barcode || String(product.id),
+              name: product.name,
+              price: Number(product.price),
+              quantity: qty,
+              stock: available,
+            },
+          ],
         };
-      }
-      return {
-        ...ticket,
-        items: ticket.items.map((item) => {
-          if (item.productId !== productId) return item;
-          const clamped = Math.min(Math.max(1, newQty), item.stock);
-          if (newQty > item.stock) {
-            toast.error(`Solo hay ${item.stock} unidades en stock`);
-          }
-          return { ...item, quantity: clamped };
-        }),
-      };
-    });
-  };
-
-  const removeItemFromTicket = (productId: number) => {
-    updateActiveTicket((ticket) => ({
-      ...ticket,
-      items: ticket.items.filter((i) => i.productId !== productId),
-    }));
-  };
-
-  const clearCurrentTicket = () => {
-    updateActiveTicket((ticket) => ({
-      ...ticket,
-      items: [],
-      discountPercent: 0,
-      cashTendered: "",
-    }));
-    setShowClearConfirm(false);
-    toast("Ticket vaciado", { icon: "🧹" });
-  };
-
-  // --- MANEJO DE ESCÁNER DE CÓDIGO DE BARRAS / ID ---
-  const handleBarcodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = barcodeInput.trim();
-    if (!code) return;
-
-    const exactMatch = products.find(
-      (p) =>
-        (p.barcode && p.barcode.toLowerCase() === code.toLowerCase()) ||
-        String(p.id) === code
-    );
-
-    if (exactMatch) {
-      addProductToTicket(exactMatch);
-      setBarcodeInput("");
-      toast.success(`+1 ${exactMatch.name}`, { duration: 1500 });
-      return;
-    }
-
-    const partialMatches = products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(code.toLowerCase()) ||
-        (p.barcode && p.barcode.includes(code))
-    );
-
-    if (partialMatches.length === 1) {
-      addProductToTicket(partialMatches[0]);
-      setBarcodeInput("");
-      toast.success(`+1 ${partialMatches[0].name}`, { duration: 1500 });
-    } else if (partialMatches.length > 1) {
-      setSearchQuery(code);
-      setBarcodeInput("");
-      toast(`Se encontraron ${partialMatches.length} productos similares`, {
-        icon: "🔎",
       });
-    } else {
-      toast.error(`No se encontró producto con código "${code}"`);
-    }
-  };
 
-  // --- GESTIÓN DE MÚLTIPLES TICKETS (VENTAS EN ESPERA) ---
-  const handleCreateNewTicket = () => {
-    const newTicket = createEmptyTicket(ticketCounter);
-    setTickets((prev) => [...prev, newTicket]);
-    setActiveTicketIndex(tickets.length);
-    setTicketCounter((c) => c + 1);
-    toast.success(`${newTicket.label} abierto en espera`);
-  };
-
-  const handleCloseTicketTab = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (tickets.length <= 1) {
-      clearCurrentTicket();
-      return;
-    }
-    const nextTickets = tickets.filter((_, i) => i !== idx);
-    setTickets(nextTickets);
-    if (activeTicketIndex >= nextTickets.length) {
-      setActiveTicketIndex(nextTickets.length - 1);
-    } else if (activeTicketIndex > idx) {
-      setActiveTicketIndex((prev) => prev - 1);
-    }
-  };
-
-  // --- FILTRADO DE PRODUCTOS EN EL CATÁLOGO ---
-  const filteredProducts = useMemo(() => {
-    const term = searchQuery.trim().toLowerCase();
-
-    return products.filter((p) => {
-      if (p.status === false) return false;
-
-      if (selectedCategoryId === "OFFERS") {
-        if (!p.isOffer) return false;
-      } else if (selectedCategoryId !== "ALL") {
-        const prodCatId = p.category?.id ?? p.categoryId;
-        if (prodCatId !== selectedCategoryId) return false;
+      if (addedOk) {
+        setSelectedRowId(product.id);
+        setPendingMultiplier(null);
       }
+      return addedOk;
+    },
+    [pendingMultiplier, updateActiveTicket]
+  );
 
-      if (!term) return true;
-
-      const matchesName = p.name.toLowerCase().includes(term);
-      const matchesBarcode = p.barcode?.toLowerCase().includes(term);
-      const matchesId = String(p.id).includes(term);
-
-      return matchesName || matchesBarcode || matchesId;
-    });
-  }, [products, searchQuery, selectedCategoryId]);
-
-  // --- ATAJOS DE TECLADO GLOBALES PARA EL CAJERO ---
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "F2") {
-        e.preventDefault();
-        barcodeInputRef.current?.focus();
-      } else if (e.key === "F3") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      } else if (e.key === "F4") {
-        e.preventDefault();
-        if (activeTicket.items.length > 0) {
-          setShowCheckoutModal(true);
-        } else {
-          toast.error("Agregá al menos un producto para cobrar");
+  const setLineQuantity = useCallback(
+    (productId: number, newQty: number) => {
+      updateActiveTicket((ticket) => {
+        if (newQty <= 0) {
+          return {
+            ...ticket,
+            items: ticket.items.filter((i) => i.productId !== productId),
+          };
         }
-      } else if (e.key === "F6") {
-        e.preventDefault();
-        handleCreateNewTicket();
-      } else if (e.key === "F8") {
-        e.preventDefault();
-        setShowClientModal(true);
-      }
-    };
+        return {
+          ...ticket,
+          items: ticket.items.map((item) => {
+            if (item.productId !== productId) return item;
+            if (newQty > item.stock) {
+              toast.error(`Stock máximo: ${item.stock}`, { duration: 1500 });
+              return { ...item, quantity: item.stock };
+            }
+            return { ...item, quantity: newQty };
+          }),
+        };
+      });
+    },
+    [updateActiveTicket]
+  );
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  });
+  const adjustSelectedRowQty = useCallback(
+    (delta: number) => {
+      if (selectedRowId === null) return;
+      const item = activeTicket.items.find((i) => i.productId === selectedRowId);
+      if (!item) return;
+      setLineQuantity(selectedRowId, item.quantity + delta);
+      focusScanner();
+    },
+    [selectedRowId, activeTicket.items, setLineQuantity, focusScanner]
+  );
 
-  // --- SUGERENCIAS DE BILLETES RÁPIDOS ---
-  const quickCashSuggestions = useMemo(() => {
-    if (finalTotal <= 0) return [];
-    const exact = finalTotal;
-    const roundUp1000 = Math.ceil(finalTotal / 1000) * 1000;
-    const roundUp5000 = Math.ceil(finalTotal / 5000) * 5000;
-    const roundUp10000 = Math.ceil(finalTotal / 10000) * 10000;
-    const roundUp20000 = Math.ceil(finalTotal / 20000) * 20000;
+  const removeSelectedRow = useCallback(() => {
+    if (selectedRowId === null) return;
+    updateActiveTicket((ticket) => ({
+      ...ticket,
+      items: ticket.items.filter((i) => i.productId !== selectedRowId),
+    }));
+    focusScanner();
+  }, [selectedRowId, updateActiveTicket, focusScanner]);
 
-    return Array.from(
-      new Set([exact, roundUp1000, roundUp5000, roundUp10000, roundUp20000])
-    )
-      .filter((v) => v >= finalTotal)
-      .slice(0, 4);
-  }, [finalTotal]);
+  const moveSelection = useCallback(
+    (direction: -1 | 1) => {
+      if (activeTicket.items.length === 0) return;
+      const idx = activeTicket.items.findIndex(
+        (i) => i.productId === selectedRowId
+      );
+      const nextIdx = Math.min(
+        activeTicket.items.length - 1,
+        Math.max(0, (idx === -1 ? 0 : idx) + direction)
+      );
+      setSelectedRowId(activeTicket.items[nextIdx].productId);
+      focusScanner();
+    },
+    [activeTicket.items, selectedRowId, focusScanner]
+  );
 
-  // --- PROCESAR Y REGISTRAR LA VENTA EN EL BACKEND ---
-  const handleFinalizeSale = async () => {
-    if (activeTicket.items.length === 0) {
-      toast.error("El ticket está vacío");
+  // --- PROCESADOR DE ENTRADA RÁPIDA (BARCODE / CANT*CODIGO / TEXTO) ---
+  const executeCommand = (rawInput: string) => {
+    const trimmed = rawInput.trim();
+    if (!trimmed) return;
+
+    // Caso 1: "5*" -> deja multiplicador 5 cargado para el próximo escaneo
+    const multOnlyMatch = trimmed.match(/^(\d+)\*$/);
+    if (multOnlyMatch) {
+      const qty = Math.max(1, parseInt(multOnlyMatch[1], 10));
+      setPendingMultiplier(qty);
+      setCommandInput("");
       return;
     }
 
-    const cust = activeTicket.customer;
-
-    if (cust.mode === "NEW") {
-      const dniRegex = /^\d{7,8}$/;
-      if (!cust.name.trim() || !cust.surname.trim()) {
-        toast.error("Completá nombre y apellido del cliente");
-        setShowClientModal(true);
-        return;
-      }
-      if (!dniRegex.test(cust.dni.trim())) {
-        toast.error("El DNI del cliente debe tener 7 u 8 dígitos sin puntos");
-        setShowClientModal(true);
-        return;
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(cust.email.trim())) {
-        toast.error("Ingresá un email válido para el cliente");
-        setShowClientModal(true);
-        return;
-      }
+    // Caso 2: "5*77912345" o "5*coca" -> cantidad + búsqueda inmediata
+    let qty = pendingMultiplier ?? 1;
+    let query = trimmed;
+    const inlineMultMatch = trimmed.match(/^(\d+)\*(.+)$/);
+    if (inlineMultMatch) {
+      qty = Math.max(1, parseInt(inlineMultMatch[1], 10));
+      query = inlineMultMatch[2].trim();
     }
 
-    setIsSubmitting(true);
-    const toastId = toast.loading("Procesando cobro y emitiendo ticket...");
+    // 1° Prioridad: Coincidencia exacta por Código de Barras o ID numérico
+    const exactProduct = products.find(
+      (p) =>
+        (p.barcode && p.barcode.toLowerCase() === query.toLowerCase()) ||
+        String(p.id) === query
+    );
 
-    try {
-      let resolvedClientId: number | undefined;
+    if (exactProduct) {
+      addProduct(exactProduct, qty);
+      setCommandInput("");
+      return;
+    }
 
-      if (cust.mode === "EXISTING" && cust.existingClientId) {
-        resolvedClientId = cust.existingClientId;
-      } else if (cust.mode === "FINAL_CONSUMER") {
-        const existingCF = clients.find(
-          (c) =>
-            c.dni === "99999999" ||
-            (c.name?.toLowerCase() === "consumidor" &&
-              c.surname?.toLowerCase() === "final")
-        );
+    // 2° Prioridad: Búsqueda por nombre / código parcial
+    const qLower = query.toLowerCase();
+    const matches = products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(qLower) ||
+        (p.barcode && p.barcode.toLowerCase().includes(qLower))
+    );
 
-        if (existingCF?.id) {
-          resolvedClientId = existingCF.id;
+    if (matches.length === 1) {
+      addProduct(matches[0], qty);
+      setCommandInput("");
+    } else if (matches.length > 1) {
+      if (inlineMultMatch) setPendingMultiplier(qty);
+      setCommandInput("");
+      setSearchModalQuery(query);
+      setSearchSelectedIndex(0);
+      setShowSearchModal(true);
+    } else {
+      toast.error(`Código o artículo no encontrado: "${query}"`, {
+        duration: 1800,
+      });
+      setCommandInput("");
+    }
+  };
+
+  // --- TECLADO NUMÉRICO TÁCTIL (ESTILO UNICENTA) ---
+  const handleKeypadDigit = (digit: string) => {
+    setCommandInput((prev) => prev + digit);
+    focusScanner();
+  };
+
+  const handleKeypadClear = () => {
+    setCommandInput("");
+    setPendingMultiplier(null);
+    focusScanner();
+  };
+
+  const handleKeypadMultiply = () => {
+    const num = parseInt(commandInput.trim(), 10);
+    if (!isNaN(num) && num > 0) {
+      setPendingMultiplier(num);
+      setCommandInput("");
+    } else if (commandInput.trim() === "") {
+      toast("Escribí la cantidad y luego presioná *", { duration: 1500 });
+    }
+    focusScanner();
+  };
+
+  const handleKeypadPlus = () => {
+    const num = parseInt(commandInput.trim(), 10);
+    if (!isNaN(num) && num > 0 && selectedRowId !== null) {
+      adjustSelectedRowQty(num);
+      setCommandInput("");
+    } else {
+      adjustSelectedRowQty(1);
+    }
+  };
+
+  const handleKeypadMinus = () => {
+    const num = parseInt(commandInput.trim(), 10);
+    if (!isNaN(num) && num > 0 && selectedRowId !== null) {
+      adjustSelectedRowQty(-num);
+      setCommandInput("");
+    } else {
+      adjustSelectedRowQty(-1);
+    }
+  };
+
+  const openCheckout = useCallback(() => {
+    if (activeTicket.items.length === 0) {
+      toast.error("El ticket está vacío", { duration: 1500 });
+      return;
+    }
+    updateActiveTicket((t) => ({
+      ...t,
+      cashTendered: String(finalTotal),
+    }));
+    setShowCheckoutModal(true);
+    setTimeout(() => {
+      cashInputRef.current?.focus();
+      cashInputRef.current?.select();
+    }, 30);
+  }, [activeTicket.items.length, finalTotal, updateActiveTicket]);
+
+  // --- PROCESAR VENTA EN SERVIDOR (ULTRA RÁPIDO) ---
+  const processSale = useCallback(
+    async (overrideMethod?: PaymentMethodType) => {
+      if (activeTicket.items.length === 0 || isSubmitting) return;
+
+      const cust = activeTicket.customer;
+      if (cust.mode === "NEW") {
+        if (!cust.name.trim() || !cust.surname.trim() || !/^\d{7,8}$/.test(cust.dni.trim())) {
+          toast.error("Revisá Nombre, Apellido y DNI (7-8 dígitos) del cliente");
+          setShowClientModal(true);
+          return;
+        }
+      }
+
+      setIsSubmitting(true);
+      const toastId = toast.loading("Cerrando venta...");
+
+      try {
+        let clientIdToUse: number | undefined;
+
+        if (cust.mode === "EXISTING" && cust.existingClientId) {
+          clientIdToUse = cust.existingClientId;
+        } else if (cust.mode === "FINAL_CONSUMER") {
+          if (defaultClientId) {
+            clientIdToUse = defaultClientId;
+          } else {
+            const cfResp = await clientApi.create({
+              name: "Consumidor",
+              surname: "Final",
+              dni: "99999999",
+              phoneNumber: "1100000000",
+              email: "consumidorfinal@oji.local",
+              addresses: {
+                street: "Mostrador POS",
+                streetNum: 1,
+                locality: "Local",
+                province: "Buenos Aires",
+                postalCode: "1000",
+                country: "Argentina",
+              },
+            });
+            const createdId = cfResp.id || cfResp.client?.id;
+            clientIdToUse = createdId;
+            if (createdId) setDefaultClientId(createdId);
+          }
         } else {
-          const cfPayload = {
-            name: "Consumidor",
-            surname: "Final",
-            dni: "99999999",
-            phoneNumber: "1100000000",
-            email: "consumidorfinal@oji.local",
+          const newCliResp = await clientApi.create({
+            name: cust.name.trim(),
+            surname: cust.surname.trim(),
+            dni: cust.dni.trim(),
+            phoneNumber: cust.phoneNumber.trim() || "1100000000",
+            email: cust.email.trim() || "cliente@oji.local",
             addresses: {
-              street: "Venta en Mostrador POS",
+              street: "Mostrador",
               streetNum: 1,
               locality: "Local",
               province: "Buenos Aires",
               postalCode: "1000",
               country: "Argentina",
             },
-          };
-          const cfResp = await clientApi.create(cfPayload);
-          resolvedClientId = cfResp.id || cfResp.client?.id;
+          });
+          clientIdToUse = newCliResp.id || newCliResp.client?.id;
         }
-      } else {
-        const clientPayload = {
-          name: cust.name.trim(),
-          surname: cust.surname.trim(),
-          dni: cust.dni.trim(),
-          phoneNumber: cust.phoneNumber.trim() || "1100000000",
-          email: cust.email.trim(),
-          addresses: {
-            street: cust.street.trim() || "Mostrador",
-            streetNum: parseInt(cust.number, 10) || 1,
-            floor: cust.floor ? parseInt(cust.floor, 10) : undefined,
-            apartment: cust.apartment || undefined,
-            locality: cust.city.trim() || "Local",
-            province: cust.province.trim() || "Buenos Aires",
-            postalCode: cust.postalCode.trim() || "1000",
-            country: cust.country.trim() || "Argentina",
-            reference: cust.reference || undefined,
-          },
-        };
-        const clientResponse = await clientApi.create(clientPayload);
-        resolvedClientId = clientResponse.id || clientResponse.client?.id;
+
+        const method = overrideMethod || activeTicket.paymentMethod;
+
+        await saleApi.create({
+          clientId: clientIdToUse,
+          status: "COMPLETED",
+          paymentMethod: method,
+          sendEmail: false,
+          details: activeTicket.items.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+          })),
+        });
+
+        // Descontar stock local al instante sin recargar
+        setProducts((prev) =>
+          prev.map((p) => {
+            const sold = activeTicket.items.find((i) => i.productId === p.id);
+            return sold
+              ? { ...p, stock: Math.max(0, (p.stock ?? 0) - sold.quantity) }
+              : p;
+          })
+        );
+
+        toast.success(`Venta cerrada • ${formatARS(finalTotal)}`, {
+          id: toastId,
+          duration: 2000,
+        });
+
+        setShowCheckoutModal(false);
+        setCommandInput("");
+        setPendingMultiplier(null);
+
+        if (tickets.length > 1) {
+          const nextTickets = tickets.filter((_, i) => i !== activeTicketIndex);
+          setTickets(nextTickets);
+          setActiveTicketIndex(Math.max(0, activeTicketIndex - 1));
+        } else {
+          setTickets([createEmptyTicket(ticketCounter)]);
+          setTicketCounter((c) => c + 1);
+        }
+      } catch (err) {
+        console.error("Error en cobro POS:", err);
+        toast.error("Error al guardar la venta", { id: toastId });
+      } finally {
+        setIsSubmitting(false);
       }
+    },
+    [
+      activeTicket,
+      activeTicketIndex,
+      defaultClientId,
+      finalTotal,
+      isSubmitting,
+      ticketCounter,
+      tickets,
+    ]
+  );
 
-      const salePayload = {
-        clientId: resolvedClientId,
-        status: activeTicket.saleStatus,
-        sendEmail:
-          activeTicket.saleStatus === "COMPLETED" &&
-          cust.mode !== "FINAL_CONSUMER"
-            ? activeTicket.sendEmail
-            : false,
-        details: activeTicket.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-      };
+  // --- RESULTADOS DEL MODAL DE BÚSQUEDA RÁPIDA (F3) ---
+  const searchResults = useMemo(() => {
+    const q = searchModalQuery.trim().toLowerCase();
+    if (!q) return products.slice(0, 30);
+    return products
+      .filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+          String(p.id) === q
+      )
+      .slice(0, 40);
+  }, [products, searchModalQuery]);
 
-      await saleApi.create(salePayload);
+  // --- TICKETS EN ESPERA (F6) ---
+  const handleParkOrNewTicket = useCallback(() => {
+    const next = createEmptyTicket(ticketCounter);
+    setTickets((prev) => [...prev, next]);
+    setActiveTicketIndex(tickets.length);
+    setTicketCounter((c) => c + 1);
+    toast(`Ticket ${next.label} listo`, { duration: 1200 });
+  }, [ticketCounter, tickets.length]);
 
-      setProducts((prevProducts) =>
-        prevProducts.map((p) => {
-          const soldItem = activeTicket.items.find((i) => i.productId === p.id);
-          if (!soldItem) return p;
-          return {
-            ...p,
-            stock: Math.max(0, (p.stock ?? 0) - soldItem.quantity),
-          };
-        })
-      );
-
-      toast.success("¡Venta registrada con éxito!", { id: toastId });
-      setShowCheckoutModal(false);
-
-      if (tickets.length > 1) {
-        const remaining = tickets.filter((_, idx) => idx !== activeTicketIndex);
-        setTickets(remaining);
-        setActiveTicketIndex(Math.max(0, activeTicketIndex - 1));
-      } else {
-        setTickets([createEmptyTicket(ticketCounter)]);
-        setTicketCounter((c) => c + 1);
-      }
-    } catch (error) {
-      console.error("Error al registrar venta en POS:", error);
-      toast.error("No se pudo registrar la venta. Verificá la conexión.", {
-        id: toastId,
-      });
-    } finally {
-      setIsSubmitting(false);
+  const closeTicketTab = (idx: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (tickets.length <= 1) {
+      setShowClearConfirm(true);
+      return;
     }
+    const next = tickets.filter((_, i) => i !== idx);
+    setTickets(next);
+    setActiveTicketIndex((prev) =>
+      prev >= next.length ? next.length - 1 : prev > idx ? prev - 1 : prev
+    );
   };
+
+  // --- ATAJOS GLOBALES DE CAJERO ---
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Atajos que funcionan siempre
+      if (e.key === "F2") {
+        e.preventDefault();
+        setShowSearchModal(false);
+        setShowCheckoutModal(false);
+        setTimeout(() => commandInputRef.current?.focus(), 10);
+        return;
+      }
+      if (e.key === "F3") {
+        e.preventDefault();
+        setSearchModalQuery(commandInput.trim());
+        setCommandInput("");
+        setSearchSelectedIndex(0);
+        setShowSearchModal(true);
+        setTimeout(() => searchModalInputRef.current?.focus(), 20);
+        return;
+      }
+      if (e.key === "F4") {
+        e.preventDefault();
+        if (!showCheckoutModal) openCheckout();
+        return;
+      }
+      if (e.key === "F6") {
+        e.preventDefault();
+        handleParkOrNewTicket();
+        return;
+      }
+      if (e.key === "F7") {
+        e.preventDefault();
+        setShowDiscountModal(true);
+        return;
+      }
+      if (e.key === "F8") {
+        e.preventDefault();
+        setShowClientModal(true);
+        return;
+      }
+      if (e.key === "F12") {
+        e.preventDefault();
+        if (activeTicket.items.length > 0 && !isSubmitting) {
+          processSale("CASH");
+        }
+        return;
+      }
+
+      // Cerrar cualquier modal con Escape
+      if (e.key === "Escape") {
+        if (isAnyModalOpen) {
+          e.preventDefault();
+          setShowSearchModal(false);
+          setShowCheckoutModal(false);
+          setShowClientModal(false);
+          setShowDiscountModal(false);
+          setShowQtyEditModal(false);
+          setShowClearConfirm(false);
+          setShowHelpModal(false);
+          return;
+        }
+        if (commandInput || pendingMultiplier) {
+          e.preventDefault();
+          setCommandInput("");
+          setPendingMultiplier(null);
+          return;
+        }
+      }
+
+      // Controles rápidos sobre la tabla cuando NO hay modales abiertos y el input está vacío
+      if (!isAnyModalOpen && commandInput === "") {
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          moveSelection(-1);
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          moveSelection(1);
+        } else if (e.key === "+" || e.key === "Add") {
+          e.preventDefault();
+          adjustSelectedRowQty(1);
+        } else if (e.key === "-" || e.key === "Subtract") {
+          e.preventDefault();
+          adjustSelectedRowQty(-1);
+        } else if (e.key === "Delete") {
+          e.preventDefault();
+          removeSelectedRow();
+        } else if (e.key === "=") {
+          e.preventDefault();
+          openCheckout();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [
+    activeTicket.items.length,
+    adjustSelectedRowQty,
+    commandInput,
+    handleParkOrNewTicket,
+    isAnyModalOpen,
+    isSubmitting,
+    moveSelection,
+    openCheckout,
+    pendingMultiplier,
+    processSale,
+    removeSelectedRow,
+    showCheckoutModal,
+  ]);
+
+  const quickBills = useMemo(() => {
+    if (finalTotal <= 0) return [];
+    return Array.from(
+      new Set([
+        finalTotal,
+        Math.ceil(finalTotal / 1000) * 1000,
+        Math.ceil(finalTotal / 5000) * 5000,
+        Math.ceil(finalTotal / 10000) * 10000,
+        Math.ceil(finalTotal / 20000) * 20000,
+      ])
+    )
+      .filter((n) => n >= finalTotal)
+      .slice(0, 4);
+  }, [finalTotal]);
+
+  const selectedItem = activeTicket.items.find(
+    (i) => i.productId === selectedRowId
+  );
 
   return (
     <DashboardLayout>
-      <div className="w-full max-w-[1600px] mx-auto flex flex-col h-[calc(100vh-8.5rem)] md:h-[calc(100vh-3.5rem)] select-none">
-        {/* ========================================================= */}
-        {/* BARRA SUPERIOR POS: TÍTULO, TICKETS EN ESPERA Y ATAJOS    */}
-        {/* ========================================================= */}
-        <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
-          {/* Izquierda: Volver + Título Caja POS */}
-          <div className="flex items-center gap-3">
+      {/* Contenedor bloqueado a pantalla completa sin scroll externo */}
+      <div
+        className="w-full -mt-2 md:-mt-5 -mb-14 flex flex-col h-[calc(100vh-8.5rem)] md:h-[calc(100vh-2.5rem)] select-none gap-2"
+        onClick={() => focusScanner()}
+      >
+        {/* =============================================================== */}
+        {/* 1. BARRA DE HERRAMIENTAS SUPERIOR (ESTILO UNICENTA COMPACTO)    */}
+        {/* =============================================================== */}
+        <div
+          className="shrink-0 flex items-center justify-between gap-2 bg-[#110E1C] border border-white/10 rounded-xl px-2.5 py-1.5 shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Botonera Operativa Izquierda */}
+          <div className="flex items-center gap-1.5 flex-wrap">
             <button
               type="button"
               onClick={() => navigate("/management/sales")}
-              className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1.5"
-              title="Volver al historial de ventas"
+              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition"
+              title="Salir al listado de ventas"
             >
-              ← Historial
+              <LogOut size={15} className="rotate-180 text-slate-400" />
+              <span className="hidden sm:inline">Salir</span>
             </button>
 
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                <Receipt size={18} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base md:text-lg font-bold text-white leading-none">
-                    Terminal POS
-                  </h1>
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                    Caja Abierta
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 hidden sm:block mt-0.5">
-                  Punto de venta rápido • Facturación y control de stock
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Centro: Pestañas de Tickets / Ventas en espera */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 max-w-full">
-            {tickets.map((t, idx) => {
-              const isCurrent = idx === activeTicketIndex;
-              const itemCount = t.items.reduce((sum, i) => sum + i.quantity, 0);
-              return (
-                <div
-                  key={t.id}
-                  onClick={() => setActiveTicketIndex(idx)}
-                  className={`group flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
-                    isCurrent
-                      ? "bg-indigo-600/25 border-indigo-500/50 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]"
-                      : "bg-[#12101F] border-white/10 text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                  }`}
-                >
-                  {isCurrent ? (
-                    <PlayCircle size={14} className="text-indigo-400 shrink-0" />
-                  ) : (
-                    <PauseCircle size={14} className="text-amber-400 shrink-0" />
-                  )}
-                  <span>{t.label}</span>
-                  {itemCount > 0 && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                        isCurrent
-                          ? "bg-indigo-500 text-white"
-                          : "bg-amber-500/20 text-amber-300"
-                      }`}
-                    >
-                      {itemCount}
-                    </span>
-                  )}
-                  {tickets.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleCloseTicketTab(idx, e)}
-                      className="text-slate-400 hover:text-rose-400 p-0.5 rounded transition"
-                      title="Cerrar este ticket"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-
+            {/* Botón Cliente */}
             <button
               type="button"
-              onClick={handleCreateNewTicket}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-500/15 border border-dashed border-white/20 hover:border-indigo-400/40 text-xs font-semibold text-slate-300 hover:text-indigo-300 transition cursor-pointer shrink-0"
-              title="Poner venta en espera y abrir nuevo ticket (F6)"
+              onClick={() => setShowClientModal(true)}
+              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition ${
+                activeTicket.customer.mode === "FINAL_CONSUMER"
+                  ? "bg-white/5 hover:bg-white/10 border-white/10 text-slate-200"
+                  : "bg-indigo-600/25 border-indigo-400/50 text-indigo-200"
+              }`}
+              title="Seleccionar o crear cliente (F8)"
             >
-              <Plus size={14} />
-              <span className="hidden sm:inline">En espera</span>
-              <span className="text-[10px] text-slate-500 hidden lg:inline">(F6)</span>
+              <User size={15} className="text-indigo-400" />
+              <span className="max-w-[130px] truncate">
+                {activeTicket.customer.mode === "FINAL_CONSUMER"
+                  ? "Consumidor Final"
+                  : `${activeTicket.customer.name} ${activeTicket.customer.surname}`}
+              </span>
+              <kbd className="hidden xl:inline text-[10px] text-slate-400 bg-black/30 px-1 rounded">
+                F8
+              </kbd>
             </button>
-          </div>
 
-          {/* Derecha: Botón de Atajos de teclado */}
-          <div className="hidden lg:flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowShortcutsModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#12101F] hover:bg-white/10 border border-white/10 text-xs text-slate-300 transition cursor-pointer"
-            >
-              <Keyboard size={15} className="text-indigo-400" />
-              <span>Atajos</span>
-            </button>
-          </div>
-        </div>
+            {/* Separador */}
+            <div className="h-6 w-px bg-white/10 mx-0.5 hidden sm:block" />
 
-        {/* ========================================================= */}
-        {/* SWITCH MÓVIL: CATÁLOGO vs TICKET (< lg)                   */}
-        {/* ========================================================= */}
-        <div className="lg:hidden grid grid-cols-2 gap-2 my-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => setMobileActivePane("CATALOG")}
-            className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition ${
-              mobileActivePane === "CATALOG"
-                ? "bg-indigo-600 text-white border-indigo-400"
-                : "bg-[#12101F] text-slate-400 border-white/10"
-            }`}
-          >
-            <Package size={15} />
-            Catálogo ({filteredProducts.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileActivePane("TICKET")}
-            className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition ${
-              mobileActivePane === "TICKET"
-                ? "bg-emerald-600 text-white border-emerald-400"
-                : "bg-[#12101F] text-slate-400 border-white/10"
-            }`}
-          >
-            <ShoppingCart size={15} />
-            Ticket ({totalItemsCount}) • {formatARS(finalTotal)}
-          </button>
-        </div>
-
-        {/* ========================================================= */}
-        {/* CUERPO DIVIDIDO: IZQUIERDA (CATÁLOGO) | DERECHA (CAJA)    */}
-        {/* ========================================================= */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 pt-2 overflow-hidden">
-          {/* --------------------------------------------------------- */}
-          {/* PANEL IZQUIERDO (7 cols): ESCÁNER + FILTROS + GRILLA      */}
-          {/* --------------------------------------------------------- */}
-          <div
-            className={`lg:col-span-7 xl:col-span-8 flex flex-col min-h-0 bg-[#0C0A15]/90 border border-white/10 rounded-2xl p-3.5 shadow-xl ${
-              mobileActivePane === "TICKET" ? "hidden lg:flex" : "flex"
-            }`}
-          >
-            {/* Fila 1: Lector de código de barras + Buscador por nombre */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 shrink-0">
-              <form
-                onSubmit={handleBarcodeSubmit}
-                className="sm:col-span-5 relative group"
-              >
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-indigo-400">
-                  <Barcode size={18} />
-                </div>
-                <input
-                  ref={barcodeInputRef}
-                  type="text"
-                  value={barcodeInput}
-                  onChange={(e) => setBarcodeInput(e.target.value)}
-                  placeholder="Escanear código o ID (F2)..."
-                  className="w-full h-10 bg-[#151324] border border-indigo-500/30 focus:border-indigo-400 rounded-xl pl-9 pr-14 text-xs font-mono text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/30 outline-none transition"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 text-[10px] font-bold transition cursor-pointer"
-                >
-                  ENTER
-                </button>
-              </form>
-
-              <div className="sm:col-span-7 relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-400">
-                  <Search size={17} />
-                </div>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar producto por nombre o marca (F3)..."
-                  className="w-full h-10 bg-[#151320] border border-white/10 focus:border-indigo-400/50 rounded-xl pl-9 pr-8 text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/30 outline-none transition"
-                />
-                {searchQuery && (
+            {/* Tickets / Ventas en espera */}
+            <div className="flex items-center gap-1">
+              {tickets.map((t, idx) => {
+                const active = idx === activeTicketIndex;
+                const count = t.items.reduce((s, i) => s + i.quantity, 0);
+                return (
                   <button
+                    key={t.id}
                     type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white cursor-pointer"
-                  >
-                    <X size={15} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Fila 2: Chips de Categorías */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2.5 shrink-0 border-b border-white/5">
-              <button
-                type="button"
-                onClick={() => setSelectedCategoryId("ALL")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 border ${
-                  selectedCategoryId === "ALL"
-                    ? "bg-indigo-600 text-white border-indigo-400 shadow-[0_0_12px_rgba(79,70,229,0.4)]"
-                    : "bg-white/5 text-slate-300 border-white/5 hover:bg-white/10"
-                }`}
-              >
-                Todos ({products.length})
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedCategoryId("OFFERS")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 border flex items-center gap-1 ${
-                  selectedCategoryId === "OFFERS"
-                    ? "bg-amber-500/25 text-amber-300 border-amber-400/50"
-                    : "bg-amber-500/10 text-amber-300/80 border-amber-500/20 hover:bg-amber-500/20"
-                }`}
-              >
-                <Sparkles size={13} />
-                Ofertas
-              </button>
-
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 border ${
-                    selectedCategoryId === cat.id
-                      ? "bg-indigo-600 text-white border-indigo-400 shadow-[0_0_12px_rgba(79,70,229,0.4)]"
-                      : "bg-white/5 text-slate-300 border-white/5 hover:bg-white/10"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-
-            {/* Fila 3: Grilla de Productos Táctil Scrolleable */}
-            <div className="flex-1 overflow-y-auto pr-1 pt-2.5 custom-scrollbar">
-              {isLoading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-32 rounded-2xl bg-white/5 animate-pulse border border-white/5"
-                    />
-                  ))}
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center py-12 text-slate-400">
-                  <Package size={36} className="text-slate-600 mb-2" />
-                  <p className="text-sm font-semibold text-slate-300">
-                    No se encontraron productos
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Probá con otro término o limpiá los filtros de categoría
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 pb-4">
-                  {filteredProducts.map((product) => {
-                    const stock = product.stock ?? 0;
-                    const outOfStock = stock <= 0;
-                    const lowStock = stock > 0 && stock <= 5;
-                    const inCartItem = activeTicket.items.find(
-                      (i) => i.productId === product.id
-                    );
-
-                    return (
-                      <button
-                        key={product.id}
-                        type="button"
-                        disabled={outOfStock}
-                        onClick={() => addProductToTicket(product)}
-                        className={`group relative text-left rounded-2xl p-2.5 border transition-all flex flex-col justify-between min-h-[128px] ${
-                          outOfStock
-                            ? "bg-[#110F1A]/50 border-white/5 opacity-45 cursor-not-allowed"
-                            : inCartItem
-                            ? "bg-indigo-950/40 border-indigo-500/60 hover:bg-indigo-900/40 shadow-[0_0_15px_rgba(99,102,241,0.15)] cursor-pointer active:scale-[0.98]"
-                            : "bg-[#151322]/90 border-white/10 hover:border-indigo-400/50 hover:bg-[#1B182C] cursor-pointer active:scale-[0.98]"
-                        }`}
-                      >
-                        {inCartItem && (
-                          <span className="absolute -top-2 -right-2 z-10 min-w-6 h-6 px-1.5 rounded-full bg-indigo-500 text-white text-xs font-black flex items-center justify-center shadow-lg border-2 border-[#0C0A15]">
-                            {inCartItem.quantity}
-                          </span>
-                        )}
-
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-11 h-11 rounded-xl bg-[#0C0A15] border border-white/10 shrink-0 overflow-hidden flex items-center justify-center">
-                            {product.imageUrl ? (
-                              <img
-                                src={getDriveDirectLink(product.imageUrl)}
-                                alt={product.name}
-                                className="w-full h-full object-contain"
-                                onError={(e) => {
-                                  (e.currentTarget as HTMLImageElement).style.display =
-                                    "none";
-                                }}
-                              />
-                            ) : (
-                              <Package size={18} className="text-slate-600" />
-                            )}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-slate-100 line-clamp-2 leading-snug group-hover:text-white">
-                              {product.name}
-                            </p>
-                            <span className="text-[10px] font-mono text-slate-400 block mt-0.5 truncate">
-                              {product.barcode ? `#${product.barcode}` : `ID: ${product.id}`}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-end justify-between mt-3 pt-2 border-t border-white/5 w-full">
-                          <div>
-                            {outOfStock ? (
-                              <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[9px] font-bold uppercase">
-                                Sin stock
-                              </span>
-                            ) : (
-                              <span
-                                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                                  lowStock
-                                    ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
-                                    : "bg-white/5 text-slate-400"
-                                }`}
-                              >
-                                Stock: {stock}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="text-right">
-                            {product.isOffer && (
-                              <span className="block text-[9px] font-bold text-amber-400 uppercase">
-                                Oferta
-                              </span>
-                            )}
-                            <span className="text-sm font-black font-mono text-emerald-400">
-                              {formatARS(product.price)}
-                            </span>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* --------------------------------------------------------- */}
-          {/* PANEL DERECHO (5 cols): TICKET / CLIENTE / CAJA Y COBRO   */}
-          {/* --------------------------------------------------------- */}
-          <div
-            className={`lg:col-span-5 xl:col-span-4 flex flex-col min-h-0 bg-[#0C0A15]/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden ${
-              mobileActivePane === "CATALOG" ? "hidden lg:flex" : "flex"
-            }`}
-          >
-            {/* 1. Cabecera del Ticket: Selector Rápido de Cliente */}
-            <div className="p-3 bg-[#141122] border-b border-white/10 shrink-0">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
-                      activeTicket.customer.mode === "FINAL_CONSUMER"
-                        ? "bg-slate-800 border-white/10 text-slate-300"
-                        : "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
+                    onClick={() => setActiveTicketIndex(idx)}
+                    className={`h-9 px-2.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 cursor-pointer transition ${
+                      active
+                        ? "bg-indigo-600 text-white border-indigo-400 shadow"
+                        : "bg-white/5 text-slate-400 border-white/10 hover:text-white"
                     }`}
+                    title={`Cambiar a Ticket ${t.label}`}
                   >
-                    <User size={16} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-white truncate">
-                        {activeTicket.customer.mode === "FINAL_CONSUMER"
-                          ? "Consumidor Final"
-                          : `${activeTicket.customer.name} ${activeTicket.customer.surname}`}
+                    {active ? <PlayCircle size={13} /> : <PauseCircle size={13} className="text-amber-400" />}
+                    <span>{t.label}</span>
+                    {count > 0 && (
+                      <span className="px-1.5 rounded bg-black/30 text-[10px]">
+                        {count}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-slate-300 font-mono">
-                        {activeTicket.customer.mode === "FINAL_CONSUMER"
-                          ? "Mostrador"
-                          : `DNI ${activeTicket.customer.dni}`}
+                    )}
+                    {tickets.length > 1 && (
+                      <span
+                        onClick={(e) => closeTicketTab(idx, e)}
+                        className="ml-0.5 hover:text-rose-300"
+                      >
+                        <X size={12} />
                       </span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 truncate">
-                      {activeTicket.customer.mode === "FINAL_CONSUMER"
-                        ? "Venta rápida sin datos obligatorios"
-                        : activeTicket.customer.email}
-                    </p>
-                  </div>
-                </div>
+                    )}
+                  </button>
+                );
+              })}
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {activeTicket.customer.mode !== "FINAL_CONSUMER" && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateActiveTicket((t) => ({
-                          ...t,
-                          customer: { ...DEFAULT_CUSTOMER },
-                        }))
-                      }
-                      className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300 cursor-pointer"
-                      title="Volver a Consumidor Final"
-                    >
-                      Reset
-                    </button>
-                  )}
+              <button
+                type="button"
+                onClick={handleParkOrNewTicket}
+                className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 text-xs font-semibold flex items-center gap-1 cursor-pointer transition"
+                title="Dejar ticket en espera y abrir otro (F6)"
+              >
+                <Plus size={14} />
+                <span className="hidden md:inline">Espera</span>
+                <kbd className="hidden xl:inline text-[10px] text-slate-400 bg-black/30 px-1 rounded">
+                  F6
+                </kbd>
+              </button>
+            </div>
+
+            {/* Vaciar Ticket */}
+            <button
+              type="button"
+              disabled={activeTicket.items.length === 0}
+              onClick={() => setShowClearConfirm(true)}
+              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1 text-xs font-semibold cursor-pointer transition"
+              title="Anular / Vaciar ticket completo"
+            >
+              <Trash2 size={15} />
+              <span className="hidden lg:inline">Vaciar</span>
+            </button>
+          </div>
+
+          {/* Botonera Derecha: Buscar, Descuento, Ayuda y Reloj */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setSearchModalQuery("");
+                setSearchSelectedIndex(0);
+                setShowSearchModal(true);
+                setTimeout(() => searchModalInputRef.current?.focus(), 20);
+              }}
+              className="h-9 px-3 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 flex items-center gap-1.5 text-xs font-bold cursor-pointer transition"
+              title="Buscar artículo sin código (F3)"
+            >
+              <Search size={15} />
+              <span className="hidden sm:inline">Buscar</span>
+              <kbd className="hidden md:inline text-[10px] bg-black/30 px-1 rounded">
+                F3
+              </kbd>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowDiscountModal(true)}
+              className={`h-9 px-2.5 rounded-lg border flex items-center gap-1 text-xs font-bold cursor-pointer transition ${
+                activeTicket.discountPercent > 0
+                  ? "bg-pink-500/25 border-pink-400/50 text-pink-200"
+                  : "bg-white/5 hover:bg-white/10 border-white/10 text-pink-400"
+              }`}
+              title="Aplicar porcentaje de descuento (F7)"
+            >
+              <Percent size={15} />
+              {activeTicket.discountPercent > 0 && (
+                <span>-{activeTicket.discountPercent}%</span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowHelpModal(true)}
+              className="h-9 w-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer transition"
+              title="Atajos de teclado"
+            >
+              <Keyboard size={16} />
+            </button>
+
+            <div className="hidden xl:flex items-center pl-2 ml-1 border-l border-white/10 text-[11px] font-mono text-slate-400">
+              {clockText}
+            </div>
+          </div>
+        </div>
+
+        {/* =============================================================== */}
+        {/* 2. ÁREA CENTRAL DE OPERACIÓN (TABLA DE LÍNEAS + TECLADO CAJA)   */}
+        {/* =============================================================== */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-2.5 overflow-hidden">
+          {/* ------------------------------------------------------------- */}
+          {/* IZQUIERDA (8 COLS): INPUT ESCÁNER + TABLA TICKET + TOTALES    */}
+          {/* ------------------------------------------------------------- */}
+          <div className="lg:col-span-8 flex flex-col min-h-0 bg-[#0D0B16] border border-white/10 rounded-xl overflow-hidden shadow-xl">
+            {/* Barra de Lectura Inmediata (Siempre con foco) */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                executeCommand(commandInput);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0 p-2 bg-[#151224] border-b border-white/10 flex items-center gap-2"
+            >
+              <div className="flex items-center gap-1.5 text-emerald-400 pl-1.5 shrink-0">
+                <Barcode size={20} />
+              </div>
+
+              {pendingMultiplier !== null && (
+                <span className="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-xs font-black font-mono flex items-center gap-1">
+                  {pendingMultiplier} ×
                   <button
                     type="button"
-                    onClick={() => setShowClientModal(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 text-xs font-semibold transition cursor-pointer"
-                    title="Asignar o cargar datos de cliente (F8)"
+                    onClick={() => setPendingMultiplier(null)}
+                    className="hover:opacity-70 cursor-pointer"
                   >
-                    <UserPlus size={14} />
-                    <span>Cliente</span>
+                    <X size={12} />
                   </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Lista de Ítems del Ticket */}
-            <div className="flex-1 overflow-y-auto divide-y divide-white/5 px-3 custom-scrollbar">
-              {activeTicket.items.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center py-10 text-slate-500">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mb-2.5">
-                    <ShoppingCart size={22} className="text-slate-500" />
-                  </div>
-                  <p className="text-xs font-semibold text-slate-300">
-                    Ticket vacío
-                  </p>
-                  <p className="text-[11px] text-slate-500 max-w-[210px] mt-1">
-                    Escaneá un código de barras o tocá cualquier producto del catálogo para sumarlo.
-                  </p>
-                </div>
-              ) : (
-                activeTicket.items.map((item, idx) => (
-                  <div
-                    key={item.productId}
-                    className="py-2.5 flex items-center justify-between gap-2 group"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono text-slate-500">
-                          #{idx + 1}
-                        </span>
-                        <p className="text-xs font-bold text-white truncate">
-                          {item.name}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          {formatARS(item.price)} c/u
-                        </span>
-                        <span className="text-[10px] text-slate-500">
-                          (disp: {item.stock})
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center bg-[#181528] border border-white/10 rounded-xl h-8 overflow-hidden shrink-0">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateItemQuantity(item.productId, item.quantity - 1)
-                        }
-                        className="w-7 h-full flex items-center justify-center text-slate-300 hover:bg-white/10 hover:text-rose-400 transition cursor-pointer"
-                      >
-                        <Minus size={13} />
-                      </button>
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          if (!isNaN(val)) {
-                            updateItemQuantity(item.productId, val);
-                          }
-                        }}
-                        className="w-9 text-center bg-transparent text-xs font-bold text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <button
-                        type="button"
-                        disabled={item.quantity >= item.stock}
-                        onClick={() =>
-                          updateItemQuantity(item.productId, item.quantity + 1)
-                        }
-                        className="w-7 h-full flex items-center justify-center text-slate-300 hover:bg-white/10 hover:text-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
-                      >
-                        <Plus size={13} />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs font-bold font-mono text-emerald-400 min-w-[70px] text-right">
-                        {formatARS(item.price * item.quantity)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeItemFromTicket(item.productId)}
-                        className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition cursor-pointer"
-                        title="Quitar ítem"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))
+                </span>
               )}
+
+              <input
+                ref={commandInputRef}
+                type="text"
+                autoFocus
+                value={commandInput}
+                onChange={(e) => setCommandInput(e.target.value)}
+                placeholder={
+                  isLoading
+                    ? "Cargando base de artículos..."
+                    : "Escanear código de barras, cant*código (ej: 3*779...) o nombre + [Enter]"
+                }
+                className="flex-1 bg-transparent text-sm md:text-base font-mono font-semibold text-white placeholder:text-slate-500 outline-none"
+              />
+
+              {commandInput && (
+                <button
+                  type="button"
+                  onClick={() => setCommandInput("")}
+                  className="text-slate-400 hover:text-white p-1 cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              )}
+
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold tracking-wide cursor-pointer shrink-0 transition"
+              >
+                ENTER
+              </button>
+            </form>
+
+            {/* Tabla de Líneas de Venta (Como uniCenta: limpia y directa) */}
+            <div
+              className="flex-1 overflow-y-auto custom-scrollbar"
+              onClick={(e) => {
+                e.stopPropagation();
+                focusScanner();
+              }}
+            >
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 z-10 bg-[#181528] border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400 select-none">
+                  <tr>
+                    <th className="py-2.5 px-3 w-28 font-semibold">Código</th>
+                    <th className="py-2.5 px-3 font-semibold">Artículo</th>
+                    <th className="py-2.5 px-3 w-28 text-right font-semibold">
+                      P. Unit.
+                    </th>
+                    <th className="py-2.5 px-3 w-28 text-center font-semibold">
+                      Cant.
+                    </th>
+                    <th className="py-2.5 px-3 w-32 text-right font-semibold">
+                      Importe
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-white/5 text-sm">
+                  {activeTicket.items.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="py-20 text-center text-slate-500"
+                      >
+                        <p className="text-sm font-semibold text-slate-400">
+                          Caja lista para escanear
+                        </p>
+                        <p className="text-xs text-slate-600 mt-1">
+                          Pasá el lector de código de barras o presioná{" "}
+                          <kbd className="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 font-mono">
+                            F3
+                          </kbd>{" "}
+                          para buscar por nombre
+                        </p>
+                      </td>
+                    </tr>
+                  ) : (
+                    activeTicket.items.map((item) => {
+                      const isSelected = item.productId === selectedRowId;
+                      return (
+                        <tr
+                          key={item.productId}
+                          onClick={() => {
+                            setSelectedRowId(item.productId);
+                            focusScanner();
+                          }}
+                          className={`cursor-pointer transition-colors ${
+                            isSelected
+                              ? "bg-indigo-600/25 text-white"
+                              : "hover:bg-white/[0.04] text-slate-200"
+                          }`}
+                        >
+                          <td className="py-2.5 px-3 font-mono text-xs text-slate-400 truncate max-w-[110px]">
+                            {item.code}
+                          </td>
+
+                          <td className="py-2.5 px-3 font-semibold">
+                            <div className="flex items-center gap-2">
+                              {isSelected && (
+                                <span className="w-1.5 h-4 rounded-full bg-indigo-400 shrink-0" />
+                              )}
+                              <span className="truncate">{item.name}</span>
+                            </div>
+                          </td>
+
+                          <td className="py-2.5 px-3 text-right font-mono text-xs text-slate-300">
+                            {formatARS(item.price)}
+                          </td>
+
+                          <td className="py-2 px-3 text-center">
+                            <div className="inline-flex items-center gap-1 bg-black/30 border border-white/10 rounded-lg px-1 py-0.5">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLineQuantity(
+                                    item.productId,
+                                    item.quantity - 1
+                                  );
+                                  focusScanner();
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 text-slate-300 hover:text-rose-400 cursor-pointer"
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span className="min-w-[28px] text-center font-mono font-bold text-sm text-white">
+                                {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLineQuantity(
+                                    item.productId,
+                                    item.quantity + 1
+                                  );
+                                  focusScanner();
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 text-slate-300 hover:text-emerald-400 cursor-pointer"
+                              >
+                                <Plus size={12} />
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">
+                            {formatARS(item.price * item.quantity)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
 
-            {/* 3. Pie del Ticket: Descuentos, Medio de Pago, Totales y Botón Cobrar */}
-            <div className="p-3.5 bg-[#131020] border-t border-white/10 space-y-3 shrink-0">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex items-center justify-between bg-[#0C0A15] border border-white/10 rounded-xl px-2.5 py-1.5">
-                  <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                    <Percent size={12} className="text-indigo-400" />
-                    Desc.
+            {/* Franja Inferior de Totales (Como uniCenta: Subtotal | Descuento | TOTAL) */}
+            <div className="shrink-0 bg-[#141122] border-t border-white/10 p-3 grid grid-cols-3 sm:grid-cols-4 gap-2.5 items-center">
+              <div className="hidden sm:block bg-[#0B0914] border border-white/10 rounded-lg px-3 py-2">
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                  Unidades
+                </span>
+                <span className="text-base font-mono font-bold text-slate-200">
+                  {totalUnits}{" "}
+                  <span className="text-xs font-normal text-slate-500">
+                    ({activeTicket.items.length} ítems)
                   </span>
-                  <div className="flex items-center gap-1">
-                    {[0, 5, 10, 15].map((pct) => (
-                      <button
-                        key={pct}
-                        type="button"
-                        onClick={() =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            discountPercent: pct,
-                          }))
-                        }
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
-                          activeTicket.discountPercent === pct
-                            ? "bg-indigo-600 text-white"
-                            : "bg-white/5 text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        {pct}%
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between bg-[#0C0A15] border border-white/10 rounded-xl px-2.5 py-1.5">
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    Estado:
-                  </span>
-                  <select
-                    value={activeTicket.saleStatus}
-                    onChange={(e) =>
-                      updateActiveTicket((t) => ({
-                        ...t,
-                        saleStatus: e.target.value as PosTicket["saleStatus"],
-                      }))
-                    }
-                    className="bg-transparent text-xs font-bold text-emerald-400 focus:outline-none cursor-pointer"
-                  >
-                    <option value="COMPLETED" className="bg-[#141122] text-emerald-400">
-                      Completada
-                    </option>
-                    <option value="PENDING" className="bg-[#141122] text-amber-400">
-                      Pendiente
-                    </option>
-                    <option value="IN_PROGRESS" className="bg-[#141122] text-blue-400">
-                      En curso
-                    </option>
-                  </select>
-                </div>
+                </span>
               </div>
 
-              {/* Selector de Medio de Pago Rápido */}
+              <div className="bg-[#0B0914] border border-white/10 rounded-lg px-3 py-2">
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                  Subtotal
+                </span>
+                <span className="text-base font-mono font-bold text-slate-200">
+                  {formatARS(subtotal)}
+                </span>
+              </div>
+
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDiscountModal(true);
+                }}
+                className="bg-[#0B0914] border border-white/10 hover:border-pink-500/40 rounded-lg px-3 py-2 cursor-pointer transition"
+                title="Clic para modificar descuento"
+              >
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                  Descuento {activeTicket.discountPercent > 0 ? `(${activeTicket.discountPercent}%)` : ""}
+                </span>
+                <span
+                  className={`text-base font-mono font-bold ${
+                    discountAmount > 0 ? "text-pink-400" : "text-slate-500"
+                  }`}
+                >
+                  - {formatARS(discountAmount)}
+                </span>
+              </div>
+
+              <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-lg px-3 py-2 text-right">
+                <span className="block text-[10px] uppercase tracking-wider text-emerald-300/80 font-bold">
+                  Total
+                </span>
+                <span className="text-xl xl:text-2xl font-mono font-black text-emerald-400 leading-tight block truncate">
+                  {formatARS(finalTotal)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ------------------------------------------------------------- */}
+          {/* DERECHA (4 COLS): CONTROLES DE LÍNEA + TECLADO NUMÉRICO + '=' */}
+          {/* ------------------------------------------------------------- */}
+          <div
+            className="lg:col-span-4 flex flex-col min-h-0 bg-[#110E1C] border border-white/10 rounded-xl p-2.5 gap-2.5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Visor Digital de Entrada */}
+            <div className="shrink-0 bg-[#08060E] border border-white/10 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                {pendingMultiplier
+                  ? `Multiplicador activo`
+                  : selectedItem
+                  ? `Sel: ${selectedItem.name}`
+                  : "Entrada"}
+              </span>
+              <span className="font-mono text-base font-bold text-indigo-300 truncate max-w-[160px]">
+                {pendingMultiplier ? `${pendingMultiplier} × ` : ""}
+                {commandInput || "0"}
+              </span>
+            </div>
+
+            {/* Bloque Central: Columna de Acción de Fila (izq) + Numpad (der) igual a la foto */}
+            <div className="flex-1 min-h-0 grid grid-cols-4 gap-2">
+              {/* Tira Vertical Izquierda de Acciones sobre la Tabla (▲ ▼ ⊖ 🔍 ✎) */}
+              <div className="col-span-1 flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => moveSelection(-1)}
+                  disabled={activeTicket.items.length === 0}
+                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  title="Subir línea (Flecha Arriba)"
+                >
+                  <ArrowUp size={20} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => moveSelection(1)}
+                  disabled={activeTicket.items.length === 0}
+                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  title="Bajar línea (Flecha Abajo)"
+                >
+                  <ArrowDown size={20} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={removeSelectedRow}
+                  disabled={!selectedItem}
+                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-rose-500/25 border border-white/10 text-rose-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  title="Quitar artículo seleccionado (Supr)"
+                >
+                  <Trash2 size={19} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchModalQuery("");
+                    setSearchSelectedIndex(0);
+                    setShowSearchModal(true);
+                    setTimeout(() => searchModalInputRef.current?.focus(), 20);
+                  }}
+                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center cursor-pointer active:scale-95 transition"
+                  title="Buscar producto por nombre (F3)"
+                >
+                  <Search size={19} />
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!selectedItem}
+                  onClick={() => {
+                    if (!selectedItem) return;
+                    setQtyEditValue(String(selectedItem.quantity));
+                    setShowQtyEditModal(true);
+                  }}
+                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-amber-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  title="Editar cantidad exacta de la línea"
+                >
+                  <Pencil size={18} />
+                </button>
+              </div>
+
+              {/* Numpad Principal (3 cols) */}
+              <div className="col-span-3 grid grid-cols-3 grid-rows-5 gap-1.5">
+                {/* Fila 1: CE | * | - */}
+                <button
+                  type="button"
+                  onClick={handleKeypadClear}
+                  className="rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-sm font-black text-rose-300 cursor-pointer active:scale-95 transition"
+                >
+                  CE
+                </button>
+                <button
+                  type="button"
+                  onClick={handleKeypadMultiply}
+                  className="rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-xl font-black text-amber-300 cursor-pointer active:scale-95 transition"
+                  title="Multiplicar cantidad (*)"
+                >
+                  *
+                </button>
+                <button
+                  type="button"
+                  onClick={handleKeypadMinus}
+                  className="rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xl font-black text-rose-300 cursor-pointer active:scale-95 transition"
+                  title="Restar cantidad (-)"
+                >
+                  −
+                </button>
+
+                {/* Fila 2: 1 | 2 | 3 */}
+                {["1", "2", "3"].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => handleKeypadDigit(n)}
+                    className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                  >
+                    {n}
+                  </button>
+                ))}
+
+                {/* Fila 3: 4 | 5 | 6 */}
+                {["4", "5", "6"].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => handleKeypadDigit(n)}
+                    className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                  >
+                    {n}
+                  </button>
+                ))}
+
+                {/* Fila 4: 7 | 8 | 9 */}
+                {["7", "8", "9"].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => handleKeypadDigit(n)}
+                    className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                  >
+                    {n}
+                  </button>
+                ))}
+
+                {/* Fila 5: 0 | 00 | + */}
+                <button
+                  type="button"
+                  onClick={() => handleKeypadDigit("0")}
+                  className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                >
+                  0
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleKeypadDigit("00")}
+                  className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-base font-bold font-mono text-slate-300 cursor-pointer active:scale-95 transition"
+                >
+                  00
+                </button>
+                <button
+                  type="button"
+                  onClick={handleKeypadPlus}
+                  className="rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-2xl font-black text-sky-300 cursor-pointer active:scale-95 transition"
+                  title="Sumar cantidad (+)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Botones de Cierre Ultra Rápido (= COBRAR y EFECTIVO EXACTO 1-CLIC) */}
+            <div className="shrink-0 grid grid-cols-12 gap-2 pt-1">
+              <button
+                type="button"
+                disabled={activeTicket.items.length === 0 || isSubmitting}
+                onClick={() => processSale("CASH")}
+                className="col-span-5 py-3 px-2 rounded-xl bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-400/40 text-indigo-200 disabled:opacity-30 disabled:pointer-events-none font-bold text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 transition"
+                title="Cerrar venta inmediata en efectivo exacto en 1 solo paso (F12)"
+              >
+                <div className="flex items-center gap-1">
+                  <Zap size={14} className="text-amber-400" />
+                  <span>Exacto</span>
+                </div>
+                <span className="text-[10px] font-mono text-indigo-300/80">
+                  [F12] 1-Clic
+                </span>
+              </button>
+
+              <button
+                type="button"
+                disabled={activeTicket.items.length === 0 || isSubmitting}
+                onClick={openCheckout}
+                className="col-span-7 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:pointer-events-none font-black text-base flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.35)] cursor-pointer active:scale-95 transition"
+                title="Abrir pantalla de cobro y vuelto (= o F4)"
+              >
+                <span className="text-2xl leading-none font-mono">=</span>
+                <span>COBRAR</span>
+                <kbd className="text-[11px] font-mono bg-black/25 px-1.5 py-0.5 rounded">
+                  F4
+                </kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =============================================================== */}
+      {/* MODAL BUSCADOR TABULAR RÁPIDO (F3 - CERO FOTOS, PURO TECLADO)   */}
+      {/* =============================================================== */}
+      {showSearchModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-start justify-center pt-12 p-4"
+          onClick={() => setShowSearchModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-3 bg-[#181529] border-b border-white/10 flex items-center gap-2">
+              <Search size={18} className="text-indigo-400 shrink-0" />
+              <input
+                ref={searchModalInputRef}
+                type="text"
+                autoFocus
+                value={searchModalQuery}
+                onChange={(e) => {
+                  setSearchModalQuery(e.target.value);
+                  setSearchSelectedIndex(0);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setSearchSelectedIndex((i) =>
+                      Math.min(searchResults.length - 1, i + 1)
+                    );
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setSearchSelectedIndex((i) => Math.max(0, i - 1));
+                  } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    const chosen = searchResults[searchSelectedIndex];
+                    if (chosen) {
+                      if (addProduct(chosen)) {
+                        setShowSearchModal(false);
+                      }
+                    }
+                  }
+                }}
+                placeholder="Escribí nombre o código... (↑/↓ para elegir, Enter para agregar)"
+                className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowSearchModal(false)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 custom-scrollbar">
+              <table className="w-full text-left text-xs">
+                <thead className="sticky top-0 bg-[#141122] text-slate-400 uppercase border-b border-white/10">
+                  <tr>
+                    <th className="py-2 px-3 w-28">Código</th>
+                    <th className="py-2 px-3">Artículo</th>
+                    <th className="py-2 px-3 w-20 text-center">Stock</th>
+                    <th className="py-2 px-3 w-28 text-right">Precio</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {searchResults.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="py-8 text-center text-slate-500"
+                      >
+                        Sin coincidencias
+                      </td>
+                    </tr>
+                  ) : (
+                    searchResults.map((p, idx) => {
+                      const active = idx === searchSelectedIndex;
+                      const noStock = (p.stock ?? 0) <= 0;
+                      return (
+                        <tr
+                          key={p.id}
+                          onClick={() => {
+                            if (!noStock && addProduct(p)) {
+                              setShowSearchModal(false);
+                            }
+                          }}
+                          className={`cursor-pointer ${
+                            noStock
+                              ? "opacity-40 cursor-not-allowed"
+                              : active
+                              ? "bg-indigo-600 text-white"
+                              : "hover:bg-white/5 text-slate-200"
+                          }`}
+                        >
+                          <td className="py-2.5 px-3 font-mono">
+                            {p.barcode || p.id}
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold">{p.name}</td>
+                          <td className="py-2.5 px-3 text-center font-mono">
+                            {p.stock ?? 0}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-300">
+                            {formatARS(p.price)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =============================================================== */}
+      {/* MODAL DE COBRO EXPRESS (= / F4 -> ENTER CONFIRMA AL INSTANTE)   */}
+      {/* =============================================================== */}
+      {showCheckoutModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => !isSubmitting && setShowCheckoutModal(false)}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              processSale();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="px-5 py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                Cobro de Venta
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowCheckoutModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* Total Gigante */}
+              <div className="bg-[#090710] border border-emerald-500/40 rounded-xl p-3.5 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-slate-400">
+                  Total a Cobrar
+                </span>
+                <span className="text-3xl font-black font-mono text-emerald-400">
+                  {formatARS(finalTotal)}
+                </span>
+              </div>
+
+              {/* Medios de Pago Rápidos */}
               <div className="grid grid-cols-4 gap-1.5">
                 {(
                   [
                     { id: "CASH", label: "Efectivo", icon: Banknote },
-                    { id: "TRANSFER", label: "Transf.", icon: ArrowLeftRight },
                     { id: "CARD", label: "Tarjeta", icon: CreditCard },
+                    { id: "TRANSFER", label: "Transf.", icon: ArrowLeftRight },
                     { id: "QR", label: "QR / MP", icon: QrCode },
                   ] as const
                 ).map((pm) => {
@@ -1165,211 +1592,51 @@ export default function CreateSalePage() {
                           paymentMethod: pm.id,
                         }))
                       }
-                      className={`py-2 px-1.5 rounded-xl border text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                      className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition ${
                         active
-                          ? "bg-indigo-600/25 border-indigo-400 text-white shadow-[0_0_12px_rgba(99,102,241,0.25)]"
-                          : "bg-[#0C0A15] border-white/10 text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                          ? "bg-indigo-600 text-white border-indigo-400"
+                          : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
                       }`}
                     >
-                      <Icon
-                        size={15}
-                        className={active ? "text-indigo-300" : "text-slate-400"}
-                      />
+                      <Icon size={17} />
                       <span>{pm.label}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Resumen de importes */}
-              <div className="bg-[#090710] border border-white/10 rounded-xl p-3 space-y-1">
-                <div className="flex justify-between text-xs text-slate-400">
-                  <span>
-                    Subtotal ({totalItemsCount}{" "}
-                    {totalItemsCount === 1 ? "unidad" : "unidades"})
-                  </span>
-                  <span className="font-mono">{formatARS(subtotal)}</span>
-                </div>
-
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-xs text-amber-400">
-                    <span>Descuento ({activeTicket.discountPercent}%)</span>
-                    <span className="font-mono">- {formatARS(discountAmount)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-baseline pt-1 border-t border-white/10">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Total a Cobrar
-                  </span>
-                  <span className="text-2xl font-black font-mono text-emerald-400 tracking-tight">
-                    {formatARS(finalTotal)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Botones de Acción de Caja */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={activeTicket.items.length === 0}
-                  onClick={() => setShowClearConfirm(true)}
-                  className="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-rose-500/15 hover:border-rose-500/30 text-slate-400 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
-                  title="Vaciar ticket actual"
-                >
-                  <RotateCcw size={18} />
-                </button>
-
-                <button
-                  type="button"
-                  disabled={activeTicket.items.length === 0 || isSubmitting}
-                  onClick={() => setShowCheckoutModal(true)}
-                  className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-                    activeTicket.items.length === 0 || isSubmitting
-                      ? "bg-slate-800 text-slate-500 border border-white/5 cursor-not-allowed"
-                      : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_25px_rgba(16,185,129,0.4)] cursor-pointer active:scale-[0.99]"
-                  }`}
-                >
-                  <CheckCircle2 size={18} />
-                  <span>Cobrar Venta (F4)</span>
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================= */}
-      {/* MODAL DE COBRO Y CÁLCULO DE VUELTO (CHECKOUT POS)         */}
-      {/* ========================================================= */}
-      {showCheckoutModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => !isSubmitting && setShowCheckoutModal(false)}
-        >
-          <div
-            className="w-full max-w-lg bg-[#12101F] border border-white/15 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 bg-[#181529] border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <Banknote size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">
-                    Confirmar Cobro • {activeTicket.label}
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Cliente:{" "}
-                    <b className="text-slate-200">
-                      {activeTicket.customer.mode === "FINAL_CONSUMER"
-                        ? "Consumidor Final"
-                        : `${activeTicket.customer.name} ${activeTicket.customer.surname}`}
-                    </b>
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCheckoutModal(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-5">
-              <div className="bg-[#0B0914] border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
-                    Total a Pagar
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    {totalItemsCount} productos en el ticket
-                  </span>
-                </div>
-                <span className="text-3xl font-black font-mono text-emerald-400">
-                  {formatARS(finalTotal)}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                  Medio de pago seleccionado
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(
-                    [
-                      { id: "CASH", label: "Efectivo", icon: Banknote },
-                      { id: "TRANSFER", label: "Transferencia", icon: ArrowLeftRight },
-                      { id: "CARD", label: "Tarjeta", icon: CreditCard },
-                      { id: "QR", label: "QR / MP", icon: QrCode },
-                    ] as const
-                  ).map((pm) => {
-                    const Icon = pm.icon;
-                    const active = activeTicket.paymentMethod === pm.id;
-                    return (
+              {/* Abona con + Vuelto (Solo en Efectivo) */}
+              {activeTicket.paymentMethod === "CASH" && (
+                <div className="space-y-2.5 bg-[#171426] border border-white/10 rounded-xl p-3.5">
+                  <div className="flex gap-1.5 flex-wrap">
+                    {quickBills.map((b) => (
                       <button
-                        key={pm.id}
+                        key={b}
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
                           updateActiveTicket((t) => ({
                             ...t,
-                            paymentMethod: pm.id,
-                          }))
-                        }
-                        className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition cursor-pointer ${
-                          active
-                            ? "bg-indigo-600/30 border-indigo-400 text-white"
-                            : "bg-[#171426] border-white/10 text-slate-400 hover:text-white"
-                        }`}
+                            cashTendered: String(b),
+                          }));
+                          cashInputRef.current?.focus();
+                        }}
+                        className="flex-1 py-1.5 px-2 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 font-mono text-xs font-bold cursor-pointer"
                       >
-                        <Icon size={18} />
-                        <span>{pm.label}</span>
+                        {formatARS(b)}
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {activeTicket.paymentMethod === "CASH" && (
-                <div className="bg-[#171426] border border-white/10 rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      ¿Con cuánto abona el cliente?
-                    </label>
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {quickCashSuggestions.map((val) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() =>
-                            updateActiveTicket((t) => ({
-                              ...t,
-                              cashTendered: String(val),
-                            }))
-                          }
-                          className="px-2 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-300 text-[11px] font-mono font-bold transition cursor-pointer"
-                        >
-                          {formatARS(val)}
-                        </button>
-                      ))}
-                    </div>
+                    ))}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 pt-1">
                     <div>
-                      <span className="text-[11px] text-slate-400 block mb-1">
-                        Dinero recibido ($)
-                      </span>
+                      <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+                        Abona con ($)
+                      </label>
                       <input
                         ref={cashInputRef}
                         type="number"
-                        min="0"
                         step="any"
-                        autoFocus
+                        min="0"
                         value={activeTicket.cashTendered}
                         onChange={(e) =>
                           updateActiveTicket((t) => ({
@@ -1377,462 +1644,370 @@ export default function CreateSalePage() {
                             cashTendered: e.target.value,
                           }))
                         }
-                        placeholder={String(finalTotal)}
-                        className="w-full bg-[#0C0A15] border border-white/15 focus:border-indigo-400 rounded-xl px-3 py-2 text-base font-mono font-bold text-white outline-none"
+                        className="w-full bg-[#090710] border border-indigo-400/50 rounded-xl px-3 py-2 text-lg font-mono font-bold text-white outline-none"
                       />
                     </div>
 
-                    <div className="bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 flex flex-col justify-center">
-                      <span className="text-[11px] text-slate-400">
-                        Vuelto a entregar
+                    <div className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 flex flex-col justify-center text-right">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">
+                        Su Vuelto
                       </span>
-                      <span
-                        className={`text-xl font-black font-mono ${
-                          cashTenderedNum >= finalTotal
-                            ? "text-amber-400"
-                            : "text-slate-600"
-                        }`}
-                      >
-                        {cashTenderedNum >= finalTotal
-                          ? formatARS(changeAmount)
-                          : "$ 0"}
+                      <span className="text-xl font-black font-mono text-amber-400">
+                        {formatARS(changeAmount)}
                       </span>
                     </div>
                   </div>
                 </div>
               )}
-
-              {activeTicket.customer.mode !== "FINAL_CONSUMER" &&
-                activeTicket.saleStatus === "COMPLETED" && (
-                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={activeTicket.sendEmail}
-                      onChange={(e) =>
-                        updateActiveTicket((t) => ({
-                          ...t,
-                          sendEmail: e.target.checked,
-                        }))
-                      }
-                      className="w-4 h-4 rounded text-indigo-500 bg-slate-900 border-white/20"
-                    />
-                    <span className="text-xs text-slate-200">
-                      Enviar comprobante automático por email a{" "}
-                      <b>{activeTicket.customer.email}</b>
-                    </span>
-                  </label>
-                )}
             </div>
 
-            <div className="px-6 py-4 bg-[#181529] border-t border-white/10 flex items-center justify-end gap-3">
+            <div className="px-5 py-3.5 bg-[#181529] border-t border-white/10 flex justify-end gap-2">
               <button
                 type="button"
-                disabled={isSubmitting}
                 onClick={() => setShowCheckoutModal(false)}
                 className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 cursor-pointer"
               >
-                Seguir editando
+                Cancelar (Esc)
               </button>
               <button
-                type="button"
+                type="submit"
                 disabled={isSubmitting}
-                onClick={handleFinalizeSale}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer disabled:opacity-50"
+                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Check size={16} />
-                <span>
-                  {isSubmitting ? "Registrando..." : "Confirmar y Emitir Venta"}
-                </span>
+                <span>{isSubmitting ? "Guardando..." : "CONFIRMAR (ENTER)"}</span>
               </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* =============================================================== */}
+      {/* MODAL EDICIÓN DIRECTA DE CANTIDAD (BOTÓN ✎)                     */}
+      {/* =============================================================== */}
+      {showQtyEditModal && selectedItem && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          onClick={() => setShowQtyEditModal(false)}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const val = parseInt(qtyEditValue, 10);
+              if (!isNaN(val)) {
+                setLineQuantity(selectedItem.productId, val);
+              }
+              setShowQtyEditModal(false);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xs bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3"
+          >
+            <h3 className="text-xs font-bold uppercase text-slate-300 truncate">
+              Cantidad: {selectedItem.name}
+            </h3>
+            <input
+              type="number"
+              min="0"
+              max={selectedItem.stock}
+              autoFocus
+              value={qtyEditValue}
+              onChange={(e) => setQtyEditValue(e.target.value)}
+              onFocus={(e) => e.currentTarget.select()}
+              className="w-full bg-[#090710] border border-indigo-400 rounded-xl px-3 py-2.5 text-xl font-mono font-bold text-center text-white outline-none"
+            />
+            <p className="text-[11px] text-slate-400 text-center">
+              Stock disponible: {selectedItem.stock} u. (0 elimina la línea)
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowQtyEditModal(false)}
+                className="flex-1 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
+              >
+                Aplicar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* =============================================================== */}
+      {/* MODAL DESCUENTO RÁPIDO (F7 / %)                                 */}
+      {/* =============================================================== */}
+      {showDiscountModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          onClick={() => setShowDiscountModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xs bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase text-slate-300">
+                Descuento General (%)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowDiscountModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[0, 5, 10, 15, 20, 25].map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => {
+                    updateActiveTicket((t) => ({ ...t, discountPercent: pct }));
+                    setShowDiscountModal(false);
+                  }}
+                  className={`py-2.5 rounded-xl font-mono font-bold text-sm border cursor-pointer ${
+                    activeTicket.discountPercent === pct
+                      ? "bg-pink-600 text-white border-pink-400"
+                      : "bg-[#191628] text-slate-200 border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  {pct}%
+                </button>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* MODAL DE ASIGNACIÓN / CARGA DE CLIENTE (F8)               */}
-      {/* ========================================================= */}
+      {/* =============================================================== */}
+      {/* MODAL CLIENTE SIMPLIFICADO (F8)                                 */}
+      {/* =============================================================== */}
       {showClientModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
           onClick={() => setShowClientModal(false)}
         >
           <div
-            className="w-full max-w-2xl bg-[#12101F] border border-white/15 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg bg-[#12101F] border border-white/15 rounded-2xl overflow-hidden shadow-2xl"
           >
-            <div className="px-6 py-4 bg-[#181529] border-b border-white/10 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <UserPlus className="text-indigo-400" size={20} />
-                <h3 className="text-base font-bold text-white">
-                  Cliente del Ticket ({activeTicket.label})
-                </h3>
-              </div>
+            <div className="px-5 py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
+              <span className="text-xs font-bold uppercase text-white flex items-center gap-2">
+                <UserPlus size={16} className="text-indigo-400" />
+                Asignar Cliente al Ticket
+              </span>
               <button
                 type="button"
                 onClick={() => setShowClientModal(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-xl"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar">
-              <div className="grid grid-cols-3 gap-2">
-                {(
-                  [
-                    {
-                      mode: "FINAL_CONSUMER",
-                      title: "Consumidor Final",
-                      desc: "Venta rápida de mostrador",
-                    },
-                    {
-                      mode: "EXISTING",
-                      title: "Cliente Registrado",
-                      desc: `Elegir de la base (${clients.length})`,
-                    },
-                    {
-                      mode: "NEW",
-                      title: "Nuevo Cliente",
-                      desc: "Cargar datos y facturación",
-                    },
-                  ] as const
-                ).map((opt) => {
-                  const active = activeTicket.customer.mode === opt.mode;
-                  return (
-                    <button
-                      key={opt.mode}
-                      type="button"
-                      onClick={() => {
-                        if (opt.mode === "FINAL_CONSUMER") {
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...DEFAULT_CUSTOMER },
-                          }));
-                        } else if (opt.mode === "NEW") {
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: {
-                              mode: "NEW",
-                              name: "",
-                              surname: "",
-                              dni: "",
-                              phoneNumber: "",
-                              email: "",
-                              street: "Mostrador",
-                              number: "1",
-                              city: "Buenos Aires",
-                              province: "Buenos Aires",
-                              postalCode: "1000",
-                              country: "Argentina",
-                              floor: "",
-                              apartment: "",
-                              reference: "",
-                            },
-                          }));
-                        } else {
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: {
-                              ...t.customer,
-                              mode: "EXISTING",
-                            },
-                          }));
-                        }
-                      }}
-                      className={`p-3 rounded-2xl border text-left transition cursor-pointer ${
-                        active
-                          ? "bg-indigo-600/25 border-indigo-400 text-white"
-                          : "bg-[#171426] border-white/10 text-slate-400 hover:text-white"
-                      }`}
-                    >
-                      <p className="text-xs font-bold">{opt.title}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
-                        {opt.desc}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {activeTicket.customer.mode === "FINAL_CONSUMER" && (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-200 flex items-center gap-3">
-                  <CheckCircle2 className="text-emerald-400 shrink-0" size={20} />
-                  <div>
-                    <p className="font-bold">
-                      Modo Consumidor Final activado
-                    </p>
-                    <p className="text-emerald-300/80 mt-0.5">
-                      No necesitás pedir DNI ni dirección para cobrar en mostrador.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {activeTicket.customer.mode === "EXISTING" && (
-                <div className="space-y-3">
-                  <label className="block text-xs font-semibold text-slate-300 uppercase">
-                    Seleccionar cliente existente
-                  </label>
-                  <div className="max-h-60 overflow-y-auto divide-y divide-white/5 border border-white/10 rounded-2xl bg-[#0C0A15]">
-                    {clients.length === 0 ? (
-                      <p className="p-4 text-xs text-slate-400 text-center">
-                        No hay clientes registrados todavía. Usá la pestaña "Nuevo Cliente".
-                      </p>
-                    ) : (
-                      clients.map((cli) => {
-                        const isSelected =
-                          activeTicket.customer.existingClientId === cli.id;
-                        return (
-                          <button
-                            key={cli.id}
-                            type="button"
-                            onClick={() =>
-                              updateActiveTicket((t) => ({
-                                ...t,
-                                customer: {
-                                  ...t.customer,
-                                  mode: "EXISTING",
-                                  existingClientId: cli.id,
-                                  name: cli.name,
-                                  surname: cli.surname,
-                                  dni: cli.dni,
-                                  email: cli.email,
-                                  phoneNumber: cli.phoneNumber || "",
-                                },
-                              }))
-                            }
-                            className={`w-full px-4 py-2.5 text-left flex items-center justify-between transition cursor-pointer ${
-                              isSelected
-                                ? "bg-indigo-600/25 text-white"
-                                : "hover:bg-white/5 text-slate-300"
-                            }`}
-                          >
-                            <div>
-                              <p className="text-xs font-bold">
-                                {cli.surname}, {cli.name}
-                              </p>
-                              <p className="text-[11px] text-slate-400">
-                                DNI: {cli.dni} • {cli.email}
-                              </p>
-                            </div>
-                            {isSelected && (
-                              <Check size={16} className="text-indigo-400" />
-                            )}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeTicket.customer.mode === "NEW" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                        Nombre *
-                      </label>
-                      <input
-                        type="text"
-                        value={activeTicket.customer.name}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...t.customer, name: e.target.value },
-                          }))
-                        }
-                        placeholder="Ej: Juan"
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                        Apellido *
-                      </label>
-                      <input
-                        type="text"
-                        value={activeTicket.customer.surname}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...t.customer, surname: e.target.value },
-                          }))
-                        }
-                        placeholder="Ej: Pérez"
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                        DNI (7-8 dígitos) *
-                      </label>
-                      <input
-                        type="text"
-                        value={activeTicket.customer.dni}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...t.customer, dni: e.target.value },
-                          }))
-                        }
-                        placeholder="Sin puntos"
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                        Correo electrónico *
-                      </label>
-                      <input
-                        type="email"
-                        value={activeTicket.customer.email}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...t.customer, email: e.target.value },
-                          }))
-                        }
-                        placeholder="cliente@correo.com"
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                        Teléfono
-                      </label>
-                      <input
-                        type="text"
-                        value={activeTicket.customer.phoneNumber}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: {
-                              ...t.customer,
-                              phoneNumber: e.target.value,
-                            },
-                          }))
-                        }
-                        placeholder="+54 9 11..."
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-white/10">
-                    <div className="col-span-2">
-                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                        Calle
-                      </label>
-                      <input
-                        type="text"
-                        value={activeTicket.customer.street}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...t.customer, street: e.target.value },
-                          }))
-                        }
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                        Número
-                      </label>
-                      <input
-                        type="text"
-                        value={activeTicket.customer.number}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...t.customer, number: e.target.value },
-                          }))
-                        }
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                        Ciudad
-                      </label>
-                      <input
-                        type="text"
-                        value={activeTicket.customer.city}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: { ...t.customer, city: e.target.value },
-                          }))
-                        }
-                        className="w-full bg-[#0C0A15] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-4 bg-[#181529] border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowClientModal(false)}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer"
-              >
-                Guardar y volver a Caja
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* MODAL DE ATAJOS DE TECLADO                                */}
-      {/* ========================================================= */}
-      {showShortcutsModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowShortcutsModal(false)}
-        >
-          <div
-            className="w-full max-w-md bg-[#12101F] border border-white/15 rounded-3xl p-6 space-y-4 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <Keyboard className="text-indigo-400" size={20} />
-                <h3 className="text-sm font-bold text-white">
-                  Atajos de Teclado del Cajero
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowShortcutsModal(false)}
                 className="text-slate-400 hover:text-white"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    ["FINAL_CONSUMER", "Consumidor Final"],
+                    ["EXISTING", "Registrado"],
+                    ["NEW", "Nuevo Rápido"],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => {
+                      if (mode === "FINAL_CONSUMER") {
+                        updateActiveTicket((t) => ({
+                          ...t,
+                          customer: { ...DEFAULT_CUSTOMER },
+                        }));
+                        setShowClientModal(false);
+                      } else if (mode === "NEW") {
+                        updateActiveTicket((t) => ({
+                          ...t,
+                          customer: {
+                            mode: "NEW",
+                            name: "",
+                            surname: "",
+                            dni: "",
+                            phoneNumber: "",
+                            email: "",
+                          },
+                        }));
+                      } else {
+                        updateActiveTicket((t) => ({
+                          ...t,
+                          customer: { ...t.customer, mode: "EXISTING" },
+                        }));
+                      }
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold border cursor-pointer ${
+                      activeTicket.customer.mode === mode
+                        ? "bg-indigo-600 text-white border-indigo-400"
+                        : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {activeTicket.customer.mode === "EXISTING" && (
+                <div className="max-h-52 overflow-y-auto divide-y divide-white/5 border border-white/10 rounded-xl bg-[#090710]">
+                  {clients.length === 0 ? (
+                    <p className="p-4 text-xs text-slate-500 text-center">
+                      Sin clientes cargados
+                    </p>
+                  ) : (
+                    clients.map((c) => (
+                      <button
+                        key={c.id ?? c.dni}
+                        type="button"
+                        onClick={() => {
+                          updateActiveTicket((t) => ({
+                            ...t,
+                            customer: {
+                              mode: "EXISTING",
+                              existingClientId: c.id,
+                              name: c.name,
+                              surname: c.surname,
+                              dni: c.dni,
+                              phoneNumber: c.phoneNumber || "",
+                              email: c.email,
+                            },
+                          }));
+                          setShowClientModal(false);
+                        }}
+                        className="w-full px-3 py-2 text-left hover:bg-indigo-600/20 flex justify-between items-center text-xs cursor-pointer"
+                      >
+                        <span className="font-semibold text-white">
+                          {c.surname}, {c.name}
+                        </span>
+                        <span className="font-mono text-slate-400">
+                          DNI {c.dni}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeTicket.customer.mode === "NEW" && (
+                <div className="grid grid-cols-2 gap-2.5">
+                  <input
+                    type="text"
+                    placeholder="Nombre *"
+                    value={activeTicket.customer.name}
+                    onChange={(e) =>
+                      updateActiveTicket((t) => ({
+                        ...t,
+                        customer: { ...t.customer, name: e.target.value },
+                      }))
+                    }
+                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Apellido *"
+                    value={activeTicket.customer.surname}
+                    onChange={(e) =>
+                      updateActiveTicket((t) => ({
+                        ...t,
+                        customer: { ...t.customer, surname: e.target.value },
+                      }))
+                    }
+                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="DNI (7-8 dígitos) *"
+                    value={activeTicket.customer.dni}
+                    onChange={(e) =>
+                      updateActiveTicket((t) => ({
+                        ...t,
+                        customer: { ...t.customer, dni: e.target.value },
+                      }))
+                    }
+                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Teléfono (opcional)"
+                    value={activeTicket.customer.phoneNumber}
+                    onChange={(e) =>
+                      updateActiveTicket((t) => ({
+                        ...t,
+                        customer: { ...t.customer, phoneNumber: e.target.value },
+                      }))
+                    }
+                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="px-5 py-3 bg-[#181529] border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowClientModal(false)}
+                className="px-5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
+              >
+                Listo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =============================================================== */}
+      {/* MODAL DE ATAJOS DE CAJA                                         */}
+      {/* =============================================================== */}
+      {showHelpModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          onClick={() => setShowHelpModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3"
+          >
+            <div className="flex justify-between items-center border-b border-white/10 pb-2">
+              <h3 className="text-xs font-bold uppercase text-white">
+                Atajos Rápidos de Operación
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowHelpModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-1.5 text-xs">
               {[
-                ["F2", "Enfocar lector de código de barras / ID"],
-                ["F3", "Enfocar buscador de productos por nombre"],
-                ["F4", "Abrir ventana de Cobro y Vuelto"],
-                ["F6", "Poner ticket en espera y abrir uno nuevo"],
-                ["F8", "Cambiar o cargar datos del Cliente"],
-              ].map(([key, desc]) => (
+                ["Cant * Código", "Ej: 5*7791234 agrega 5 unidades de golpe"],
+                ["F3", "Buscar artículo por nombre (tabla rápida)"],
+                ["=  ó  F4", "Abrir ventana de Cobro y Vuelto"],
+                ["F12", "Cobro Exacto Efectivo en 1 sola tecla"],
+                ["↑ / ↓", "Moverse entre líneas del ticket"],
+                ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
+                ["F6", "Poner ticket en espera y atender al siguiente"],
+                ["F7 / F8", "Descuento (%) / Cambiar cliente"],
+              ].map(([k, d]) => (
                 <div
-                  key={key}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/5"
+                  key={k}
+                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-white/5"
                 >
-                  <span className="text-slate-300">{desc}</span>
-                  <kbd className="px-2 py-1 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 font-mono font-bold">
-                    {key}
+                  <span className="text-slate-300">{d}</span>
+                  <kbd className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-bold">
+                    {k}
                   </kbd>
                 </div>
               ))}
@@ -1841,14 +2016,21 @@ export default function CreateSalePage() {
         </div>
       )}
 
-      {/* Confirmación para vaciar ticket */}
       <ConfirmModal
         isOpen={showClearConfirm}
-        title="Vaciar ticket actual"
+        title="Vaciar ticket"
         variant="danger"
-        message="¿Estás seguro de quitar todos los productos cargados en este ticket?"
+        message="¿Anular todos los ítems del ticket actual?"
         onCancel={() => setShowClearConfirm(false)}
-        onConfirm={clearCurrentTicket}
+        onConfirm={() => {
+          updateActiveTicket((t) => ({
+            ...t,
+            items: [],
+            discountPercent: 0,
+            cashTendered: "",
+          }));
+          setShowClearConfirm(false);
+        }}
         confirmText="Vaciar"
         cancelText="Cancelar"
       />
