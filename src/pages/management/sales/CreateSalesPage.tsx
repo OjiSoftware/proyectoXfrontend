@@ -16,7 +16,6 @@ import {
   ArrowLeftRight,
   PauseCircle,
   PlayCircle,
-  Percent,
   X,
   ArrowUp,
   ArrowDown,
@@ -31,6 +30,7 @@ import { productApi } from "@/services/ProductService";
 import { saleApi } from "@/services/SaleService";
 import { clientApi } from "@/services/ClientService";
 import { Product } from "@/types/product.types";
+import { Category } from "@/types/category.types";
 import { Client } from "@/types/client.types";
 
 interface CartItem {
@@ -40,6 +40,7 @@ interface CartItem {
   price: number;
   quantity: number;
   stock: number;
+  isDiaper: boolean;
 }
 
 type PaymentMethodType = "CASH" | "CARD" | "TRANSFER" | "QR";
@@ -58,11 +59,18 @@ interface PosTicket {
   id: string;
   label: string;
   items: CartItem[];
-  discountPercent: number;
   paymentMethod: PaymentMethodType;
   cashTendered: string;
   customer: CustomerData;
 }
+
+const CARD_DIAPER_SURCHARGE_RATE = 0.05; // +5% en pañales abonando con tarjeta
+
+const normalizeText = (value?: string | null): string =>
+  (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 const DEFAULT_CUSTOMER: CustomerData = {
   mode: "FINAL_CONSUMER",
@@ -77,7 +85,6 @@ const createEmptyTicket = (num: number): PosTicket => ({
   id: `t-${Date.now()}-${num}`,
   label: `#${num}`,
   items: [],
-  discountPercent: 0,
   paymentMethod: "CASH",
   cashTendered: "",
   customer: { ...DEFAULT_CUSTOMER },
@@ -88,6 +95,9 @@ export default function CreateSalePage() {
 
   // --- DATOS CACHEADOS EN MEMORIA PARA RESPUESTA INSTANTÁNEA ---
   const [products, setProducts] = useState<Product[]>([]);
+  const [categoriesMap, setCategoriesMap] = useState<Map<number, string>>(
+    () => new Map()
+  );
   const [clients, setClients] = useState<Client[]>([]);
   const [defaultClientId, setDefaultClientId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,7 +121,6 @@ export default function CreateSalePage() {
 
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
-  const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [showQtyEditModal, setShowQtyEditModal] = useState(false);
   const [qtyEditValue, setQtyEditValue] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -128,7 +137,6 @@ export default function CreateSalePage() {
     showSearchModal ||
     showCheckoutModal ||
     showClientModal ||
-    showDiscountModal ||
     showQtyEditModal ||
     showClearConfirm ||
     showHelpModal;
@@ -157,15 +165,21 @@ export default function CreateSalePage() {
     const loadInitial = async () => {
       try {
         setIsLoading(true);
-        const [prodData, cliData] = await Promise.all([
+        const [prodData, catData, cliData] = await Promise.all([
           productApi.getAllProducts().catch(() => []),
+          productApi.getAllCategories().catch(() => []),
           clientApi.getAllClients().catch(() => []),
         ]);
         const validProds = Array.isArray(prodData)
           ? prodData.filter((p) => p.status !== false)
           : [];
+        const validCats: Category[] = Array.isArray(catData) ? catData : [];
         const validClients = Array.isArray(cliData) ? cliData : [];
 
+        const catMap = new Map<number, string>();
+        validCats.forEach((c) => catMap.set(c.id, c.name));
+
+        setCategoriesMap(catMap);
         setProducts(validProds);
         setClients(validClients);
 
@@ -187,6 +201,19 @@ export default function CreateSalePage() {
     };
     loadInitial();
   }, []);
+
+  // Detector de artículo de pañales (por categoría o por nombre del producto)
+  const isDiaperProduct = useCallback(
+    (product: Product): boolean => {
+      const categoryName =
+        product.category?.name ||
+        (product.categoryId ? categoriesMap.get(product.categoryId) : "");
+      const normCat = normalizeText(categoryName);
+      const normName = normalizeText(product.name);
+      return normCat.includes("panal") || normName.includes("panal");
+    },
+    [categoriesMap]
+  );
 
   // Mantener foco siempre en la lectora cuando no hay un modal abierto
   const focusScanner = useCallback(() => {
@@ -223,7 +250,7 @@ export default function CreateSalePage() {
     }
   }, [activeTicket.items, selectedRowId]);
 
-  // --- TOTALES ---
+  // --- TOTALES Y RECARGO TARJETA EN PAÑALES (+5%) ---
   const subtotal = useMemo(
     () =>
       activeTicket.items.reduce(
@@ -233,14 +260,29 @@ export default function CreateSalePage() {
     [activeTicket.items]
   );
 
-  const discountAmount = useMemo(() => {
-    const pct = Math.min(100, Math.max(0, activeTicket.discountPercent || 0));
-    return Number(((subtotal * pct) / 100).toFixed(2));
-  }, [subtotal, activeTicket.discountPercent]);
+  const diaperSubtotal = useMemo(
+    () =>
+      activeTicket.items.reduce(
+        (acc, item) => (item.isDiaper ? acc + item.price * item.quantity : acc),
+        0
+      ),
+    [activeTicket.items]
+  );
+
+  const potentialCardDiaperSurcharge = useMemo(
+    () => Number((diaperSubtotal * CARD_DIAPER_SURCHARGE_RATE).toFixed(2)),
+    [diaperSubtotal]
+  );
+
+  const activeCardSurcharge = useMemo(
+    () =>
+      activeTicket.paymentMethod === "CARD" ? potentialCardDiaperSurcharge : 0,
+    [activeTicket.paymentMethod, potentialCardDiaperSurcharge]
+  );
 
   const finalTotal = useMemo(
-    () => Math.max(0, Number((subtotal - discountAmount).toFixed(2))),
-    [subtotal, discountAmount]
+    () => Math.max(0, Number((subtotal + activeCardSurcharge).toFixed(2))),
+    [subtotal, activeCardSurcharge]
   );
 
   const totalUnits = useMemo(
@@ -274,7 +316,9 @@ export default function CreateSalePage() {
         return false;
       }
 
+      const diaperFlag = isDiaperProduct(product);
       let addedOk = true;
+
       updateActiveTicket((ticket) => {
         const existing = ticket.items.find((i) => i.productId === product.id);
         if (existing) {
@@ -289,7 +333,7 @@ export default function CreateSalePage() {
             ...ticket,
             items: ticket.items.map((i) =>
               i.productId === product.id
-                ? { ...i, quantity: i.quantity + qty }
+                ? { ...i, quantity: i.quantity + qty, isDiaper: diaperFlag }
                 : i
             ),
           };
@@ -314,6 +358,7 @@ export default function CreateSalePage() {
               price: Number(product.price),
               quantity: qty,
               stock: available,
+              isDiaper: diaperFlag,
             },
           ],
         };
@@ -325,7 +370,7 @@ export default function CreateSalePage() {
       }
       return addedOk;
     },
-    [pendingMultiplier, updateActiveTicket]
+    [isDiaperProduct, pendingMultiplier, updateActiveTicket]
   );
 
   const setLineQuantity = useCallback(
@@ -394,7 +439,6 @@ export default function CreateSalePage() {
     const trimmed = rawInput.trim();
     if (!trimmed) return;
 
-    // Caso 1: "5*" -> deja multiplicador 5 cargado para el próximo escaneo
     const multOnlyMatch = trimmed.match(/^(\d+)\*$/);
     if (multOnlyMatch) {
       const qty = Math.max(1, parseInt(multOnlyMatch[1], 10));
@@ -403,7 +447,6 @@ export default function CreateSalePage() {
       return;
     }
 
-    // Caso 2: "5*77912345" o "5*coca" -> cantidad + búsqueda inmediata
     let qty = pendingMultiplier ?? 1;
     let query = trimmed;
     const inlineMultMatch = trimmed.match(/^(\d+)\*(.+)$/);
@@ -412,7 +455,6 @@ export default function CreateSalePage() {
       query = inlineMultMatch[2].trim();
     }
 
-    // 1° Prioridad: Coincidencia exacta por Código de Barras o ID numérico
     const exactProduct = products.find(
       (p) =>
         (p.barcode && p.barcode.toLowerCase() === query.toLowerCase()) ||
@@ -425,7 +467,6 @@ export default function CreateSalePage() {
       return;
     }
 
-    // 2° Prioridad: Búsqueda por nombre / código parcial
     const qLower = query.toLowerCase();
     const matches = products.filter(
       (p) =>
@@ -498,16 +539,26 @@ export default function CreateSalePage() {
       toast.error("El ticket está vacío", { duration: 1500 });
       return;
     }
+    const totalForCurrentMethod =
+      subtotal +
+      (activeTicket.paymentMethod === "CARD" ? potentialCardDiaperSurcharge : 0);
+
     updateActiveTicket((t) => ({
       ...t,
-      cashTendered: String(finalTotal),
+      cashTendered: String(Number(totalForCurrentMethod.toFixed(2))),
     }));
     setShowCheckoutModal(true);
     setTimeout(() => {
       cashInputRef.current?.focus();
       cashInputRef.current?.select();
     }, 30);
-  }, [activeTicket.items.length, finalTotal, updateActiveTicket]);
+  }, [
+    activeTicket.items.length,
+    activeTicket.paymentMethod,
+    potentialCardDiaperSurcharge,
+    subtotal,
+    updateActiveTicket,
+  ]);
 
   // --- PROCESAR VENTA EN SERVIDOR (ULTRA RÁPIDO) ---
   const processSale = useCallback(
@@ -516,12 +567,21 @@ export default function CreateSalePage() {
 
       const cust = activeTicket.customer;
       if (cust.mode === "NEW") {
-        if (!cust.name.trim() || !cust.surname.trim() || !/^\d{7,8}$/.test(cust.dni.trim())) {
+        if (
+          !cust.name.trim() ||
+          !cust.surname.trim() ||
+          !/^\d{7,8}$/.test(cust.dni.trim())
+        ) {
           toast.error("Revisá Nombre, Apellido y DNI (7-8 dígitos) del cliente");
           setShowClientModal(true);
           return;
         }
       }
+
+      const method = overrideMethod || activeTicket.paymentMethod;
+      const appliedSurcharge =
+        method === "CARD" ? potentialCardDiaperSurcharge : 0;
+      const computedTotal = Number((subtotal + appliedSurcharge).toFixed(2));
 
       setIsSubmitting(true);
       const toastId = toast.loading("Cerrando venta...");
@@ -573,18 +633,31 @@ export default function CreateSalePage() {
           clientIdToUse = newCliResp.id || newCliResp.client?.id;
         }
 
-        const method = overrideMethod || activeTicket.paymentMethod;
+        const saleDetails = activeTicket.items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+        }));
 
-        await saleApi.create({
+        const createdSale = await saleApi.create({
           clientId: clientIdToUse,
           status: "COMPLETED",
-          paymentMethod: method,
           sendEmail: false,
-          details: activeTicket.items.map((i) => ({
-            productId: i.productId,
-            quantity: i.quantity,
-          })),
+          details: saleDetails,
         });
+
+        // Si hubo recargo del 5% en pañales con tarjeta, dejar constancia en notas sin bloquear la caja
+        const createdSaleId = createdSale?.id || createdSale?.sale?.id;
+        if (createdSaleId && method === "CARD" && appliedSurcharge > 0) {
+          saleApi
+            .update(String(createdSaleId), {
+              status: "COMPLETED",
+              notes: `Pago con Tarjeta • Incluye +5% recargo en pañales (${formatARS(
+                appliedSurcharge
+              )}) • Total cobrado: ${formatARS(computedTotal)}`,
+              details: saleDetails,
+            })
+            .catch(() => {});
+        }
 
         // Descontar stock local al instante sin recargar
         setProducts((prev) =>
@@ -596,7 +669,7 @@ export default function CreateSalePage() {
           })
         );
 
-        toast.success(`Venta cerrada • ${formatARS(finalTotal)}`, {
+        toast.success(`Venta cerrada • ${formatARS(computedTotal)}`, {
           id: toastId,
           duration: 2000,
         });
@@ -624,8 +697,9 @@ export default function CreateSalePage() {
       activeTicket,
       activeTicketIndex,
       defaultClientId,
-      finalTotal,
       isSubmitting,
+      potentialCardDiaperSurcharge,
+      subtotal,
       ticketCounter,
       tickets,
     ]
@@ -667,10 +741,17 @@ export default function CreateSalePage() {
     );
   };
 
+  // Alternar rápido Efectivo <-> Tarjeta (para consultar precio con tarjeta al instante)
+  const toggleCardMode = useCallback(() => {
+    updateActiveTicket((t) => ({
+      ...t,
+      paymentMethod: t.paymentMethod === "CARD" ? "CASH" : "CARD",
+    }));
+  }, [updateActiveTicket]);
+
   // --- ATAJOS GLOBALES DE CAJERO ---
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      // Atajos que funcionan siempre
       if (e.key === "F2") {
         e.preventDefault();
         setShowSearchModal(false);
@@ -699,7 +780,7 @@ export default function CreateSalePage() {
       }
       if (e.key === "F7") {
         e.preventDefault();
-        setShowDiscountModal(true);
+        toggleCardMode();
         return;
       }
       if (e.key === "F8") {
@@ -715,14 +796,12 @@ export default function CreateSalePage() {
         return;
       }
 
-      // Cerrar cualquier modal con Escape
       if (e.key === "Escape") {
         if (isAnyModalOpen) {
           e.preventDefault();
           setShowSearchModal(false);
           setShowCheckoutModal(false);
           setShowClientModal(false);
-          setShowDiscountModal(false);
           setShowQtyEditModal(false);
           setShowClearConfirm(false);
           setShowHelpModal(false);
@@ -736,7 +815,6 @@ export default function CreateSalePage() {
         }
       }
 
-      // Controles rápidos sobre la tabla cuando NO hay modales abiertos y el input está vacío
       if (!isAnyModalOpen && commandInput === "") {
         if (e.key === "ArrowUp") {
           e.preventDefault();
@@ -775,6 +853,7 @@ export default function CreateSalePage() {
     processSale,
     removeSelectedRow,
     showCheckoutModal,
+    toggleCardMode,
   ]);
 
   const quickBills = useMemo(() => {
@@ -795,6 +874,8 @@ export default function CreateSalePage() {
   const selectedItem = activeTicket.items.find(
     (i) => i.productId === selectedRowId
   );
+
+  const isCardActive = activeTicket.paymentMethod === "CARD";
 
   return (
     <DashboardLayout>
@@ -844,7 +925,6 @@ export default function CreateSalePage() {
               </kbd>
             </button>
 
-            {/* Separador */}
             <div className="h-6 w-px bg-white/10 mx-0.5 hidden sm:block" />
 
             {/* Tickets / Ventas en espera */}
@@ -864,7 +944,11 @@ export default function CreateSalePage() {
                     }`}
                     title={`Cambiar a Ticket ${t.label}`}
                   >
-                    {active ? <PlayCircle size={13} /> : <PauseCircle size={13} className="text-amber-400" />}
+                    {active ? (
+                      <PlayCircle size={13} />
+                    ) : (
+                      <PauseCircle size={13} className="text-amber-400" />
+                    )}
                     <span>{t.label}</span>
                     {count > 0 && (
                       <span className="px-1.5 rounded bg-black/30 text-[10px]">
@@ -910,8 +994,30 @@ export default function CreateSalePage() {
             </button>
           </div>
 
-          {/* Botonera Derecha: Buscar, Descuento, Ayuda y Reloj */}
+          {/* Botonera Derecha: Medio rápido (Efectivo / Tarjeta), Buscar, Ayuda y Reloj */}
           <div className="flex items-center gap-1.5">
+            {/* Selector Rápido Efectivo vs Tarjeta (+5% pañales) */}
+            <button
+              type="button"
+              onClick={toggleCardMode}
+              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-bold cursor-pointer transition ${
+                isCardActive
+                  ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
+                  : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300"
+              }`}
+              title="Alternar simulación / cobro con Tarjeta (+5% en pañales) [F7]"
+            >
+              {isCardActive ? (
+                <CreditCard size={15} className="text-amber-400" />
+              ) : (
+                <Banknote size={15} className="text-emerald-400" />
+              )}
+              <span>{isCardActive ? "Tarjeta" : "Efectivo"}</span>
+              <kbd className="hidden xl:inline text-[10px] bg-black/30 px-1 rounded text-slate-400">
+                F7
+              </kbd>
+            </button>
+
             <button
               type="button"
               onClick={() => {
@@ -928,22 +1034,6 @@ export default function CreateSalePage() {
               <kbd className="hidden md:inline text-[10px] bg-black/30 px-1 rounded">
                 F3
               </kbd>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowDiscountModal(true)}
-              className={`h-9 px-2.5 rounded-lg border flex items-center gap-1 text-xs font-bold cursor-pointer transition ${
-                activeTicket.discountPercent > 0
-                  ? "bg-pink-500/25 border-pink-400/50 text-pink-200"
-                  : "bg-white/5 hover:bg-white/10 border-white/10 text-pink-400"
-              }`}
-              title="Aplicar porcentaje de descuento (F7)"
-            >
-              <Percent size={15} />
-              {activeTicket.discountPercent > 0 && (
-                <span>-{activeTicket.discountPercent}%</span>
-              )}
             </button>
 
             <button
@@ -1027,7 +1117,7 @@ export default function CreateSalePage() {
               </button>
             </form>
 
-            {/* Tabla de Líneas de Venta (Como uniCenta: limpia y directa) */}
+            {/* Tabla de Líneas de Venta */}
             <div
               className="flex-1 overflow-y-auto custom-scrollbar"
               onClick={(e) => {
@@ -1074,6 +1164,14 @@ export default function CreateSalePage() {
                   ) : (
                     activeTicket.items.map((item) => {
                       const isSelected = item.productId === selectedRowId;
+                      const lineBase = item.price * item.quantity;
+                      const lineCardExtra =
+                        isCardActive && item.isDiaper
+                          ? Number(
+                              (lineBase * CARD_DIAPER_SURCHARGE_RATE).toFixed(2)
+                            )
+                          : 0;
+
                       return (
                         <tr
                           key={item.productId}
@@ -1092,11 +1190,24 @@ export default function CreateSalePage() {
                           </td>
 
                           <td className="py-2.5 px-3 font-semibold">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               {isSelected && (
                                 <span className="w-1.5 h-4 rounded-full bg-indigo-400 shrink-0" />
                               )}
                               <span className="truncate">{item.name}</span>
+                              {item.isDiaper && (
+                                <span
+                                  className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide ${
+                                    isCardActive
+                                      ? "bg-amber-500/20 text-amber-300 border border-amber-400/40"
+                                      : "bg-white/5 text-slate-400 border border-white/10"
+                                  }`}
+                                >
+                                  {isCardActive
+                                    ? `+5% Tarj. (+${formatARS(lineCardExtra)})`
+                                    : "Pañales"}
+                                </span>
+                              )}
                             </div>
                           </td>
 
@@ -1141,7 +1252,7 @@ export default function CreateSalePage() {
                           </td>
 
                           <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">
-                            {formatARS(item.price * item.quantity)}
+                            {formatARS(lineBase)}
                           </td>
                         </tr>
                       );
@@ -1151,7 +1262,7 @@ export default function CreateSalePage() {
               </table>
             </div>
 
-            {/* Franja Inferior de Totales (Como uniCenta: Subtotal | Descuento | TOTAL) */}
+            {/* Franja Inferior de Totales: Unidades | Subtotal | Recargo Tarj. Pañales | TOTAL */}
             <div className="shrink-0 bg-[#141122] border-t border-white/10 p-3 grid grid-cols-3 sm:grid-cols-4 gap-2.5 items-center">
               <div className="hidden sm:block bg-[#0B0914] border border-white/10 rounded-lg px-3 py-2">
                 <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
@@ -1177,26 +1288,30 @@ export default function CreateSalePage() {
               <div
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowDiscountModal(true);
+                  toggleCardMode();
                 }}
-                className="bg-[#0B0914] border border-white/10 hover:border-pink-500/40 rounded-lg px-3 py-2 cursor-pointer transition"
-                title="Clic para modificar descuento"
+                className={`rounded-lg px-3 py-2 cursor-pointer transition border ${
+                  isCardActive && activeCardSurcharge > 0
+                    ? "bg-amber-950/30 border-amber-500/40"
+                    : "bg-[#0B0914] border-white/10 hover:border-amber-500/30"
+                }`}
+                title="Clic para alternar Efectivo / Tarjeta (+5% en pañales)"
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                  Descuento {activeTicket.discountPercent > 0 ? `(${activeTicket.discountPercent}%)` : ""}
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold truncate">
+                  {isCardActive ? "Tarj. +5% Pañales" : "Recargo Tarj."}
                 </span>
                 <span
                   className={`text-base font-mono font-bold ${
-                    discountAmount > 0 ? "text-pink-400" : "text-slate-500"
+                    activeCardSurcharge > 0 ? "text-amber-400" : "text-slate-500"
                   }`}
                 >
-                  - {formatARS(discountAmount)}
+                  + {formatARS(activeCardSurcharge)}
                 </span>
               </div>
 
               <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-lg px-3 py-2 text-right">
                 <span className="block text-[10px] uppercase tracking-wider text-emerald-300/80 font-bold">
-                  Total
+                  Total {isCardActive ? "(Tarjeta)" : ""}
                 </span>
                 <span className="text-xl xl:text-2xl font-mono font-black text-emerald-400 leading-tight block truncate">
                   {formatARS(finalTotal)}
@@ -1227,9 +1342,8 @@ export default function CreateSalePage() {
               </span>
             </div>
 
-            {/* Bloque Central: Columna de Acción de Fila (izq) + Numpad (der) igual a la foto */}
+            {/* Bloque Central: Columna de Acción de Fila (izq) + Numpad (der) */}
             <div className="flex-1 min-h-0 grid grid-cols-4 gap-2">
-              {/* Tira Vertical Izquierda de Acciones sobre la Tabla (▲ ▼ ⊖ 🔍 ✎) */}
               <div className="col-span-1 flex flex-col gap-1.5">
                 <button
                   type="button"
@@ -1292,7 +1406,6 @@ export default function CreateSalePage() {
 
               {/* Numpad Principal (3 cols) */}
               <div className="col-span-3 grid grid-cols-3 grid-rows-5 gap-1.5">
-                {/* Fila 1: CE | * | - */}
                 <button
                   type="button"
                   onClick={handleKeypadClear}
@@ -1317,7 +1430,6 @@ export default function CreateSalePage() {
                   −
                 </button>
 
-                {/* Fila 2: 1 | 2 | 3 */}
                 {["1", "2", "3"].map((n) => (
                   <button
                     key={n}
@@ -1329,7 +1441,6 @@ export default function CreateSalePage() {
                   </button>
                 ))}
 
-                {/* Fila 3: 4 | 5 | 6 */}
                 {["4", "5", "6"].map((n) => (
                   <button
                     key={n}
@@ -1341,7 +1452,6 @@ export default function CreateSalePage() {
                   </button>
                 ))}
 
-                {/* Fila 4: 7 | 8 | 9 */}
                 {["7", "8", "9"].map((n) => (
                   <button
                     key={n}
@@ -1353,7 +1463,6 @@ export default function CreateSalePage() {
                   </button>
                 ))}
 
-                {/* Fila 5: 0 | 00 | + */}
                 <button
                   type="button"
                   onClick={() => handleKeypadDigit("0")}
@@ -1390,7 +1499,7 @@ export default function CreateSalePage() {
               >
                 <div className="flex items-center gap-1">
                   <Zap size={14} className="text-amber-400" />
-                  <span>Exacto</span>
+                  <span>Efvo. Exacto</span>
                 </div>
                 <span className="text-[10px] font-mono text-indigo-300/80">
                   [F12] 1-Clic
@@ -1560,16 +1669,6 @@ export default function CreateSalePage() {
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Total Gigante */}
-              <div className="bg-[#090710] border border-emerald-500/40 rounded-xl p-3.5 flex items-center justify-between">
-                <span className="text-xs font-bold uppercase text-slate-400">
-                  Total a Cobrar
-                </span>
-                <span className="text-3xl font-black font-mono text-emerald-400">
-                  {formatARS(finalTotal)}
-                </span>
-              </div>
-
               {/* Medios de Pago Rápidos */}
               <div className="grid grid-cols-4 gap-1.5">
                 {(
@@ -1586,13 +1685,17 @@ export default function CreateSalePage() {
                     <button
                       key={pm.id}
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        const nextTotal =
+                          subtotal +
+                          (pm.id === "CARD" ? potentialCardDiaperSurcharge : 0);
                         updateActiveTicket((t) => ({
                           ...t,
                           paymentMethod: pm.id,
-                        }))
-                      }
-                      className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition ${
+                          cashTendered: String(Number(nextTotal.toFixed(2))),
+                        }));
+                      }}
+                      className={`relative py-2.5 px-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition ${
                         active
                           ? "bg-indigo-600 text-white border-indigo-400"
                           : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
@@ -1600,9 +1703,41 @@ export default function CreateSalePage() {
                     >
                       <Icon size={17} />
                       <span>{pm.label}</span>
+                      {pm.id === "CARD" && potentialCardDiaperSurcharge > 0 && (
+                        <span className="text-[9px] font-mono text-amber-300 leading-none">
+                          +5% pañal
+                        </span>
+                      )}
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Desglose y Total Gigante */}
+              <div className="bg-[#090710] border border-emerald-500/40 rounded-xl p-3.5 space-y-2">
+                {activeCardSurcharge > 0 && (
+                  <div className="space-y-1 pb-2 border-b border-white/10 text-xs">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Subtotal base</span>
+                      <span className="font-mono">{formatARS(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-amber-300 font-semibold">
+                      <span>Recargo Tarjeta (+5% en pañales)</span>
+                      <span className="font-mono">
+                        + {formatARS(activeCardSurcharge)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase text-slate-400">
+                    Total a Cobrar
+                  </span>
+                  <span className="text-3xl font-black font-mono text-emerald-400">
+                    {formatARS(finalTotal)}
+                  </span>
+                </div>
               </div>
 
               {/* Abona con + Vuelto (Solo en Efectivo) */}
@@ -1734,53 +1869,6 @@ export default function CreateSalePage() {
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      {/* =============================================================== */}
-      {/* MODAL DESCUENTO RÁPIDO (F7 / %)                                 */}
-      {/* =============================================================== */}
-      {showDiscountModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
-          onClick={() => setShowDiscountModal(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xs bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase text-slate-300">
-                Descuento General (%)
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowDiscountModal(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[0, 5, 10, 15, 20, 25].map((pct) => (
-                <button
-                  key={pct}
-                  type="button"
-                  onClick={() => {
-                    updateActiveTicket((t) => ({ ...t, discountPercent: pct }));
-                    setShowDiscountModal(false);
-                  }}
-                  className={`py-2.5 rounded-xl font-mono font-bold text-sm border cursor-pointer ${
-                    activeTicket.discountPercent === pct
-                      ? "bg-pink-600 text-white border-pink-400"
-                      : "bg-[#191628] text-slate-200 border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  {pct}%
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 
@@ -1996,10 +2084,10 @@ export default function CreateSalePage() {
                 ["F3", "Buscar artículo por nombre (tabla rápida)"],
                 ["=  ó  F4", "Abrir ventana de Cobro y Vuelto"],
                 ["F12", "Cobro Exacto Efectivo en 1 sola tecla"],
+                ["F7", "Alternar Efectivo / Tarjeta (+5% pañales)"],
                 ["↑ / ↓", "Moverse entre líneas del ticket"],
                 ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
-                ["F6", "Poner ticket en espera y atender al siguiente"],
-                ["F7 / F8", "Descuento (%) / Cambiar cliente"],
+                ["F6 / F8", "Ticket en espera / Cambiar cliente"],
               ].map(([k, d]) => (
                 <div
                   key={k}
@@ -2026,7 +2114,6 @@ export default function CreateSalePage() {
           updateActiveTicket((t) => ({
             ...t,
             items: [],
-            discountPercent: 0,
             cashTendered: "",
           }));
           setShowClearConfirm(false);
