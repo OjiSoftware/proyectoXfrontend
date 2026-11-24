@@ -331,9 +331,17 @@ export function SalesTable({
                   onClick={() => onSort('createdAt')}
                 >
                   <div className="relative inline-flex items-center justify-center">
-                    <span>Fecha y Hora</span>
+                    <span>Fecha</span>
                     <div className="absolute -right-5">{renderSortArrow('createdAt')}</div>
                   </div>
+                </TableHeadCell>
+              )}
+
+              {isVisible('time') && (
+                <TableHeadCell
+                  className={`${hideOnMobile} select-none text-center`}
+                >
+                  <span>Hora</span>
                 </TableHeadCell>
               )}
 
@@ -409,7 +417,7 @@ export function SalesTable({
             {sales.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={10}
+                  colSpan={11}
                   className="text-center py-8 text-slate-400 text-sm"
                 >
                   No se encontraron ventas registradas.
@@ -441,7 +449,7 @@ export function SalesTable({
                     }`}
                   >
                     {/* # Fila */}
-                    <TableCell className="px-4 font-bold text-slate-300 group-hover:text-indigo-400 transition-colors">
+                    <TableCell className="px-4 font-medium text-slate-500/70 group-hover:text-indigo-400 transition-colors">
                       {sale.originalIndex}
                     </TableCell>
 
@@ -466,17 +474,17 @@ export function SalesTable({
                       </TableCell>
                     )}
 
-                    {/* Fecha y Hora */}
+                    {/* Fecha */}
                     {isVisible('createdAt') && (
-                      <TableCell className={`${hideOnMobile} text-center py-3`}>
-                        <div className="flex flex-col items-center justify-center leading-tight">
-                          <span className="text-slate-200 font-medium">{date}</span>
-                          {time && (
-                            <span className="text-[11px] text-slate-400 font-mono mt-0.5">
-                              {time}
-                            </span>
-                          )}
-                        </div>
+                      <TableCell className={`${hideOnMobile} text-center py-3 text-slate-200 font-medium`}>
+                        {date}
+                      </TableCell>
+                    )}
+
+                    {/* Hora */}
+                    {isVisible('time') && (
+                      <TableCell className={`${hideOnMobile} text-center py-3 text-slate-400 font-mono text-xs`}>
+                        {time || '---'}
                       </TableCell>
                     )}
 

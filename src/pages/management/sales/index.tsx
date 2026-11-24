@@ -46,14 +46,24 @@ export default function SalesPage() {
   const ALL_SALE_COLS = new Set([
     'saleId',
     'createdAt',
+    'time',
     'client',
     'items',
     'payment',
     'status',
     'total',
   ]);
+  const DEFAULT_SALE_COLS = new Set([
+    'saleId',
+    'createdAt',
+    'time',
+    'items',
+    'payment',
+    'status',
+    'total',
+  ]);
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
-    new Set(ALL_SALE_COLS),
+    new Set(DEFAULT_SALE_COLS),
   );
   const toggleColumn = (col: string) => {
     setVisibleColumns((prev) => {
@@ -844,7 +854,8 @@ export default function SalesPage() {
                   {(
                     [
                       ['saleId', 'Comprobante'],
-                      ['createdAt', 'Fecha y Hora'],
+                      ['createdAt', 'Fecha'],
+                      ['time', 'Hora'],
                       ['client', 'Cliente / Canal'],
                       ['items', 'Artículos'],
                       ['payment', 'Pago'],
