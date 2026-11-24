@@ -97,7 +97,11 @@ export default function DashboardLayout({
                     title="Ir a la web pública"
                     className="flex shrink-0 items-center justify-center px-4 h-25 hover:opacity-80 transition-opacity"
                 >
-                    <img alt="OJI" src={logo} className="h-18 w-auto" />
+                    <img
+                        alt="OJI"
+                        src={logo}
+                        className={`h-18 w-auto transition-all ${managementTheme === "light" ? "brightness-0" : ""}`}
+                    />
                 </Link>
 
                 {/* Zona central scrolleable con Menu */}
@@ -212,8 +216,8 @@ export default function DashboardLayout({
                             className="inline-block h-10 w-10 rounded-full border border-white/10"
                         />
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-100 truncate">{user?.name || "Admin"}</p>
-                            <p className="text-xs text-slate-400 truncate mt-0.5">{user?.email}</p>
+                            <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{user?.name || "Admin"}</p>
+                            <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">{user?.email}</p>
                         </div>
                         <button
                             onClick={handleLogout}
