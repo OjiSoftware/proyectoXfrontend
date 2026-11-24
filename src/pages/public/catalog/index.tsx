@@ -21,6 +21,7 @@ export default function CatalogPage() {
 
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [selectedCatName, setSelectedCatName] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<"default" | "price_asc" | "price_desc" | "name_asc" | "name_desc">("default");
 
     // ---------------- FETCH ----------------
     useEffect(() => {
@@ -66,8 +67,24 @@ export default function CatalogPage() {
             );
         }
 
-        return filtered;
-    }, [search, selectedCategory, catProducts]);
+        return [...filtered].sort((a, b) => {
+            const offerDiff = (b.isOffer ? 1 : 0) - (a.isOffer ? 1 : 0);
+            if (offerDiff !== 0) return offerDiff;
+
+            switch (sortBy) {
+                case "price_asc":
+                    return a.price - b.price;
+                case "price_desc":
+                    return b.price - a.price;
+                case "name_asc":
+                    return a.name.localeCompare(b.name, "es");
+                case "name_desc":
+                    return b.name.localeCompare(a.name, "es");
+                default:
+                    return (b.id ?? 0) - (a.id ?? 0);
+            }
+        });
+    }, [search, selectedCategory, sortBy, catProducts]);
 
     // ---------------- HANDLERS DE FILTROS ----------------
     const handleSelectCategory = (catId: number, catName: string) => {
@@ -92,7 +109,7 @@ export default function CatalogPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, selectedCategory]);
+    }, [search, selectedCategory, sortBy]);
 
     // ---------------- UI ----------------
     return (
@@ -112,16 +129,31 @@ export default function CatalogPage() {
                         )}
                     </div>
 
-                    {/* Botón Filtros (solo visible en mobile) */}
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="md:hidden flex items-center gap-2 border border-gray-200 bg-white shadow-sm px-4 py-2 rounded-xl text-sm font-bold text-[#1A2D2A] hover:border-[#EDC062] hover:bg-gray-50 transition-all cursor-pointer"
-                    >
+                    {/* Ordenar + Botón Filtros (mobile) */}
+                    <div className="flex items-center gap-3">
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                            aria-label="Ordenar productos"
+                            className="border border-gray-200 bg-white shadow-sm px-3 py-2 rounded-xl text-xs md:text-sm font-semibold text-[#1A2D2A] focus:outline-none focus:border-[#37b9c7] cursor-pointer"
+                        >
+                            <option value="default">Más recientes</option>
+                            <option value="price_asc">Menor precio</option>
+                            <option value="price_desc">Mayor precio</option>
+                            <option value="name_asc">Nombre: A - Z</option>
+                            <option value="name_desc">Nombre: Z - A</option>
+                        </select>
+
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="md:hidden flex items-center gap-2 border border-gray-200 bg-white shadow-sm px-4 py-2 rounded-xl text-sm font-bold text-[#1A2D2A] hover:border-[#EDC062] hover:bg-gray-50 transition-all cursor-pointer"
+                        >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                         </svg>
                         <span>Filtros</span>
-                    </button>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-col md:flex-row items-start gap-6">

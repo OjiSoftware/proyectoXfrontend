@@ -152,7 +152,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 value={search}
                 onChange={handleSearchChange}
                 onSubmit={handleSearchSubmit}
-                placeholder="Buscá pañales, toallitas, productos..."
+                placeholder="¿Qué estás buscando?"
                 containerClassName="w-full mb-1"
                 inputClassName="
                                 bg-[#f5f6f8]
@@ -470,20 +470,6 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
         )}
-        {/* Sub-navegación de categorías (estilo Babylist) */}
-        <div className="w-full border-t border-gray-100 bg-white">
-          <div className="max-w-[1187px] mx-auto px-4 flex gap-6 overflow-x-auto whitespace-nowrap py-2.5 text-[13px] font-medium text-gray-700 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
-            {['Pañales', 'Toallitas', 'Baño e Higiene', 'Cuidado del Bebé', 'Alimentación', 'Ofertas'].map((c) => (
-              <a
-                key={c}
-                href={`/catalogo?search=${encodeURIComponent(c)}`}
-                className="hover:text-[#37b9c7] hover:underline decoration-[#FFE600] decoration-2 underline-offset-8 transition-colors"
-              >
-                {c}
-              </a>
-            ))}
-          </div>
-        </div>
       </nav>
 
       {/* FAB carrito - solo mobile */}
