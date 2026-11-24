@@ -48,13 +48,13 @@ export default function EditSalesPage() {
 
     const dniRegex = /^\d{7,8}$/;
     if (!dniRegex.test(formData.dni)) {
-      alert('El DNI debe tener entre 7 y 8 números sin puntos.');
+      alert('El DNI debe tener entre 7 y 8 nï¿½meros sin puntos.');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      alert('Por favor, ingresa un correo electrónico válido.');
+      alert('Por favor, ingresa un correo electrï¿½nico vï¿½lido.');
       return;
     }
 
@@ -128,7 +128,7 @@ export default function EditSalesPage() {
   }
 
   // --- BLOQUEO DE SEGURIDAD ---
-  // Si la venta ya fue cancelada o completada, mostramos una pantalla que impide la edición
+  // Si la venta ya fue cancelada o completada, mostramos una pantalla que impide la ediciï¿½n
   if (initialStatus === 'CANCELLED' || initialStatus === 'COMPLETED') {
     return (
       <DashboardLayout>
@@ -142,11 +142,11 @@ export default function EditSalesPage() {
             <p className="text-gray-300">
               Esta venta se encuentra finalizada y no puede ser modificada.
               {initialStatus === 'COMPLETED' &&
-                " Si querés agregar comentarios, hacelo desde el icono de 'chat' en la tabla de ventas."}
+                " Si querï¿½s agregar comentarios, hacelo desde el icono de 'chat' en la tabla de ventas."}
             </p>
             <button
               onClick={() => navigate('/management/sales')}
-              className="mt-4 px-6 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-500 transition cursor-pointer shadow-[0_0_15px_rgba(79,70,229,0.3)] w-full"
+              className="btn btn-md btn-primary w-full mt-4"
             >
               Volver a la tabla
             </button>
@@ -217,7 +217,7 @@ export default function EditSalesPage() {
               <div className="flex items-center gap-2">
                 <UserPlus className="text-brand-400" size={20} />
                 <h2 className="text-xs md:text-xs font-semibold text-white uppercase">
-                  Datos del cliente y facturación
+                  Datos del cliente y facturaciï¿½n
                 </h2>
               </div>
               {isClientOpen ? (
@@ -230,7 +230,7 @@ export default function EditSalesPage() {
             {isClientOpen && (
               <div className="p-4 border-t border-white/5 space-y-4 shadow-inner">
                 <h3 className="text-brand-400 text-xs font-semibold border-b border-white/10 pb-1 uppercase">
-                  Información personal
+                  Informaciï¿½n personal
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
                   <div>
@@ -259,7 +259,7 @@ export default function EditSalesPage() {
                       onChange={handleChange}
                       required
                       autoComplete="family-name"
-                      placeholder="Ej: Pérez"
+                      placeholder="Ej: Pï¿½rez"
                       className="w-full bg-slate-700/90 border border-gray-500 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-brand-400 outline-none transition-all placeholder:text-gray-400"
                     />
                   </div>
@@ -279,7 +279,7 @@ export default function EditSalesPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      Teléfono <span className="font-bold">*</span>
+                      Telï¿½fono <span className="font-bold">*</span>
                     </label>
                     <input
                       type="text"
@@ -294,7 +294,7 @@ export default function EditSalesPage() {
                   </div>
                   <div className="md:col-span-2 flex flex-col justify-end">
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      Correo electrónico <span className="font-bold">*</span>
+                      Correo electrï¿½nico <span className="font-bold">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -309,7 +309,7 @@ export default function EditSalesPage() {
                       />
                     </div>
 
-                    {/* ?? Única opción válida en edición: Notificar el pago al completar */}
+                    {/* ?? ï¿½nica opciï¿½n vï¿½lida en ediciï¿½n: Notificar el pago al completar */}
                     <label
                       className={`flex items-center gap-2 mt-3 cursor-pointer group transition-all duration-200 ${
                         formData.status !== 'COMPLETED'
@@ -327,14 +327,14 @@ export default function EditSalesPage() {
                         className="w-3.5 h-3.5 rounded border-gray-500 text-brand-500 bg-slate-800 cursor-pointer disabled:cursor-not-allowed"
                       />
                       <span className="text-[10px] text-gray-400 uppercase group-hover:text-gray-200 transition-colors">
-                        Enviar confirmación de pago al cliente
+                        Enviar confirmaciï¿½n de pago al cliente
                       </span>
                     </label>
                   </div>
                 </div>
 
                 <h3 className="text-brand-400 text-xs font-semibold border-b border-white/10 pb-1 mt-6 uppercase">
-                  Dirección de facturación <span className="font-bold">*</span>
+                  Direcciï¿½n de facturaciï¿½n <span className="font-bold">*</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
                   <div className="md:col-span-2">
@@ -354,7 +354,7 @@ export default function EditSalesPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      Número <span className="font-bold">*</span>
+                      Nï¿½mero <span className="font-bold">*</span>
                     </label>
                     <input
                       type="text"
@@ -429,7 +429,7 @@ export default function EditSalesPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      Código Postal <span className="font-bold">*</span>
+                      Cï¿½digo Postal <span className="font-bold">*</span>
                     </label>
                     <input
                       type="text"
@@ -444,7 +444,7 @@ export default function EditSalesPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      País <span className="font-bold">*</span>
+                      Paï¿½s <span className="font-bold">*</span>
                     </label>
                     <input
                       type="text"
@@ -453,7 +453,7 @@ export default function EditSalesPage() {
                       onChange={handleChange}
                       required
                       autoComplete="country-name"
-                      placeholder="País"
+                      placeholder="Paï¿½s"
                       className="w-full bg-slate-700/90 border border-gray-500 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-brand-400 outline-none transition-all placeholder:text-gray-400"
                     />
                   </div>
@@ -618,7 +618,7 @@ export default function EditSalesPage() {
             ))}
             {formData.details.length === 0 && (
               <div className="text-center py-6 text-slate-500 italic bg-slate-800/50 rounded-xl border border-white/10">
-                No hay productos añadidos aún
+                No hay productos aï¿½adidos aï¿½n
               </div>
             )}
           </div>
@@ -633,7 +633,7 @@ export default function EditSalesPage() {
                   <th className="px-4 py-3">Cantidad</th>
                   <th className="px-4 py-3">Precio</th>
                   <th className="px-4 py-3">Subtotal</th>
-                  <th className="px-4 py-3">Acción</th>
+                  <th className="px-4 py-3">Acciï¿½n</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -773,7 +773,7 @@ export default function EditSalesPage() {
                       colSpan={6}
                       className="px-4 py-8 text-center text-slate-500 italic"
                     >
-                      No hay productos añadidos aún
+                      No hay productos aï¿½adidos aï¿½n
                     </td>
                   </tr>
                 )}
@@ -797,19 +797,14 @@ export default function EditSalesPage() {
                 <button
                   type="button"
                   onClick={() => navigate('/management/sales')}
-                  className="flex-1 md:flex-none md:min-w-35 px-4 py-3 text-xs font-bold rounded-lg border border-slate-600 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-slate-500/20 hover:text-white hover:border-slate-400"
+                  className="btn btn-md btn-ghost flex-1 md:flex-none md:min-w-32"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isFormInvalid}
-                  className={`flex-1 md:flex-none md:min-w-35 px-4 py-3 text-xs font-bold rounded-lg transition-all duration-300
-                                      ${
-                                        isFormInvalid
-                                          ? 'bg-emerald-600 text-white cursor-not-allowed opacity-50'
-                                          : 'bg-emerald-600 text-white cursor-pointer hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]'
-                                      }`}
+                  className="btn btn-md btn-success flex-1 md:flex-none md:min-w-32"
                 >
                   Guardar cambios
                 </button>
@@ -832,8 +827,8 @@ export default function EditSalesPage() {
           variant="success"
           message={
             <div className="text-slate-300 text-xs">
-              ¿Estás seguro de registrar estos cambios en la venta? El total
-              será de
+              ï¿½Estï¿½s seguro de registrar estos cambios en la venta? El total
+              serï¿½ de
               <b className="text-white ml-1 font-bold">
                 {Number(formData.total).toLocaleString('es-AR', {
                   style: 'currency',

@@ -3,10 +3,11 @@ import { useSearchParams } from "react-router-dom";
 import { catalogApi } from "@/services/CatalogService";
 import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/Footer";
-import { CategorySidebar } from "@/components/CategorySidebar";
+import { CategorySidebar, SortOption } from "@/components/CategorySidebar";
 import Pagination from "@/components/PaginationCatalog";
 import { Product } from "@/types/product.types";
 import Navbar from "@/components/Navbar";
+import { PackageSearch } from "lucide-react";
 
 export default function CatalogPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -19,11 +20,10 @@ export default function CatalogPage() {
     const [showFilters, setShowFilters] = useState(false); // Estado para mostrar/ocultar filtros
     const itemsPerPage = 12;
 
-    const [selectedSubCategory, setSelectedSubCategory] = useState<number | null>(null);
-    const [selectedBrand, setSelectedBrand] = useState<number | null>(null);
+    const initialCategoryId = searchParams.get("categoryId") ? Number(searchParams.get("categoryId")) : null;
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(initialCategoryId);
     const [selectedCatName, setSelectedCatName] = useState<string | null>(null);
-    const [selectedSubCatName, setSelectedSubCatName] = useState<string | null>(null);
-    const [selectedBrandName, setSelectedBrandName] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<SortOption>("default");
 
     // ---------------- FETCH ----------------
     useEffect(() => {
@@ -41,9 +41,11 @@ export default function CatalogPage() {
         loadCatalog();
     }, []);
 
-    // Sincronizar búsqueda desde URL si cambia (ej. al presionar enter en Navbar)
+    // Sincronizar búsqueda y categoría desde URL si cambia
     useEffect(() => {
         setSearch(searchParams.get("search") || "");
+        const catId = searchParams.get("categoryId");
+        setSelectedCategory(catId ? Number(catId) : null);
     }, [searchParams]);
 
     // ---------------- BUSQUEDA Y FILTROS ----------------
@@ -63,38 +65,44 @@ export default function CatalogPage() {
             });
         }
 
-        /*         if (selectedSubCategory !== null) {
-                    filtered = filtered.filter((p) => Number(p.subCategoryId) === selectedSubCategory);
-                }
-        
-                if (selectedBrand !== null) {
-                    filtered = filtered.filter((p) => Number(p.brandId) === selectedBrand);
-                } */
+        if (selectedCategory !== null) {
+            filtered = filtered.filter(
+                (p) => Number(p.categoryId) === selectedCategory || Number(p.category?.id) === selectedCategory
+            );
+        }
 
-        return filtered;
-    }, [search, selectedSubCategory, selectedBrand, catProducts]);
+        return [...filtered].sort((a, b) => {
+            const offerDiff = (b.isOffer ? 1 : 0) - (a.isOffer ? 1 : 0);
+            if (offerDiff !== 0) return offerDiff;
+
+            switch (sortBy) {
+                case "price_asc":
+                    return a.price - b.price;
+                case "price_desc":
+                    return b.price - a.price;
+                case "name_asc":
+                    return a.name.localeCompare(b.name, "es");
+                case "name_desc":
+                    return b.name.localeCompare(a.name, "es");
+                default:
+                    return (b.id ?? 0) - (a.id ?? 0);
+            }
+        });
+    }, [search, selectedCategory, sortBy, catProducts]);
 
     // ---------------- HANDLERS DE FILTROS ----------------
-    const handleSelectSubCategory = (subId: number, subName: string, catName: string) => {
-        setSelectedSubCategory(subId);
-        setSelectedSubCatName(subName);
+    const handleSelectCategory = (catId: number, catName: string) => {
+        setSelectedCategory(catId);
         setSelectedCatName(catName);
     };
 
-    const handleSelectBrand = (brandId: number, brandName: string) => {
-        setSelectedBrand(brandId);
-        setSelectedBrandName(brandName);
-    };
-
     const handleClearFilters = () => {
-        setSelectedSubCategory(null);
-        setSelectedSubCatName(null);
+        setSelectedCategory(null);
         setSelectedCatName(null);
-        setSelectedBrand(null);
-        setSelectedBrandName(null);
         setSearch("");
-        if (searchParams.has("search")) {
+        if (searchParams.has("search") || searchParams.has("categoryId")) {
             searchParams.delete("search");
+            searchParams.delete("categoryId");
             setSearchParams(searchParams);
         }
     };
@@ -106,74 +114,102 @@ export default function CatalogPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, selectedSubCategory, selectedBrand]);
+    }, [search, selectedCategory, sortBy]);
 
     // ---------------- UI ----------------
     return (
-        <div className="flex flex-col min-h-screen w-full bg-[#F8F8F8] font-nunito text-[#1A2D2A]">
+        <div className="flex flex-col min-h-screen w-full bg-[linear-gradient(180deg,#d8f3f5_0%,#ffffff_420px,#ffffff_100%)] font-nunito text-[#1A2D2A]">
             {/* Navbar con búsqueda */}
             <Navbar search={search} setSearch={setSearch} />
 
-            <div className="w-full max-[1187px]:px-4 max-w-[1187px] mx-auto md:py-6 py-5 flex-grow">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="text-[#9E9494] md:text-sm text-[12px] flex items-center gap-1.5 flex-wrap">
-                        <span className="hover:text-gray-600 cursor-pointer transition-colors" onClick={handleClearFilters}>Upa Lelé</span>
-                        {(selectedCatName || selectedBrandName) && <span>/</span>}
-                        {selectedCatName && (
-                            <>
-                                <span className="cursor-default">{selectedCatName}</span>
-                                <span>/</span>
-                                <span className="cursor-default font-semibold text-gray-500">{selectedSubCatName}</span>
-                            </>
-                        )}
-                        {selectedCatName && selectedBrandName && <span>/</span>}
-                        {selectedBrandName && (
-                            <span className="cursor-default font-semibold text-gray-500">{selectedBrandName}</span>
-                        )}
+            <div className="w-full max-[1187px]:px-4 max-w-[1187px] mx-auto py-3 md:py-5 flex-grow">
+                {/* Encabezado del Catálogo */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#37b9c7] via-[#33aab8] to-[#2b99a6] px-4 py-2.5 md:px-6 md:py-3.5 mb-4 md:mb-5 shadow-[0_12px_30px_-12px_rgba(43,170,176,0.45)] border border-white/30 flex flex-row items-center justify-between gap-2 md:gap-4">
+                    <div className="hidden md:block pointer-events-none absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/15" />
+                    <div className="hidden md:block pointer-events-none absolute right-24 -bottom-16 w-40 h-40 rounded-full bg-[#FFF6B8]/20" />
+                    <div className="relative min-w-0 flex-1">
+                        <div className="text-white/90 text-[11px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest flex items-center gap-1.5 flex-wrap leading-snug">
+                            <span className="hover:text-[#FFF000] cursor-pointer transition-colors" onClick={handleClearFilters}>
+                                Upa Lelé
+                            </span>
+                            <span>/</span>
+                            <span>Catálogo</span>
+                            {selectedCatName && (
+                                <>
+                                    <span>/</span>
+                                    <span className="text-[#FFF000]">{selectedCatName}</span>
+                                </>
+                            )}
+                            {search.trim() && (
+                                <>
+                                    <span>/</span>
+                                    <span className="text-[#FFF000]">"{search.trim()}"</span>
+                                </>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Botón Filtros (solo visible en mobile) */}
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="md:hidden flex items-center gap-2 border border-gray-200 bg-white shadow-sm px-4 py-2 rounded-xl text-sm font-bold text-[#1A2D2A] hover:border-[#EDC062] hover:bg-gray-50 transition-all cursor-pointer"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        <span>Filtros</span>
-                    </button>
+                    <div className="relative flex items-center gap-3 shrink-0">
+                        <span className="hidden md:inline-flex bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold px-3.5 py-1.5 rounded-full">
+                            {filteredProducts.length} {filteredProducts.length === 1 ? "producto" : "productos"}
+                        </span>
+
+                        {/* Botón Filtros (solo visible en mobile) */}
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="md:hidden flex items-center gap-1.5 bg-[#FFF6B8] hover:bg-white shadow-sm px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-[#1A2D2A] transition-all cursor-pointer"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-[#2b99a6]">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                            </svg>
+                            <span>Filtros</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-col md:flex-row items-start gap-6">
                     {/* FILTROS (Fijo / lateral a la izquierda en desktop, desplegable en mobile) */}
                     <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 shrink-0`}>
                         <CategorySidebar
-                            onSelectSubCategory={handleSelectSubCategory}
-                            onSelectBrand={handleSelectBrand}
+                            onSelectCategory={handleSelectCategory}
                             onClearFilters={handleClearFilters}
-                            selectedSubCategory={selectedSubCategory}
-                            selectedBrand={selectedBrand}
+                            selectedCategory={selectedCategory}
+                            sortBy={sortBy}
+                            onSortChange={setSortBy}
                         />
                     </div>
 
                     {/* PRODUCTOS */}
                     <div className="w-full flex-1 flex flex-col gap-6 min-w-0">
                         {isLoading ? (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 flex-1 flex items-center justify-center">
-                                <div className="animate-spin h-8 w-8 text-[#33aab8] rounded-full border-4 border-t-transparent border-[#33aab8]" />
+                            <div className="bg-white rounded-3xl shadow-sm border border-[#D5F3F4] p-16 flex-1 flex flex-col items-center justify-center gap-3">
+                                <div className="animate-spin h-10 w-10 text-[#33aab8] rounded-full border-4 border-t-transparent border-[#33aab8]" />
+                                <p className="text-sm font-bold text-[#2b99a6]">Cargando productos...</p>
                             </div>
                         ) : filteredProducts.length === 0 ? (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex-1 flex items-center justify-center">
-                                <p className="text-gray-500 md:text-lg text-sm text-center">
-                                    No hay productos que coincidan con la selección
+                            <div className="bg-gradient-to-br from-[#FFF9CE]/60 to-[#FFF29C]/40 rounded-3xl shadow-sm border border-amber-200/60 p-10 flex-1 flex flex-col items-center justify-center text-center gap-3">
+                                <div className="bg-white p-4 rounded-2xl shadow-sm ring-4 ring-white/60">
+                                    <PackageSearch className="w-8 h-8 text-[#2b99a6]" />
+                                </div>
+                                <p className="text-[#2b99a6] font-bold md:text-xl text-base">
+                                    No encontramos productos con esa búsqueda
                                 </p>
+                                <p className="text-[#3d635f] text-sm max-w-sm">
+                                    Probá limpiando los filtros o buscando otra categoría.
+                                </p>
+                                <button
+                                    onClick={handleClearFilters}
+                                    className="mt-2 bg-[#33aab8] hover:bg-[#2b99a6] text-white font-bold text-xs uppercase tracking-wider px-6 py-2.5 rounded-full shadow-sm transition-all cursor-pointer"
+                                >
+                                    Ver todo el catálogo
+                                </button>
                             </div>
                         ) : (
                             <>
                                 {/* Contenedor de Productos */}
                                 <div className="w-full h-fit">
                                     {/* GRID */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
                                         {currentProducts.map((product) => (
                                             <ProductCard
                                                 key={product.id}

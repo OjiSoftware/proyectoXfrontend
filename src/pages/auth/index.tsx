@@ -277,7 +277,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex justify-center items-center gap-2 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-[0_0_20px_rgba(79,70,229,0.35)] transition-all duration-300 active:scale-95 disabled:opacity-50 cursor-pointer border border-indigo-400/30"
+                            className="btn btn-md btn-primary w-full"
                         >
                             {loading ? (
                                 <>

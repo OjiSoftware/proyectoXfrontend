@@ -24,10 +24,8 @@ import {
 import toast from "react-hot-toast";
 import { productApi } from "@/services/ProductService";
 import { saleApi } from "@/services/SaleService";
-import { clientApi } from "@/services/ClientService";
 import { Product } from "@/types/product.types";
 import { Category } from "@/types/category.types";
-import { Client } from "@/types/client.types";
 
 // --- CONSTANTES DE SEGURIDAD Y LÍMITES OPERATIVOS ---
 const CARD_DIAPER_SURCHARGE_RATE = 0.05; // +5% en pañales abonando con tarjeta
@@ -35,23 +33,6 @@ const MAX_MULTIPLIER = 999; // Evita desbordamiento si se escanea un EAN seguido
 const MAX_OPEN_TICKETS = 10; // Límite de tickets simultáneos en memoria
 const MAX_COMMAND_LENGTH = 100;
 const MAX_CASH_TENDERED = 999_999_999;
-
-// TODO (Backend): eliminar este bloque temporal cuando clientId sea opcional en POST /sales
-const GENERIC_CLIENT_PAYLOAD = {
-  name: "Consumidor",
-  surname: "Final",
-  dni: "99999999",
-  phoneNumber: "1100000000",
-  email: "consumidorfinal@oji.local",
-  addresses: {
-    street: "Mostrador",
-    streetNum: 1,
-    locality: "Local",
-    province: "Entre Ríos",
-    postalCode: "3228",
-    country: "Argentina",
-  },
-} as const;
 
 // --- HELPERS PUROS DE SANITIZACIÓN Y ARITMÉTICA SEGURA ---
 const roundCurrency = (value: number): number => {
@@ -139,7 +120,6 @@ export default function CreateSalePage() {
   const [categoriesMap, setCategoriesMap] = useState<Map<number, string>>(
     () => new Map()
   );
-  const [defaultClientId, setDefaultClientId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -204,10 +184,9 @@ export default function CreateSalePage() {
     const loadInitial = async () => {
       try {
         setIsLoading(true);
-        const [prodData, catData, cliData] = await Promise.all([
+        const [prodData, catData] = await Promise.all([
           productApi.getAllProducts().catch(() => []),
           productApi.getAllCategories().catch(() => []),
-          clientApi.getAllClients().catch(() => []),
         ]);
 
         if (cancelled || !isMountedRef.current) return;
@@ -227,26 +206,12 @@ export default function CreateSalePage() {
               Boolean(c) && typeof c.id === "number" && typeof c.name === "string"
           )
           : [];
-        const validClients: Client[] = Array.isArray(cliData)
-          ? cliData.filter((c): c is Client => Boolean(c) && typeof c.dni === "string")
-          : [];
 
         const catMap = new Map<number, string>();
         validCats.forEach((c) => catMap.set(c.id, c.name));
 
         setCategoriesMap(catMap);
         setProducts(validProds);
-
-        // TODO (Backend): quitar búsqueda de cliente genérico cuando clientId sea opcional
-        const existingCF = validClients.find(
-          (c) =>
-            c.dni === GENERIC_CLIENT_PAYLOAD.dni ||
-            (c.name?.toLowerCase() === "consumidor" &&
-              c.surname?.toLowerCase() === "final")
-        );
-        if (existingCF?.id && existingCF.id > 0) {
-          setDefaultClientId(existingCF.id);
-        }
       } catch {
         if (!cancelled && isMountedRef.current) {
           toast.error("No se pudieron cargar los datos de caja");
@@ -691,30 +656,12 @@ export default function CreateSalePage() {
       const toastId = toast.loading("Cerrando venta...");
 
       try {
-        // TODO (Backend): eliminar resolución de cliente genérico cuando clientId sea opcional en POST /sales
-        let clientIdToUse: number | undefined =
-          defaultClientId && defaultClientId > 0 ? defaultClientId : undefined;
-
-        if (!clientIdToUse) {
-          const cfResp = await clientApi.create(GENERIC_CLIENT_PAYLOAD);
-          const createdId = Number(cfResp?.id ?? cfResp?.client?.id);
-          if (Number.isInteger(createdId) && createdId > 0) {
-            clientIdToUse = createdId;
-            if (isMountedRef.current) setDefaultClientId(createdId);
-          }
-        }
-
-        if (!clientIdToUse || !Number.isInteger(clientIdToUse) || clientIdToUse <= 0) {
-          throw new Error("CLIENT_RESOLUTION_FAILED");
-        }
-
         const saleDetails = activeTicket.items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
         }));
 
         const createdSale = await saleApi.create({
-          clientId: clientIdToUse,
           status: "COMPLETED",
           sendEmail: false,
           details: saleDetails,
@@ -802,7 +749,6 @@ export default function CreateSalePage() {
     [
       activeTicket,
       cashTenderedNum,
-      defaultClientId,
       potentialCardDiaperSurcharge,
       products,
       safeTicketIndex,
@@ -995,7 +941,7 @@ export default function CreateSalePage() {
               type="button"
               disabled={isSubmitting}
               onClick={() => navigate("/management/sales")}
-              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white disabled:opacity-40 flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition"
+              className="btn btn-sm btn-subtle px-2.5 rounded-lg"
               title="Salir al listado de ventas"
             >
               <LogOut size={15} className="rotate-180 text-slate-400" />
@@ -1056,7 +1002,7 @@ export default function CreateSalePage() {
                 type="button"
                 disabled={isSubmitting || tickets.length >= MAX_OPEN_TICKETS}
                 onClick={handleParkOrNewTicket}
-                className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 disabled:opacity-40 text-xs font-semibold flex items-center gap-1 cursor-pointer transition"
+                className="btn btn-sm btn-subtle px-2.5 rounded-lg"
                 title="Dejar ticket en espera y abrir otro (F6)"
               >
                 <Plus size={14} />
@@ -1072,7 +1018,7 @@ export default function CreateSalePage() {
               type="button"
               disabled={activeTicket.items.length === 0 || isSubmitting}
               onClick={() => setShowClearConfirm(true)}
-              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1 text-xs font-semibold cursor-pointer transition"
+              className="btn btn-sm btn-danger px-2.5 rounded-lg"
               title="Anular / Vaciar ticket completo"
             >
               <Trash2 size={15} />
@@ -1086,10 +1032,7 @@ export default function CreateSalePage() {
               type="button"
               disabled={isSubmitting}
               onClick={toggleCardMode}
-              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-bold cursor-pointer transition disabled:opacity-40 ${isCardActive
-                ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
-                : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300"
-                }`}
+              className={`btn btn-sm px-3 rounded-lg ${isCardActive ? "btn-warning" : "btn-subtle"}`}
               title="Alternar simulación / cobro con Tarjeta (+5% en pañales) [F7]"
             >
               {isCardActive ? (
@@ -1106,7 +1049,7 @@ export default function CreateSalePage() {
             <button
               type="button"
               onClick={() => setShowHelpModal(true)}
-              className="h-9 w-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer transition"
+              className="btn btn-icon btn-subtle"
               title="Atajos de teclado"
             >
               <Keyboard size={16} />
@@ -1181,7 +1124,7 @@ export default function CreateSalePage() {
               <button
                 type="submit"
                 disabled={isLoading || isSubmitting}
-                className="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-[11px] font-bold tracking-wide cursor-pointer shrink-0 transition"
+                className="btn btn-xs btn-primary h-7 px-2.5 rounded-md tracking-wide shrink-0"
               >
                 ENTER
               </button>
@@ -1193,7 +1136,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => moveSelection(-1)}
                 disabled={activeTicket.items.length === 0 || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-sky-400"
                 title="Subir línea (↑)"
               >
                 <ArrowUp size={18} />
@@ -1203,7 +1146,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => moveSelection(1)}
                 disabled={activeTicket.items.length === 0 || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-sky-400"
                 title="Bajar línea (↓)"
               >
                 <ArrowDown size={18} />
@@ -1213,7 +1156,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => adjustSelectedRowQty(-1)}
                 disabled={!selectedItem || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-rose-500/25 border border-white/10 text-rose-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-rose-400"
                 title="Restar 1 unidad (-)"
               >
                 <Minus size={18} />
@@ -1223,7 +1166,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => adjustSelectedRowQty(1)}
                 disabled={!selectedItem || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-emerald-500/25 border border-white/10 text-emerald-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-emerald-400"
                 title="Sumar 1 unidad (+)"
               >
                 <Plus size={18} />
@@ -1237,7 +1180,7 @@ export default function CreateSalePage() {
                   setQtyEditValue(String(selectedItem.quantity));
                   setShowQtyEditModal(true);
                 }}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-amber-500/25 border border-white/10 text-amber-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-amber-400"
                 title="Editar cantidad exacta"
               >
                 <Pencil size={17} />
@@ -1247,7 +1190,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={removeSelectedRow}
                 disabled={!selectedItem || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-rose-500/25 border border-white/10 text-rose-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-rose-400"
                 title="Quitar artículo seleccionado (Supr)"
               >
                 <Trash2 size={17} />
@@ -1262,7 +1205,7 @@ export default function CreateSalePage() {
                   setShowSearchModal(true);
                   setTimeout(() => searchModalInputRef.current?.focus(), 20);
                 }}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-indigo-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-indigo-400"
                 title="Buscar artículo por nombre (F3)"
               >
                 <Search size={17} />
@@ -1331,8 +1274,8 @@ export default function CreateSalePage() {
                           focusScanner();
                         }}
                         className={`cursor-pointer transition-colors ${isSelected
-                          ? "bg-indigo-600/25 text-white"
-                          : "hover:bg-white/[0.04] text-slate-200"
+                          ? "bg-indigo-600/25 text-[var(--text-primary)]"
+                          : "hover:bg-white/[0.04] text-[var(--text-secondary)]"
                           }`}
                       >
                         <td className="py-2.5 px-4 font-mono text-xs text-slate-400 truncate max-w-[130px]">
@@ -1381,7 +1324,7 @@ export default function CreateSalePage() {
                             >
                               <Minus size={12} />
                             </button>
-                            <span className="min-w-[28px] text-center font-mono font-bold text-sm text-white">
+                            <span className="min-w-[28px] text-center font-mono font-bold text-sm text-[var(--text-primary)]">
                               {item.quantity}
                             </span>
                             <button
@@ -1419,7 +1362,7 @@ export default function CreateSalePage() {
             className="shrink-0 bg-[#141122] border-t border-white/10 p-3 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3"
           >
             {/* Totales */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 flex-1">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 flex-1">
               <div className="hidden sm:block bg-[#0B0914] border border-white/10 rounded-lg px-3 py-2">
                 <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
                   Unidades
@@ -1478,7 +1421,7 @@ export default function CreateSalePage() {
                 type="button"
                 disabled={activeTicket.items.length === 0 || isSubmitting}
                 onClick={openCheckout}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:pointer-events-none font-black text-base flex items-center justify-center gap-2  cursor-pointer active:scale-95 transition"
+                className="btn btn-lg btn-success font-black rounded-xl"
                 title="Abrir pantalla de cobro y vuelto (= o F4)"
               >
                 <span className="text-2xl leading-none font-mono">=</span>
@@ -1501,172 +1444,172 @@ export default function CreateSalePage() {
             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-start justify-center pt-10 md:pt-16 p-4 font-poppins"
             onClick={() => setShowSearchModal(false)}
           >
-          <div
-            className="w-full max-w-[780px] bg-[#0F0C1A] border border-white/15 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[78vh] ring-1 ring-white/5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Cabecera del buscador */}
-            <div className="px-4 py-3 bg-[#171327] border-b border-white/10 flex items-center gap-3 shrink-0">
-              <div className="flex-1 flex items-center gap-2.5 bg-[#090710] border border-indigo-500/40 focus-within:border-indigo-400 rounded-xl px-3 py-2">
-                <Search size={17} className="text-indigo-400 shrink-0" />
-                <input
-                  ref={searchModalInputRef}
-                  type="text"
-                  autoFocus
-                  autoComplete="off"
-                  maxLength={MAX_COMMAND_LENGTH}
-                  value={searchModalQuery}
-                  onChange={(e) => {
-                    setSearchModalQuery(
-                      sanitizeText(e.target.value, MAX_COMMAND_LENGTH)
-                    );
-                    setSearchSelectedIndex(0);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowDown") {
-                      e.preventDefault();
-                      setSearchSelectedIndex((i) =>
-                        Math.min(searchResults.length - 1, i + 1)
+            <div
+              className="w-full max-w-[780px] bg-[#0F0C1A] border border-white/15 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[78vh] ring-1 ring-white/5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Cabecera del buscador */}
+              <div className="px-4 py-3 bg-[#171327] border-b border-white/10 flex items-center gap-3 shrink-0">
+                <div className="flex-1 flex items-center gap-2.5 bg-[#090710] border border-indigo-500/40 focus-within:border-indigo-400 rounded-xl px-3 py-2">
+                  <Search size={17} className="text-indigo-400 shrink-0" />
+                  <input
+                    ref={searchModalInputRef}
+                    type="text"
+                    autoFocus
+                    autoComplete="off"
+                    maxLength={MAX_COMMAND_LENGTH}
+                    value={searchModalQuery}
+                    onChange={(e) => {
+                      setSearchModalQuery(
+                        sanitizeText(e.target.value, MAX_COMMAND_LENGTH)
                       );
-                    } else if (e.key === "ArrowUp") {
-                      e.preventDefault();
-                      setSearchSelectedIndex((i) => Math.max(0, i - 1));
-                    } else if (e.key === "Enter") {
-                      e.preventDefault();
-                      const chosen = searchResults[searchSelectedIndex];
-                      if (chosen && addProduct(chosen)) {
-                        setShowSearchModal(false);
-                      }
-                    }
-                  }}
-                  placeholder="Buscar artículo por nombre o código..."
-                  className="flex-1 min-w-0 bg-transparent! border-0! ring-0! focus:ring-0! focus:border-0! shadow-none! p-0! text-sm text-white placeholder:text-slate-500 outline-none"
-                />
-                {searchModalQuery && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchModalQuery("");
                       setSearchSelectedIndex(0);
-                      searchModalInputRef.current?.focus();
                     }}
-                    className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
-                  >
-                    <X size={15} />
-                  </button>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowSearchModal(false)}
-                className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 cursor-pointer transition"
-                title="Cerrar (Esc)"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Tabla de resultados */}
-            <div className="overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar">
-              <table className="w-full table-fixed text-left text-xs border-collapse">
-                <thead className="sticky top-0 z-10 bg-[#141122] text-slate-400 uppercase tracking-wider border-b border-white/10">
-                  <tr>
-                    <th className="py-2.5 px-4 w-32 font-semibold">Código</th>
-                    <th className="py-2.5 px-4 font-semibold">Artículo</th>
-                    <th className="py-2.5 px-4 w-24 text-center font-semibold">
-                      Stock
-                    </th>
-                    <th className="py-2.5 px-4 w-32 text-right font-semibold">
-                      Precio
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {searchResults.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="py-10 text-center text-slate-500 text-sm"
-                      >
-                        No se encontraron artículos para "{searchModalQuery}"
-                      </td>
-                    </tr>
-                  ) : (
-                    searchResults.map((p, idx) => {
-                      const active = idx === searchSelectedIndex;
-                      const avail =
-                        toSafeStock(p.stock) - getReservedInOtherTickets(p.id);
-                      const noStock = avail <= 0;
-                      return (
-                        <tr
-                          key={p.id}
-                          onClick={() => {
-                            if (!noStock && addProduct(p)) {
-                              setShowSearchModal(false);
-                            }
-                          }}
-                          className={`transition-colors ${noStock
-                            ? "opacity-40 text-gray cursor-not-allowed"
-                            : active
-                              ? "bg-indigo-600/35 text-white cursor-pointer"
-                              : "hover:bg-white/5 text-slate-200 cursor-pointer"
-                            }`}
-                        >
-                          <td className="py-2.5 px-4 font-mono text-slate-400 truncate">
-                            {p.barcode || p.id}
-                          </td>
-                          <td className="py-2.5 px-4 font-semibold truncate">
-                            {p.name}
-                          </td>
-                          <td className="py-2.5 px-4 text-center font-mono">
-                            <span
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${noStock
-                                ? "bg-rose-500/20 text-rose-300"
-                                : "bg-white/5 text-slate-200"
-                                }`}
-                            >
-                              {Math.max(0, avail)}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
-                            {formatARS(toSafePrice(p.price))}
-                          </td>
-                        </tr>
-                      );
-                    })
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSearchSelectedIndex((i) =>
+                          Math.min(searchResults.length - 1, i + 1)
+                        );
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        setSearchSelectedIndex((i) => Math.max(0, i - 1));
+                      } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        const chosen = searchResults[searchSelectedIndex];
+                        if (chosen && addProduct(chosen)) {
+                          setShowSearchModal(false);
+                        }
+                      }
+                    }}
+                    placeholder="Buscar artículo por nombre o código..."
+                    className="flex-1 min-w-0 bg-transparent! border-0! ring-0! focus:ring-0! focus:border-0! shadow-none! p-0! text-sm text-white placeholder:text-slate-500 outline-none"
+                  />
+                  {searchModalQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchModalQuery("");
+                        setSearchSelectedIndex(0);
+                        searchModalInputRef.current?.focus();
+                      }}
+                      className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
+                    >
+                      <X size={15} />
+                    </button>
                   )}
-                </tbody>
-              </table>
-            </div>
+                </div>
 
-            {/* Pie informativo */}
-            <div className="px-4 py-2 bg-[#141122] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-              <span>
-                Mostrando {searchResults.length} resultado
-                {searchResults.length === 1 ? "" : "s"}
-              </span>
-              <div className="flex items-center gap-3">
-                <span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
-                    ↑↓
-                  </kbd>{" "}
-                  Mover
-                </span>
-                <span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
-                    Enter
-                  </kbd>{" "}
-                  Agregar
-                </span>
-                <span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
-                    Esc
-                  </kbd>{" "}
-                  Cerrar
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowSearchModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 cursor-pointer transition"
+                  title="Cerrar (Esc)"
+                >
+                  <X size={18} />
+                </button>
               </div>
-            </div>
+
+              {/* Tabla de resultados */}
+              <div className="overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar">
+                <table className="w-full table-fixed text-left text-xs border-collapse">
+                  <thead className="sticky top-0 z-10 bg-[#141122] text-slate-400 uppercase tracking-wider border-b border-white/10">
+                    <tr>
+                      <th className="py-2.5 px-4 w-32 font-semibold">Código</th>
+                      <th className="py-2.5 px-4 font-semibold">Artículo</th>
+                      <th className="py-2.5 px-4 w-24 text-center font-semibold">
+                        Stock
+                      </th>
+                      <th className="py-2.5 px-4 w-32 text-right font-semibold">
+                        Precio
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {searchResults.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="py-10 text-center text-slate-500 text-sm"
+                        >
+                          No se encontraron artículos para "{searchModalQuery}"
+                        </td>
+                      </tr>
+                    ) : (
+                      searchResults.map((p, idx) => {
+                        const active = idx === searchSelectedIndex;
+                        const avail =
+                          toSafeStock(p.stock) - getReservedInOtherTickets(p.id);
+                        const noStock = avail <= 0;
+                        return (
+                          <tr
+                            key={p.id}
+                            onClick={() => {
+                              if (!noStock && addProduct(p)) {
+                                setShowSearchModal(false);
+                              }
+                            }}
+                            className={`transition-colors ${noStock
+                              ? "opacity-40 text-gray cursor-not-allowed"
+                              : active
+                                ? "bg-indigo-600/35 text-white cursor-pointer"
+                                : "hover:bg-white/5 text-slate-200 cursor-pointer"
+                              }`}
+                          >
+                            <td className="py-2.5 px-4 font-mono text-slate-400 truncate">
+                              {p.barcode || p.id}
+                            </td>
+                            <td className="py-2.5 px-4 font-semibold truncate">
+                              {p.name}
+                            </td>
+                            <td className="py-2.5 px-4 text-center font-mono">
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${noStock
+                                  ? "bg-rose-500/20 text-rose-300"
+                                  : "bg-white/5 text-slate-200"
+                                  }`}
+                              >
+                                {Math.max(0, avail)}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
+                              {formatARS(toSafePrice(p.price))}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pie informativo */}
+              <div className="px-4 py-2 bg-[#141122] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+                <span>
+                  Mostrando {searchResults.length} resultado
+                  {searchResults.length === 1 ? "" : "s"}
+                </span>
+                <div className="flex items-center gap-3">
+                  <span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                      ↑↓
+                    </kbd>{" "}
+                    Mover
+                  </span>
+                  <span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                      Enter
+                    </kbd>{" "}
+                    Agregar
+                  </span>
+                  <span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                      Esc
+                    </kbd>{" "}
+                    Cerrar
+                  </span>
+                </div>
+              </div>
             </div>
           </div>,
           document.body
@@ -1726,11 +1669,10 @@ export default function CreateSalePage() {
                             cashTendered: "",
                           }));
                         }}
-                        className={`relative py-3 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
-                          active
-                            ? "bg-indigo-600 text-white border-indigo-400"
-                            : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
-                        }`}
+                        className={`relative py-3 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${active
+                          ? "bg-indigo-600 text-white border-indigo-400"
+                          : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
+                          }`}
                       >
                         <Icon size={18} />
                         <span>{pm.label}</span>
@@ -1794,11 +1736,10 @@ export default function CreateSalePage() {
                               cashTendered: e.target.value.slice(0, 12),
                             }))
                           }
-                          className={`w-full bg-[#090710]! border rounded-xl! px-3! py-2! text-lg font-mono font-bold text-white placeholder:text-slate-600 outline-none focus:ring-0! ${
-                            hasUnderpaidCash
-                              ? "border-rose-500/70!"
-                              : "border-indigo-400/50!"
-                          }`}
+                          className={`w-full mgmt-input border rounded-xl! px-3! py-2! text-lg font-mono font-bold placeholder:text-slate-400 outline-none focus:ring-0! ${hasUnderpaidCash
+                            ? "border-rose-500/70!"
+                            : "border-indigo-400/50!"
+                            }`}
                         />
                       </div>
 
@@ -1820,14 +1761,14 @@ export default function CreateSalePage() {
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setShowCheckoutModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+                  className="btn btn-md btn-ghost text-xs"
                 >
                   Cancelar (Esc)
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting || hasUnderpaidCash}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn btn-md btn-success text-xs font-black"
                 >
                   <Check size={16} />
                   <span>{isSubmitting ? "Guardando..." : "CONFIRMAR (ENTER)"}</span>
@@ -1848,63 +1789,63 @@ export default function CreateSalePage() {
             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-poppins"
             onClick={() => setShowQtyEditModal(false)}
           >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const val = parseInt(qtyEditValue, 10);
-              if (Number.isFinite(val) && val >= 0) {
-                setLineQuantity(selectedItem.productId, val);
-              }
-              setShowQtyEditModal(false);
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[340px] bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3 shadow-2xl"
-          >
-            <h3 className="text-xs font-bold uppercase text-slate-300 truncate">
-              Cantidad: {selectedItem.name}
-            </h3>
-            <input
-              type="number"
-              min="0"
-              max={Math.min(MAX_MULTIPLIER, selectedItem.stock)}
-              step="1"
-              autoFocus
-              autoComplete="off"
-              value={qtyEditValue}
-              onChange={(e) =>
-                setQtyEditValue(sanitizeDigits(e.target.value, 4))
-              }
-              onFocus={(e) => e.currentTarget.select()}
-              className="w-full bg-[#090710]! border border-indigo-400! rounded-xl! px-3! py-2.5! text-xl font-mono font-bold text-center text-white outline-none focus:ring-0!"
-            />
-            <p className="text-[11px] text-slate-400 text-center">
-              Stock disponible:{" "}
-              {Math.max(
-                0,
-                selectedItem.stock -
-                getReservedInOtherTickets(selectedItem.productId)
-              )}{" "}
-              u. (0 elimina la línea)
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowQtyEditModal(false)}
-                className="flex-1 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
-              >
-                Aplicar
-              </button>
-            </div>
-          </form>
-        </div>,
-        document.body
-      )}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const val = parseInt(qtyEditValue, 10);
+                if (Number.isFinite(val) && val >= 0) {
+                  setLineQuantity(selectedItem.productId, val);
+                }
+                setShowQtyEditModal(false);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[340px] bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3 shadow-2xl"
+            >
+              <h3 className="text-xs font-bold uppercase text-slate-300 truncate">
+                Cantidad: {selectedItem.name}
+              </h3>
+              <input
+                type="number"
+                min="0"
+                max={Math.min(MAX_MULTIPLIER, selectedItem.stock)}
+                step="1"
+                autoFocus
+                autoComplete="off"
+                value={qtyEditValue}
+                onChange={(e) =>
+                  setQtyEditValue(sanitizeDigits(e.target.value, 4))
+                }
+                onFocus={(e) => e.currentTarget.select()}
+                className="w-full mgmt-input border border-indigo-400! rounded-xl! px-3! py-2.5! text-xl font-mono font-bold text-center outline-none focus:ring-0!"
+              />
+              <p className="text-[11px] text-slate-400 text-center">
+                Stock disponible:{" "}
+                {Math.max(
+                  0,
+                  selectedItem.stock -
+                  getReservedInOtherTickets(selectedItem.productId)
+                )}{" "}
+                u. (0 elimina la línea)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQtyEditModal(false)}
+                  className="btn btn-sm btn-ghost flex-1"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-sm btn-primary flex-1"
+                >
+                  Aplicar
+                </button>
+              </div>
+            </form>
+          </div>,
+          document.body
+        )}
 
       {/* =============================================================== */}
       {/* MODAL DE ATAJOS DE CAJA                                         */}
@@ -1915,48 +1856,48 @@ export default function CreateSalePage() {
             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-poppins"
             onClick={() => setShowHelpModal(false)}
           >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[440px] bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3 shadow-2xl"
-          >
-            <div className="flex justify-between items-center border-b border-white/10 pb-2">
-              <h3 className="text-xs font-bold uppercase text-white">
-                Atajos Rápidos de Operación
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowHelpModal(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="space-y-1.5 text-xs">
-              {[
-                ["Cant * Código", "Ej: 5*7791234 agrega 5 unidades de golpe"],
-                ["F3", "Buscar artículo por nombre (tabla rápida)"],
-                ["=  ó  F4", "Abrir ventana de Cobro y Vuelto"],
-                ["F12", "Cobro Exacto Efectivo en 1 sola tecla"],
-                ["F7", "Alternar Efectivo / Tarjeta (+5% pañales)"],
-                ["↑ / ↓", "Moverse entre líneas del ticket"],
-                ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
-                ["F6", "Poner ticket en espera y abrir otro"],
-              ].map(([k, d]) => (
-                <div
-                  key={k}
-                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-white/5"
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[440px] bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3 shadow-2xl"
+            >
+              <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                <h3 className="text-xs font-bold uppercase text-white">
+                  Atajos Rápidos de Operación
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowHelpModal(false)}
+                  className="text-slate-400 hover:text-white"
                 >
-                  <span className="text-slate-300">{d}</span>
-                  <kbd className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-bold">
-                    {k}
-                  </kbd>
-                </div>
-              ))}
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                {[
+                  ["Cant * Código", "Ej: 5*7791234 agrega 5 unidades de golpe"],
+                  ["F3", "Buscar artículo por nombre (tabla rápida)"],
+                  ["=  ó  F4", "Abrir ventana de Cobro y Vuelto"],
+                  ["F12", "Cobro Exacto Efectivo en 1 sola tecla"],
+                  ["F7", "Alternar Efectivo / Tarjeta (+5% pañales)"],
+                  ["↑ / ↓", "Moverse entre líneas del ticket"],
+                  ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
+                  ["F6", "Poner ticket en espera y abrir otro"],
+                ].map(([k, d]) => (
+                  <div
+                    key={k}
+                    className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-white/5"
+                  >
+                    <span className="text-slate-300">{d}</span>
+                    <kbd className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-bold">
+                      {k}
+                    </kbd>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
 
       <ConfirmModal
         isOpen={showClearConfirm}

@@ -284,24 +284,24 @@ export default function ProductsPage() {
         <>
             {/* TOAST DE BIENVENIDA */}
             <div
-                className={`fixed top-6 right-6 z-[100] transition-all duration-500 transform ${showWelcome
+                className={`fixed bottom-6 right-6 z-[100] transition-all duration-500 transform ${showWelcome
                     ? "translate-x-0 opacity-100"
                     : "translate-x-[120%] opacity-0"
                     }`}
             >
-                <div className="bg-slate-800/90 backdrop-blur-md border border-white/10 shadow-2xl rounded-xl p-4 flex items-start gap-3 min-w-[300px]">
-                    <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                <div className="mgmt-modal backdrop-blur-md shadow-2xl rounded-xl p-4 flex items-start gap-3 min-w-[300px]">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                        <h3 className="text-xs font-poppins text-white">
+                        <h3 className="text-xs font-semibold font-poppins text-[var(--text-primary)]">
                             ¡Hola, {userName}!
                         </h3>
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p className="text-xs text-[var(--text-muted)] mt-1">
                             Sesión iniciada correctamente.
                         </p>
                     </div>
                     <button
                         onClick={() => setShowWelcome(false)}
-                        className="text-slate-500 hover:text-white transition-colors cursor-pointer"
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -328,12 +328,12 @@ export default function ProductsPage() {
                             <button
                                 onClick={() => setOpenDropdown(openDropdown === 'lowStock' ? null : 'lowStock')}
                                 className={`relative flex items-center justify-center w-9 h-9 rounded-xl border transition-all duration-200 cursor-pointer ${openDropdown === 'lowStock'
-                                    ? 'bg-amber-500/25 border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
-                                    : 'bg-amber-900/30 border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-400/40'
+                                    ? 'bg-amber-500/20 border-amber-500/50 shadow-[0_0_12px_rgba(251,191,36,0.25)]'
+                                    : 'bg-amber-500/10 border-amber-500/25 hover:bg-amber-500/20 hover:border-amber-500/40'
                                     }`}
                                 title="Casi sin stock"
                             >
-                                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                                <AlertTriangle className="w-4 h-4 text-amber-500" />
                                 {lowStockCount > 0 && (
                                     <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-amber-400 text-gray-900 text-[9px] font-black rounded-full flex items-center justify-center leading-none">
                                         {lowStockCount}
@@ -341,21 +341,21 @@ export default function ProductsPage() {
                                 )}
                             </button>
                             {openDropdown === 'lowStock' && (
-                                <div className="absolute right-0 top-full mt-2 w-64 bg-gray-900/95 backdrop-blur-xl border border-amber-500/20 rounded-2xl shadow-2xl shadow-amber-900/20 z-50 overflow-hidden">
-                                    <div className="px-4 py-3 border-b border-amber-500/15 bg-amber-900/20">
+                                <div className="absolute right-0 top-full mt-2 w-64 mgmt-modal backdrop-blur-xl rounded-2xl shadow-2xl z-50 overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-amber-500/10">
                                         <div className="flex items-center gap-2">
-                                            <AlertTriangle className="w-4 h-4 text-amber-400" />
-                                            <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">Casi sin stock</p>
+                                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                            <p className="text-xs font-bold text-amber-500 uppercase tracking-wider">Casi sin stock</p>
                                         </div>
-                                        <p className="text-2xl font-black text-amber-400 mt-1">{lowStockCount} <span className="text-xs font-normal text-amber-200/60">productos</span></p>
+                                        <p className="text-2xl font-black text-amber-500 mt-1">{lowStockCount} <span className="text-xs font-normal text-[var(--text-muted)]">productos</span></p>
                                     </div>
                                     <div className="max-h-52 overflow-y-auto py-1">
                                         {lowStockProducts.length === 0 ? (
-                                            <p className="text-xs text-gray-500 px-4 py-3 text-center">Sin alertas activas</p>
+                                            <p className="text-xs text-[var(--text-muted)] px-4 py-3 text-center">Sin alertas activas</p>
                                         ) : lowStockProducts.map(p => (
-                                            <div key={p.id} className="flex items-center justify-between px-4 py-2 hover:bg-white/5 transition-colors">
-                                                <span className="text-xs text-gray-300 truncate flex-1 mr-2">{p.name}</span>
-                                                <span className="text-xs font-bold text-amber-400 shrink-0">{p.stock} uds.</span>
+                                            <div key={p.id} className="flex items-center justify-between px-4 py-2 hover:bg-[var(--bg-elevated)] transition-colors">
+                                                <span className="text-xs text-[var(--text-primary)] truncate flex-1 mr-2">{p.name}</span>
+                                                <span className="text-xs font-bold text-amber-500 shrink-0">{p.stock} uds.</span>
                                             </div>
                                         ))}
                                     </div>
@@ -368,34 +368,34 @@ export default function ProductsPage() {
                             <button
                                 onClick={() => setOpenDropdown(openDropdown === 'outOfStock' ? null : 'outOfStock')}
                                 className={`relative flex items-center justify-center w-9 h-9 rounded-xl border transition-all duration-200 cursor-pointer ${openDropdown === 'outOfStock'
-                                    ? 'bg-rose-500/25 border-rose-400/50 shadow-[0_0_12px_rgba(244,63,94,0.3)]'
-                                    : 'bg-rose-900/30 border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-400/40'
+                                    ? 'bg-rose-500/20 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.25)]'
+                                    : 'bg-rose-500/10 border-rose-500/25 hover:bg-rose-500/20 hover:border-rose-500/40'
                                     }`}
                                 title="Sin stock"
                             >
-                                <PackageX className="w-4 h-4 text-rose-400" />
+                                <PackageX className="w-4 h-4 text-rose-500" />
                                 {outOfStockCount > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-rose-400 text-white text-[9px] font-black rounded-full flex items-center justify-center leading-none">
+                                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center leading-none">
                                         {outOfStockCount}
                                     </span>
                                 )}
                             </button>
                             {openDropdown === 'outOfStock' && (
-                                <div className="absolute right-0 top-full mt-2 w-64 bg-gray-900/95 backdrop-blur-xl border border-rose-500/20 rounded-2xl shadow-2xl shadow-rose-900/20 z-50 overflow-hidden">
-                                    <div className="px-4 py-3 border-b border-rose-500/15 bg-rose-900/20">
+                                <div className="absolute right-0 top-full mt-2 w-64 mgmt-modal backdrop-blur-xl rounded-2xl shadow-2xl z-50 overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-rose-500/10">
                                         <div className="flex items-center gap-2">
-                                            <PackageX className="w-4 h-4 text-rose-400" />
-                                            <p className="text-xs font-bold text-rose-300 uppercase tracking-wider">Sin stock</p>
+                                            <PackageX className="w-4 h-4 text-rose-500" />
+                                            <p className="text-xs font-bold text-rose-500 uppercase tracking-wider">Sin stock</p>
                                         </div>
-                                        <p className="text-2xl font-black text-rose-400 mt-1">{outOfStockCount} <span className="text-xs font-normal text-rose-200/60">productos</span></p>
+                                        <p className="text-2xl font-black text-rose-500 mt-1">{outOfStockCount} <span className="text-xs font-normal text-[var(--text-muted)]">productos</span></p>
                                     </div>
                                     <div className="max-h-52 overflow-y-auto py-1">
                                         {outOfStockProducts.length === 0 ? (
-                                            <p className="text-xs text-gray-500 px-4 py-3 text-center">Sin alertas activas</p>
+                                            <p className="text-xs text-[var(--text-muted)] px-4 py-3 text-center">Sin alertas activas</p>
                                         ) : outOfStockProducts.map(p => (
-                                            <div key={p.id} className="flex items-center justify-between px-4 py-2 hover:bg-white/5 transition-colors">
-                                                <span className="text-xs text-gray-300 truncate flex-1 mr-2">{p.name}</span>
-                                                <span className="text-xs font-bold text-rose-400 shrink-0">0 uds.</span>
+                                            <div key={p.id} className="flex items-center justify-between px-4 py-2 hover:bg-[var(--bg-elevated)] transition-colors">
+                                                <span className="text-xs text-[var(--text-primary)] truncate flex-1 mr-2">{p.name}</span>
+                                                <span className="text-xs font-bold text-rose-500 shrink-0">0 uds.</span>
                                             </div>
                                         ))}
                                     </div>
@@ -408,34 +408,34 @@ export default function ProductsPage() {
                             <button
                                 onClick={() => setOpenDropdown(openDropdown === 'hidden' ? null : 'hidden')}
                                 className={`relative flex items-center justify-center w-9 h-9 rounded-xl border transition-all duration-200 cursor-pointer ${openDropdown === 'hidden'
-                                    ? 'bg-gray-600/40 border-gray-400/40 shadow-[0_0_12px_rgba(148,163,184,0.2)]'
-                                    : 'bg-gray-800/50 border-white/10 hover:bg-gray-700/50 hover:border-white/20'
+                                    ? 'bg-indigo-500/15 border-indigo-500/40 shadow-[0_0_12px_rgba(99,102,241,0.2)]'
+                                    : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] hover:border-[var(--border-strong)]'
                                     }`}
                                 title="Productos ocultos"
                             >
-                                <EyeOff className="w-4 h-4 text-gray-400" />
+                                <EyeOff className="w-4 h-4 text-[var(--text-muted)]" />
                                 {hiddenProductsCount > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-gray-400 text-gray-900 text-[9px] font-black rounded-full flex items-center justify-center leading-none">
+                                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-slate-500 text-white text-[9px] font-black rounded-full flex items-center justify-center leading-none">
                                         {hiddenProductsCount}
                                     </span>
                                 )}
                             </button>
                             {openDropdown === 'hidden' && (
-                                <div className="absolute right-0 top-full mt-2 w-64 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                                    <div className="px-4 py-3 border-b border-white/5 bg-gray-800/50">
+                                <div className="absolute right-0 top-full mt-2 w-64 mgmt-modal backdrop-blur-xl rounded-2xl shadow-2xl z-50 overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
                                         <div className="flex items-center gap-2">
-                                            <EyeOff className="w-4 h-4 text-gray-400" />
-                                            <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">Ocultos del catálogo</p>
+                                            <EyeOff className="w-4 h-4 text-[var(--text-muted)]" />
+                                            <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Ocultos del catálogo</p>
                                         </div>
-                                        <p className="text-2xl font-black text-gray-200 mt-1">{hiddenProductsCount} <span className="text-xs font-normal text-gray-500">productos</span></p>
+                                        <p className="text-2xl font-black text-[var(--text-primary)] mt-1">{hiddenProductsCount} <span className="text-xs font-normal text-[var(--text-muted)]">productos</span></p>
                                     </div>
                                     <div className="max-h-52 overflow-y-auto py-1">
                                         {hiddenProducts.length === 0 ? (
-                                            <p className="text-xs text-gray-500 px-4 py-3 text-center">Sin productos ocultos</p>
+                                            <p className="text-xs text-[var(--text-muted)] px-4 py-3 text-center">Sin productos ocultos</p>
                                         ) : hiddenProducts.map(p => (
-                                            <div key={p.id} className="flex items-center justify-between px-4 py-2 hover:bg-white/5 transition-colors">
-                                                <span className="text-xs text-gray-300 truncate flex-1 mr-2">{p.name}</span>
-                                                <span className="text-xs text-gray-500 shrink-0">oculto</span>
+                                            <div key={p.id} className="flex items-center justify-between px-4 py-2 hover:bg-[var(--bg-elevated)] transition-colors">
+                                                <span className="text-xs text-[var(--text-primary)] truncate flex-1 mr-2">{p.name}</span>
+                                                <span className="text-xs text-[var(--text-muted)] shrink-0">oculto</span>
                                             </div>
                                         ))}
                                     </div>
@@ -455,7 +455,7 @@ export default function ProductsPage() {
                                 <SearchBar
                                     value={query}
                                     onChange={setQuery}
-                                    placeholder="Buscar por nombre del producto..."
+                                    placeholder="Buscar por nombre o código del producto..."
                                     containerClassName="max-w-full"
                                     inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
                                     iconClassName="text-slate-500 group-focus-within:text-indigo-400"
@@ -734,7 +734,7 @@ export default function ProductsPage() {
                             {hasActiveFilters && (
                                 <button
                                     onClick={resetFilters}
-                                    className="h-11 flex items-center gap-2 px-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 text-xs font-medium transition-all hover:bg-rose-500/20 hover:border-rose-500/40 active:scale-95 cursor-pointer"
+                                    className="btn btn-md btn-danger text-xs font-medium"
                                     title="Limpiar todos los filtros"
                                 >
                                     <X className="w-4 h-4" />
@@ -942,13 +942,13 @@ export default function ProductsPage() {
                                             resetFilters();
                                             setMobileFilterOpen(false);
                                         }}
-                                        className="flex-1 py-2.5 rounded-xl bg-white/5 text-slate-300 text-xs font-semibold hover:bg-white/10 transition"
+                                        className="btn btn-sm btn-subtle flex-1"
                                     >
                                         Limpiar
                                     </button>
                                     <button
                                         onClick={() => setMobileFilterOpen(false)}
-                                        className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/30"
+                                        className="btn btn-sm btn-primary flex-1"
                                     >
                                         Aplicar Filtros
                                     </button>

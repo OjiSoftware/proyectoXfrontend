@@ -249,7 +249,7 @@ export default function CreateProductPage() {
                                 autoComplete="off" // Evita sugerencias de nombres de personas
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Ej: Teclado Mecánico"
+                                placeholder="Ej: Pañal..."
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                                 required
                             />
@@ -542,7 +542,7 @@ export default function CreateProductPage() {
                                     onClick={() =>
                                         navigate("/management/products")
                                     }
-                                    className="flex-1 md:flex-none md:min-w-32 px-5 py-2.5 text-xs font-semibold rounded-xl border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white active:scale-95"
+                                    className="btn btn-md btn-ghost flex-1 md:flex-none md:min-w-32"
                                 >
                                     Cancelar
                                 </button>
@@ -550,11 +550,7 @@ export default function CreateProductPage() {
                                 <button
                                     type="submit"
                                     disabled={isFormInvalid}
-                                    className={`flex-1 md:flex-none md:min-w-32 px-5 py-2.5 text-xs font-semibold border rounded-xl transition-all duration-300 active:scale-95 active:translate-y-0
-                                      ${isFormInvalid
-                                            ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40 border-white/5 pointer-events-none"
-                                            : "bg-emerald-600/20 text-emerald-400 border-emerald-500/30 cursor-pointer hover:bg-emerald-500/30 hover:border-emerald-400/50 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
-                                        }`}
+                                    className="btn btn-md btn-success flex-1 md:flex-none md:min-w-32"
                                 >
                                     Crear producto
                                 </button>

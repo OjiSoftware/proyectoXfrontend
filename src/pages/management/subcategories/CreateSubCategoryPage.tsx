@@ -117,7 +117,7 @@ export default function CreateSubCategoryPage() {
                             <button
                                 type="button"
                                 onClick={() => navigate("/management/subcategories")}
-                                className="flex-1 md:flex-none md:min-w-35 px-4 py-3 text-xs font-bold rounded-lg border border-slate-600 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-slate-500/20 hover:text-white hover:border-slate-400"
+                                className="btn btn-md btn-ghost flex-1 md:flex-none md:min-w-32"
                             >
                                 Cancelar
                             </button>
@@ -125,12 +125,7 @@ export default function CreateSubCategoryPage() {
                             <button
                                 type="submit"
                                 disabled={isFormInvalid}
-                                className={`flex-1 md:flex-none md:min-w-35 px-4 py-3 text-xs font-bold rounded-lg transition-all duration-300
-                                      ${
-                                          isFormInvalid
-                                              ? "bg-emerald-600 text-white cursor-not-allowed opacity-50"
-                                              : "bg-emerald-600 text-white cursor-pointer hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                                      }`}
+                                className="btn btn-md btn-success flex-1 md:flex-none md:min-w-32"
                             >
                                 Crear subcategoría
                             </button>

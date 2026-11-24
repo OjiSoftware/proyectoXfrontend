@@ -1,145 +1,374 @@
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
+import { DownloadIcon, XIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { DownloadIcon, FilterIcon, CalendarIcon, LightbulbIcon, TrendingUpIcon, TrendingDownIcon } from "lucide-react";
+import SearchBar from "@/components/SearchBar";
+import Pagination from "@/components/PaginationManagement";
+import { useItemsPerpage } from "@/hooks/useItemsPerpage";
+import { reportApi } from "@/services/ReportService";
+import { productApi } from "@/services/ProductService";
+import { exportExcel } from "@/helpers/excelExport";
+import { buildSalesReportSheets } from "@/helpers/reportExport";
+import type { SalesReportResult } from "@/types/report.types";
 
-// Mock Data
-const barData = [
-  { mes: 'Ene', online: 4000, offline: 2400 },
-  { mes: 'Feb', online: 3000, offline: 1398 },
-  { mes: 'Mar', online: 2000, offline: 9800 },
-  { mes: 'Abr', online: 2780, offline: 3908 },
-  { mes: 'May', online: 1890, offline: 4800 },
-  { mes: 'Jun', online: 2390, offline: 3800 },
-];
+interface Option {
+    id: number;
+    name: string;
+}
 
-const pieData = [
-  { name: 'Ropa', value: 400 },
-  { name: 'Accesorios', value: 300 },
-  { name: 'Zapatos', value: 300 },
-  { name: 'Otros', value: 200 },
-];
+const money = (n: number) =>
+    new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 2,
+    }).format(n || 0);
 
-// Colores más vibrantes para persuasión visual
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899'];
+const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    });
+
+const fieldClass =
+    "bg-[#151519] border border-white/10 text-slate-200 text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function ReportsPage() {
+    const itemsPerPage = useItemsPerpage();
+
+    const [from, setFrom] = useState("");
+    const [to, setTo] = useState("");
+    const [categoryId, setCategoryId] = useState("");
+    const [providerId, setProviderId] = useState("");
+    const [brandId, setBrandId] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState("");
+    const [searchInput, setSearchInput] = useState("");
+    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+
+    const [categories, setCategories] = useState<Option[]>([]);
+    const [providers, setProviders] = useState<Option[]>([]);
+    const [brands, setBrands] = useState<Option[]>([]);
+
+    const [report, setReport] = useState<SalesReportResult | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
+
+    // Opciones de los selects
+    useEffect(() => {
+        Promise.all([
+            productApi.getAllCategories(),
+            productApi.getAllProviders(),
+            productApi.getAllBrands(),
+        ])
+            .then(([cats, provs, brs]) => {
+                setCategories(cats.map((c: any) => ({ id: c.id, name: c.name })));
+                setProviders(
+                    provs.map((p: any) => ({
+                        id: p.id,
+                        name: p.name || p.businessName || `Proveedor #${p.id}`,
+                    })),
+                );
+                setBrands(brs.map((b: any) => ({ id: b.id, name: b.name })));
+            })
+            .catch(() => toast.error("No se pudieron cargar los filtros"));
+    }, []);
+
+    // Debounce de la bÃºsqueda de texto
+    useEffect(() => {
+        const t = setTimeout(() => setSearch(searchInput.trim()), 350);
+        return () => clearTimeout(t);
+    }, [searchInput]);
+
+    // Cualquier cambio de filtro vuelve a la pÃ¡gina 1
+    useEffect(() => {
+        setPage(1);
+    }, [from, to, categoryId, providerId, brandId, paymentMethod, search]);
+
+    const filters = useMemo(
+        () => ({
+            from: from || undefined,
+            to: to || undefined,
+            categoryId: categoryId ? Number(categoryId) : undefined,
+            providerId: providerId ? Number(providerId) : undefined,
+            brandId: brandId ? Number(brandId) : undefined,
+            paymentMethod: paymentMethod || undefined,
+            search: search || undefined,
+        }),
+        [from, to, categoryId, providerId, brandId, paymentMethod, search],
+    );
+
+    useEffect(() => {
+        const controller = new AbortController();
+        setLoading(true);
+        reportApi
+            .getSalesReport({ ...filters, page, pageSize: itemsPerPage }, controller.signal)
+            .then(setReport)
+            .catch((err) => {
+                if (err?.name !== "AbortError") toast.error("No se pudo cargar el reporte");
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setLoading(false);
+            });
+        return () => controller.abort();
+    }, [filters, page, itemsPerPage]);
+
+    const hasFilters = Object.values(filters).some((v) => v !== undefined);
+
+    const clearFilters = () => {
+        setFrom("");
+        setTo("");
+        setCategoryId("");
+        setProviderId("");
+        setBrandId("");
+        setPaymentMethod("");
+        setSearchInput("");
+        setSearch("");
+    };
+
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const full = await reportApi.getSalesReport(filters);
+            if (full.items.length === 0) {
+                toast.error("No hay datos para exportar con los filtros actuales");
+                return;
+            }
+            exportExcel({
+                fileName: `reporte-ventas-${new Date().toISOString().slice(0, 10)}`,
+                sheets: buildSalesReportSheets(full.items, full.kpis),
+            });
+        } catch {
+            toast.error("No se pudo exportar el reporte");
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const kpis = report?.kpis;
+    const kpiCards = [
+        { label: "Total vendido", value: kpis ? money(kpis.totalSold) : "-" },
+        { label: "Ventas", value: kpis ? String(kpis.salesCount) : "-" },
+        { label: "Ticket promedio", value: kpis ? money(kpis.averageTicket) : "-" },
+        { label: "Unidades", value: kpis ? String(kpis.unitsSold) : "-" },
+        { label: "Margen", value: kpis ? money(kpis.totalMargin) : "-" },
+    ];
+
     return (
         <DashboardLayout
-            title="Analítica e Insights"
-            subtitle="Interpretación de datos y sugerencias comerciales inteligentes."
+            title="Reporte de ventas"
+            subtitle="Ventas completadas, filtrables por fecha, categorÃ­a, proveedor y mÃ¡s."
             actions={
-                <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-brand-500 rounded-lg shadow-lg hover:bg-brand-400 transition-colors">
-                        <DownloadIcon className="w-4 h-4" />
-                        <span className="hidden sm:inline">Exportar PDF</span>
-                    </button>
-                </div>
+                <button
+                    onClick={handleExport}
+                    disabled={exporting || loading || !report?.totalItems}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-brand-500 rounded-lg shadow-lg hover:bg-brand-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <DownloadIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">
+                        {exporting ? "Exportando..." : "Exportar Excel"}
+                    </span>
+                </button>
             }
         >
             <div className="space-y-6">
-                
-                {/* AI / Actionable Insights (Sesgo de Acompañamiento) */}
-                <div className="bg-gradient-to-r from-brand-900/40 to-purple-900/40 border border-brand-500/20 rounded-2xl p-5 shadow-lg flex items-start gap-4">
-                    <div className="p-3 bg-brand-500/20 rounded-full shrink-0 border border-brand-500/30">
-                        <LightbulbIcon className="w-6 h-6 text-brand-400 animate-pulse" />
+                {/* Filtros */}
+                <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-4 space-y-3">
+                    <div className="flex flex-wrap gap-3 items-end">
+                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            Desde
+                            <input
+                                type="date"
+                                value={from}
+                                max={to || undefined}
+                                onChange={(e) => setFrom(e.target.value)}
+                                className={fieldClass}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            Hasta
+                            <input
+                                type="date"
+                                value={to}
+                                min={from || undefined}
+                                onChange={(e) => setTo(e.target.value)}
+                                className={fieldClass}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            CategorÃ­a
+                            <select
+                                value={categoryId}
+                                onChange={(e) => setCategoryId(e.target.value)}
+                                className={fieldClass}
+                            >
+                                <option value="">Todas</option>
+                                {categories.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            Proveedor
+                            <select
+                                value={providerId}
+                                onChange={(e) => setProviderId(e.target.value)}
+                                className={fieldClass}
+                            >
+                                <option value="">Todos</option>
+                                {providers.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            Marca
+                            <select
+                                value={brandId}
+                                onChange={(e) => setBrandId(e.target.value)}
+                                className={fieldClass}
+                            >
+                                <option value="">Todas</option>
+                                {brands.map((b) => (
+                                    <option key={b.id} value={b.id}>
+                                        {b.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            Medio de pago
+                            <select
+                                value={paymentMethod}
+                                onChange={(e) => setPaymentMethod(e.target.value)}
+                                className={fieldClass}
+                            >
+                                <option value="">Todos</option>
+                                {(report?.paymentMethods ?? []).map((m) => (
+                                    <option key={m} value={m}>
+                                        {m}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                     </div>
-                    <div>
-                        <h3 className="text-white font-bold mb-1">Oportunidad Estratégica Detectada</h3>
-                        <p className="text-gray-300 text-xs leading-relaxed mb-3">
-                            Tus ventas de <strong>Accesorios</strong> han subido un 20% este mes respecto al anterior, mientras que <em>Ropa</em> se ha estancado. Aprovecha este pico de interés: considera crear un <strong>Combo Promocional</strong> (Ropa + Accesorio).
-                        </p>
-                        <div className="flex gap-3">
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">
-                                <TrendingUpIcon className="w-3 h-3" />
-                                Accesorios (+20%)
-                            </span>
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-400 bg-rose-500/10 px-2 py-1 rounded">
-                                <TrendingDownIcon className="w-3 h-3" />
-                                Ropa (-2%)
-                            </span>
-                        </div>
+                    <div className="flex flex-wrap gap-3 items-center">
+                        <SearchBar
+                            value={searchInput}
+                            onChange={setSearchInput}
+                            placeholder="Buscar por cliente, DNI o producto..."
+                            containerClassName="max-w-md"
+                            inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
+                        />
+                        {hasFilters && (
+                            <button
+                                onClick={clearFilters}
+                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                            >
+                                <XIcon className="w-3.5 h-3.5" />
+                                Limpiar filtros
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Advanced Filters Mockup */}
-                <div className="bg-gray-800/40 border border-white/5 backdrop-blur-md rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <FilterIcon className="w-5 h-5 text-gray-400" />
-                        <span className="text-xs font-medium text-gray-300">Filtros de Perspectiva:</span>
-                        <div className="flex bg-gray-900/50 rounded-lg p-1 border border-white/10">
-                            <button className="px-3 py-1 text-xs font-medium bg-brand-500/20 text-brand-300 rounded-md shadow-sm border border-brand-500/30 cursor-pointer">Últimos 6 meses</button>
-                            <button className="px-3 py-1 text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer">Este año</button>
-                            <button className="px-3 py-1 text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer">YTD</button>
+                {/* KPIs */}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                    {kpiCards.map((card) => (
+                        <div
+                            key={card.label}
+                            className="bg-gray-800/50 border border-white/10 rounded-2xl p-4"
+                        >
+                            <p className="text-[11px] text-slate-400 uppercase tracking-wide">
+                                {card.label}
+                            </p>
+                            <p
+                                className={`mt-1 text-lg font-bold text-white ${loading ? "opacity-50" : ""}`}
+                            >
+                                {card.value}
+                            </p>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gray-900/50 border border-white/10 px-3 py-2 rounded-lg cursor-pointer hover:border-brand-500/50 transition-colors">
-                        <CalendarIcon className="w-4 h-4 text-brand-400" />
-                        <span className="text-xs text-gray-300">01 Ene 2024 - 30 Jun 2024</span>
+                    ))}
+                </div>
+
+                {/* Tabla detalle */}
+                <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left text-slate-300">
+                            <thead className="text-[11px] uppercase text-slate-400 border-b border-white/10">
+                                <tr>
+                                    <th className="px-4 py-3">Venta</th>
+                                    <th className="px-4 py-3">Fecha</th>
+                                    <th className="px-4 py-3">Cliente</th>
+                                    <th className="px-4 py-3">Producto</th>
+                                    <th className="px-4 py-3">CategorÃ­a</th>
+                                    <th className="px-4 py-3">Proveedor</th>
+                                    <th className="px-4 py-3">Marca</th>
+                                    <th className="px-4 py-3">Pago</th>
+                                    <th className="px-4 py-3 text-right">Cant.</th>
+                                    <th className="px-4 py-3 text-right">P. unit.</th>
+                                    <th className="px-4 py-3 text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading && !report ? (
+                                    <tr>
+                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                                            Cargando reporte...
+                                        </td>
+                                    </tr>
+                                ) : report && report.items.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                                            No hay ventas completadas con los filtros seleccionados.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    report?.items.map((item) => (
+                                        <tr
+                                            key={item.id}
+                                            className={`border-b border-white/5 hover:bg-white/5 ${loading ? "opacity-60" : ""}`}
+                                        >
+                                            <td className="px-4 py-3 font-medium text-white">
+                                                #{item.saleId}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                {formatDate(item.date)}
+                                            </td>
+                                            <td className="px-4 py-3">{item.clientName}</td>
+                                            <td className="px-4 py-3">{item.productName}</td>
+                                            <td className="px-4 py-3">{item.categoryName}</td>
+                                            <td className="px-4 py-3">{item.providerName}</td>
+                                            <td className="px-4 py-3">{item.brandName}</td>
+                                            <td className="px-4 py-3">{item.paymentMethod}</td>
+                                            <td className="px-4 py-3 text-right">{item.quantity}</td>
+                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                {money(item.unitaryPrice)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-semibold text-white whitespace-nowrap">
+                                                {money(item.subtotal)}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Sales by Channel - Bar Chart */}
-                    <div className="lg:col-span-2 bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl">
-                        <h3 className="text-lg font-semibold text-white mb-6">Tráfico de Ventas (Online vs Offline)</h3>
-                        <div className="h-[350px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={barData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                    <XAxis dataKey="mes" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value/1000}k`} />
-                                    <RechartsTooltip 
-                                        cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                                        contentStyle={{ backgroundColor: 'rgba(31, 41, 55, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', color: '#fff' }}
-                                    />
-                                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                    <Bar dataKey="online" name="Comercio Electrónico" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="offline" name="Tienda Física" fill="#10b981" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* Top Categories - Pie Chart */}
-                    <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col">
-                        <h3 className="text-lg font-semibold text-white mb-6">Comportamiento Segmentado</h3>
-                        <div className="flex-1 min-h-[300px] w-full flex items-center justify-center">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={pieData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={80}
-                                        outerRadius={110}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                        stroke="rgba(31,41,55,1)"
-                                        strokeWidth={2}
-                                    >
-                                        {pieData.map((_entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <RechartsTooltip 
-                                        contentStyle={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', color: '#fff' }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        {/* Custom Legend */}
-                        <div className="grid grid-cols-2 gap-4 mt-4">
-                            {pieData.map((entry, index) => (
-                                <div key={entry.name} className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                                    <span className="text-xs font-medium text-gray-300">{entry.name}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                {report && report.totalItems > itemsPerPage && (
+                    <Pagination
+                        totalItems={report.totalItems}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={page}
+                        onPageChange={setPage}
+                    />
+                )}
             </div>
         </DashboardLayout>
     );
 }
-

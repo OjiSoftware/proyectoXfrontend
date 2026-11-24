@@ -349,7 +349,7 @@ export default function ResetPasswordPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-500 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                    className="btn btn-md btn-primary w-full"
                                 >
                                     {loading ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />

@@ -115,7 +115,7 @@ export default function RecoverPasswordPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full flex justify-center items-center gap-2 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-500 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                    className="btn btn-md btn-primary w-full"
                                 >
                                     {loading ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
