@@ -89,7 +89,7 @@ export default function DashboardLayout({
             <aside className="hidden md:flex md:w-64 md:flex-col bg-[#0A0812] backdrop-blur-xl border-r border-white/5 shadow-2xl relative z-20">
                 {/* Header Layout Lateral (Logo) */}
                 <Link
-                    to="/"
+                    to="/management"
                     title="Ir a la web pública"
                     className="flex shrink-0 items-center justify-center px-4 h-25 hover:opacity-80 transition-opacity"
                 >

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { productApi } from '@/services/ProductService';
 import { saleApi } from '@/services/SaleService';
 import { Sale } from '@/types/sale.types';
@@ -123,9 +124,9 @@ export function SaleDetailsModal({
     style: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-md p-0 md:p-4"
+      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-md p-0 md:p-4 font-poppins"
       onClick={onClose}
     >
       <div
@@ -415,7 +416,8 @@ export function SaleDetailsModal({
           </Link>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

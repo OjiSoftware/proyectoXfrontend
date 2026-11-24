@@ -152,16 +152,15 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
     const currentStockNum = Number(formData.stock) || 0;
 
     return (
-        <div className="w-full flex flex-col bg-[#0C0A15]/95 border border-white/10 rounded-[24px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.6)] relative">
+        <div className="w-full max-h-[calc(100dvh-8.5rem)] flex flex-col bg-[#0C0A15]/95 border border-white/10 rounded-[24px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.6)] relative">
             {/* CABECERA MÓVIL DEL FORMULARIO */}
-            <div className="px-4 pt-3 pb-3 bg-[#110e1f] border-b border-white/5 flex items-center justify-between">
+            <div className="px-4 pt-3 pb-3 bg-[#110e1f] border-b border-white/5 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5 min-w-0">
                     <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
-                            mode === "create"
-                                ? "bg-indigo-600/30 text-indigo-400 border border-indigo-500/30"
-                                : "bg-purple-600/30 text-purple-400 border border-purple-500/30"
-                        }`}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${mode === "create"
+                            ? "bg-indigo-600/30 text-indigo-400 border border-indigo-500/30"
+                            : "bg-purple-600/30 text-purple-400 border border-purple-500/30"
+                            }`}
                     >
                         {mode === "create" ? <PackagePlus size={18} /> : <SquarePen size={18} />}
                     </div>
@@ -169,9 +168,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                         <h2 className="text-sm font-bold text-white leading-tight truncate">
                             {formData.name || (mode === "create" ? "Nuevo producto" : "Editar producto")}
                         </h2>
-                        <p className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider mt-0.5">
-                            {mode === "create" ? "ID: Nuevo" : `ID: #${productId}`}
-                        </p>
+
                     </div>
                 </div>
 
@@ -185,15 +182,14 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
             </div>
 
             {/* TABS NAVEGACIÓN MÓVIL */}
-            <div className="px-2 py-2 bg-[#0e0b1c] border-b border-white/5 flex items-center gap-1 overflow-x-auto no-scrollbar">
+            <div className="px-2 py-2 bg-[#0e0b1c] border-b border-white/5 flex items-center gap-1 overflow-x-auto no-scrollbar shrink-0">
                 <button
                     type="button"
                     onClick={() => setActiveTab("basic")}
-                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                        activeTab === "basic"
-                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                            : "text-slate-400 hover:text-white hover:bg-white/5"
-                    }`}
+                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${activeTab === "basic"
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        }`}
                 >
                     <Tag size={13} />
                     General
@@ -201,11 +197,10 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 <button
                     type="button"
                     onClick={() => setActiveTab("pricing")}
-                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                        activeTab === "pricing"
-                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                            : "text-slate-400 hover:text-white hover:bg-white/5"
-                    }`}
+                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${activeTab === "pricing"
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        }`}
                 >
                     <DollarSign size={13} />
                     Precios
@@ -213,11 +208,10 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 <button
                     type="button"
                     onClick={() => setActiveTab("stock")}
-                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                        activeTab === "stock"
-                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                            : "text-slate-400 hover:text-white hover:bg-white/5"
-                    }`}
+                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${activeTab === "stock"
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        }`}
                 >
                     <Layers size={13} />
                     Stock
@@ -225,11 +219,10 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 <button
                     type="button"
                     onClick={() => setActiveTab("preview")}
-                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                        activeTab === "preview"
-                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                            : "text-slate-400 hover:text-white hover:bg-white/5"
-                    }`}
+                    className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${activeTab === "preview"
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        }`}
                 >
                     <Eye size={13} />
                     Vista
@@ -237,7 +230,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
             </div>
 
             {/* CUERPO DEL FORMULARIO MÓVIL */}
-            <div className="p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
                 {/* 1. TAB: GENERAL */}
                 {activeTab === "basic" && (
                     <div className="space-y-4 animate-in fade-in duration-150">
@@ -311,13 +304,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                                 <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
                                     Código de Barras <span className="text-indigo-400">*</span>
                                 </label>
-                                <button
-                                    type="button"
-                                    onClick={() => setBarcode(generateRandomBarcode())}
-                                    className="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold"
-                                >
-                                    + Auto-generar
-                                </button>
+
                             </div>
                             <div className="flex gap-2">
                                 <div className="relative flex-1">
@@ -333,68 +320,34 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
                                     />
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsScannerOpen(true)}
-                                    className="px-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold shadow-md shadow-indigo-600/30 transition active:scale-95 shrink-0"
-                                >
-                                    <ScanLine size={16} />
-                                    <span>Escanear</span>
-                                </button>
+
                             </div>
                         </div>
 
-                        {/* CATEGORÍA - CHIPS TÁCTILES + SELECTOR */}
+                        {/* CATEGORÍA - SELECTOR */}
                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-2">
+                            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                                 Categoría <span className="text-indigo-400">*</span>
                             </label>
-                            {categories.length > 0 && categories.length <= 8 ? (
-                                <div className="flex flex-wrap gap-1.5">
-                                    {categories.map((cat) => {
-                                        const isSelected = Number(formData.categoryId) === cat.id;
-                                        return (
-                                            <button
-                                                key={cat.id}
-                                                type="button"
-                                                onClick={() =>
-                                                    setFormData((prev: any) => ({
-                                                        ...prev,
-                                                        categoryId: cat.id,
-                                                    }))
-                                                }
-                                                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 ${
-                                                    isSelected
-                                                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                                                        : "bg-[#161328] text-slate-300 border border-white/5 hover:border-white/20"
-                                                }`}
-                                            >
-                                                <span>{cat.name}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <select
-                                    name="categoryId"
-                                    value={formData.categoryId || ""}
-                                    onChange={handleChange}
-                                    className="w-full bg-[#151226] border border-white/10 rounded-xl px-3.5 py-3 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
-                                >
-                                    <option value="" disabled className="text-slate-500">
-                                        Seleccionar categoría...
+
+                            <select
+                                name="categoryId"
+                                value={formData.categoryId || ""}
+                                onChange={handleChange}
+                                className="w-full bg-[#151226] border border-white/10 rounded-xl px-3.5 py-3 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
+                            >
+
+                                {categories.map((cat) => (
+                                    <option
+                                        key={cat.id}
+                                        value={cat.id}
+                                        className="bg-[#151320] text-slate-100"
+                                    >
+                                        {cat.name || `Categoría #${cat.id}`}
                                     </option>
-                                    {categories.map((cat) => (
-                                        <option
-                                            key={cat.id}
-                                            value={cat.id}
-                                            className="bg-[#151320] text-slate-100"
-                                        >
-                                            {cat.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
+                                ))}
+                            </select>
+
                         </div>
 
                         {/* PROVEEDOR */}
@@ -444,24 +397,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 {/* 2. TAB: PRECIOS Y MARGEN */}
                 {activeTab === "pricing" && (
                     <div className="space-y-4 animate-in fade-in duration-150">
-                        {/* CARD RESUMEN FINANCIERO */}
-                        <div className="bg-linear-to-br from-indigo-950/60 to-purple-950/40 border border-indigo-500/20 rounded-2xl p-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-bold uppercase text-indigo-300">
-                                    Ganancia Neta Estimada
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                                    +{profitMargin}%
-                                </span>
-                            </div>
-                            <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">
-                                ${profit.toLocaleString("es-AR")}
-                            </div>
-                            <p className="text-[10px] text-slate-400 mt-1">
-                                Costo (${costPrice.toLocaleString("es-AR")}) vs Venta ($
-                                {(Number(formData.price) || 0).toLocaleString("es-AR")})
-                            </p>
-                        </div>
+
 
                         {/* COSTO ($) */}
                         <div>
@@ -493,22 +429,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                                 <span className="text-xs font-bold text-indigo-400 font-mono">
                                     {marginInput ? `${marginInput}%` : "0%"}
                                 </span>
-                            </div>
-                            <div className="grid grid-cols-4 gap-2 mb-2.5">
-                                {[15, 30, 50, 100].map((m) => (
-                                    <button
-                                        key={m}
-                                        type="button"
-                                        onClick={() => handleMarginChipClick(m)}
-                                        className={`py-2 rounded-xl text-xs font-bold transition active:scale-95 ${
-                                            Number(marginInput) === m
-                                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                                                : "bg-[#161328] text-indigo-300 border border-white/5 hover:border-white/20"
-                                        }`}
-                                    >
-                                        +{m}%
-                                    </button>
-                                ))}
+
                             </div>
                             <div className="relative">
                                 <input
@@ -560,55 +481,34 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 {/* 3. TAB: STOCK E INVENTARIO */}
                 {activeTab === "stock" && (
                     <div className="space-y-4 animate-in fade-in duration-150">
-                        {/* STEPPER TÁCTIL DE STOCK */}
-                        <div className="bg-[#141124] border border-white/10 rounded-2xl p-4">
-                            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        {/* STOCK ACTUAL */}
+                        <div>
+                            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                                 Stock Actual <span className="text-indigo-400">*</span>
-                            </span>
-
-                            <div className="flex items-center justify-between gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => adjustStock(-10)}
-                                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center active:scale-90 transition"
-                                >
-                                    -10
-                                </button>
+                            </label>
+                            <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() => adjustStock(-1)}
-                                    className="w-11 h-11 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 flex items-center justify-center active:scale-90 transition"
+                                    className="w-11 h-11 shrink-0 rounded-xl bg-[#151226] border border-white/10 hover:border-indigo-500/50 text-indigo-300 flex items-center justify-center active:scale-95 transition"
                                 >
-                                    <Minus size={18} />
+                                    <Minus size={16} />
                                 </button>
-
-                                <div className="flex-1 text-center">
-                                    <input
-                                        type="number"
-                                        name="stock"
-                                        step="1"
-                                        value={formData.stock}
-                                        onChange={handleChange}
-                                        className="w-full text-center bg-transparent text-2xl font-black font-mono text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    />
-                                    <span className="text-[10px] text-slate-400 uppercase font-semibold">
-                                        unidades
-                                    </span>
-                                </div>
-
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    step="1"
+                                    value={formData.stock}
+                                    onChange={handleChange}
+                                    placeholder="0"
+                                    className="w-full bg-[#151226] border border-white/10 rounded-xl px-3.5 py-3 text-sm font-mono text-center text-white focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
                                 <button
                                     type="button"
                                     onClick={() => adjustStock(1)}
-                                    className="w-11 h-11 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 flex items-center justify-center active:scale-90 transition"
+                                    className="w-11 h-11 shrink-0 rounded-xl bg-[#151226] border border-white/10 hover:border-indigo-500/50 text-indigo-300 flex items-center justify-center active:scale-95 transition"
                                 >
-                                    <Plus size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => adjustStock(10)}
-                                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center active:scale-90 transition"
-                                >
-                                    +10
+                                    <Plus size={16} />
                                 </button>
                             </div>
                         </div>
@@ -661,11 +561,10 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                                     </div>
                                 </div>
                                 <div
-                                    className={`w-11 h-6 rounded-full transition p-1 flex items-center ${
-                                        formData.showingInCatalog
-                                            ? "bg-indigo-600 justify-end"
-                                            : "bg-slate-700 justify-start"
-                                    }`}
+                                    className={`w-11 h-6 rounded-full transition p-1 flex items-center ${formData.showingInCatalog
+                                        ? "bg-indigo-600 justify-end"
+                                        : "bg-slate-700 justify-start"
+                                        }`}
                                 >
                                     <div className="w-4 h-4 rounded-full bg-white shadow-md"></div>
                                 </div>
@@ -690,11 +589,10 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                                     </div>
                                 </div>
                                 <div
-                                    className={`w-11 h-6 rounded-full transition p-1 flex items-center ${
-                                        formData.isOffer
-                                            ? "bg-amber-500 justify-end"
-                                            : "bg-slate-700 justify-start"
-                                    }`}
+                                    className={`w-11 h-6 rounded-full transition p-1 flex items-center ${formData.isOffer
+                                        ? "bg-amber-500 justify-end"
+                                        : "bg-slate-700 justify-start"
+                                        }`}
                                 >
                                     <div className="w-4 h-4 rounded-full bg-white shadow-md"></div>
                                 </div>
@@ -751,9 +649,8 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                                     <div className="text-right">
                                         <span className="text-[10px] text-slate-400 block">Disponibilidad</span>
                                         <span
-                                            className={`text-xs font-bold ${
-                                                currentStockNum > 0 ? "text-indigo-400" : "text-red-400"
-                                            }`}
+                                            className={`text-xs font-bold ${currentStockNum > 0 ? "text-indigo-400" : "text-red-400"
+                                                }`}
                                         >
                                             {currentStockNum > 0
                                                 ? `${currentStockNum} en stock`
@@ -768,7 +665,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
             </div>
 
             {/* BARRA INFERIOR DE ACCIÓN MÓVIL */}
-            <div className="p-3.5 bg-[#0e0b1c]/95 border-t border-white/10 space-y-2">
+            <div className="p-3.5 bg-[#0e0b1c]/95 border-t border-white/10 space-y-2 shrink-0">
                 <div className="flex items-center gap-2.5">
                     <button
                         type="button"
@@ -782,11 +679,10 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                         type="button"
                         onClick={handleActionClick}
                         disabled={isLoading}
-                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 ${
-                            isFormInvalid
-                                ? "bg-slate-800/80 text-slate-400 border border-white/5"
-                                : "bg-emerald-600/25 text-emerald-300 border border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-                        }`}
+                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 ${isFormInvalid
+                            ? "bg-slate-800/80 text-slate-400 border border-white/5"
+                            : "bg-emerald-600/25 text-emerald-300 border border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                            }`}
                     >
                         {isLoading ? (
                             <RefreshCw size={16} className="animate-spin" />

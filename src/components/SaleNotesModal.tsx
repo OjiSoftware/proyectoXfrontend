@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { saleApi } from '@/services/SaleService';
 import { Sale } from '@/types/sale.types';
 import { MessageSquareText, X } from 'lucide-react';
@@ -64,14 +65,14 @@ export function SaleNotesModal({
   // Variable para saber si el botón debe estar bloqueado
   const isSaveDisabled = isLoading || !notes.trim();
 
-  return (
+  return createPortal(
     <>
       <div
-        className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 font-poppins"
         onClick={onClose}
       >
         <div
-          className="bg-[#0C0A15]/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-5 md:p-8 w-full max-w-md md:max-w-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] text-left transform transition-all duration-300 animate-fade-in flex flex-col h-auto max-h-[90vh] ring-1 ring-white/5"
+          className="bg-[#0C0A15]/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-5 md:p-8 w-full max-w-[576px] shadow-[0_0_50px_rgba(0,0,0,0.8)] text-left transform transition-all duration-300 animate-fade-in flex flex-col h-auto max-h-[90vh] ring-1 ring-white/5"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -155,7 +156,8 @@ export function SaleNotesModal({
         onConfirm={handleConfirmSave}
         onCancel={() => setIsConfirmOpen(false)}
       />
-    </>
+    </>,
+    document.body,
   );
 }
 
