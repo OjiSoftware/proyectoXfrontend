@@ -103,7 +103,7 @@ export default function CartPage() {
                     </div>
 
                     {/* Resumen de orden */}
-                    <div className="flex-[0_0_100%] lg:flex-[1_1_32%] bg-gradient-to-br from-[#FFF9CE] to-[#FFF29C] rounded-3xl shadow-md border border-amber-200/70 p-6 sticky top-8 flex flex-col gap-4 font-nunito w-full">
+                    <div className="flex-[0_0_100%] lg:flex-[1_1_32%] bg-white rounded-3xl shadow-md border border-amber-200/70 p-6 sticky top-8 flex flex-col gap-4 font-nunito w-full">
                         <h2 className="text-lg font-bold text-[#2b99a6] border-b border-amber-200/70 pb-3">
                             Resumen del pedido
                         </h2>
