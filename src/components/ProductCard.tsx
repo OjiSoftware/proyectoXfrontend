@@ -130,7 +130,6 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                         <>
                             <button
                                 type="button"
-                                className="w-9 h-full flex items-center justify-center text-[#3d635f] hover:bg-white hover:text-red-500 transition-colors cursor-pointer active:bg-gray-100"
                                 className="w-8 sm:w-9 shrink-0 h-full flex items-center justify-center text-[#3d635f] hover:bg-white hover:text-red-500 transition-colors cursor-pointer active:bg-gray-100"
                                 onClick={() =>
                                     setProductQuantity(Math.max(minQuantity, productQuantity - 1))
@@ -142,7 +141,6 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                                     viewBox="0 0 24 24"
                                     strokeWidth={3}
                                     stroke="currentColor"
-                                    className="w-3.5 h-3.5"
                                     className="w-3.5 h-3.5 shrink-0"
                                 >
                                     <path
@@ -170,14 +168,12 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                                 onBlur={() => {
                                     if (productQuantity < minQuantity) setProductQuantity(minQuantity);
                                 }}
-                                className="flex-1 h-full text-center bg-transparent border-none font-bold text-[#1A2D2A] text-sm focus:ring-0 p-0 leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 className="min-w-0 flex-1 h-full text-center bg-transparent border-none font-bold text-[#1A2D2A] text-sm focus:ring-0 p-0 leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
 
                             <button
                                 type="button"
                                 disabled={productQuantity >= maxAvailable}
-                                className={`w-9 h-full flex items-center justify-center transition-colors ${productQuantity >= maxAvailable ? "text-gray-300 cursor-not-allowed" : "text-[#3d635f] hover:bg-white hover:text-[#2b99a6] cursor-pointer active:bg-gray-100"}`}
                                 className={`w-8 sm:w-9 shrink-0 h-full flex items-center justify-center transition-colors ${productQuantity >= maxAvailable ? "text-gray-300 cursor-not-allowed" : "text-[#3d635f] hover:bg-white hover:text-[#2b99a6] cursor-pointer active:bg-gray-100"}`}
                                 onClick={() => setProductQuantity(Math.min(maxAvailable, productQuantity + 1))}
                             >
@@ -187,7 +183,6 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                                     viewBox="0 0 24 24"
                                     strokeWidth={3}
                                     stroke="currentColor"
-                                    className="w-3.5 h-3.5"
                                     className="w-3.5 h-3.5 shrink-0"
                                 >
                                     <path

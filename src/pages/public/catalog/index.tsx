@@ -7,7 +7,7 @@ import { CategorySidebar, SortOption } from "@/components/CategorySidebar";
 import Pagination from "@/components/PaginationCatalog";
 import { Product } from "@/types/product.types";
 import Navbar from "@/components/Navbar";
-import { Sparkles, PackageSearch } from "lucide-react";
+import { PackageSearch } from "lucide-react";
 
 export default function CatalogPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -129,7 +129,6 @@ export default function CatalogPage() {
                     <div className="pointer-events-none absolute right-24 -bottom-16 w-40 h-40 rounded-full bg-[#FFF6B8]/20" />
                     <div className="relative">
                         <div className="text-white/85 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1.5 flex-wrap">
-                            <Sparkles className="w-3.5 h-3.5 text-[#FFF000]" />
                             <span className="hover:text-[#FFF000] cursor-pointer transition-colors" onClick={handleClearFilters}>
                                 Upa Lelé
                             </span>

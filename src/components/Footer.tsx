@@ -1,6 +1,6 @@
 import React from "react";
 import logo from "@/assets/upalele_logo.svg";
-import { MapPin, Phone, Instagram, Heart, Sparkles } from "lucide-react";
+import { MapPin, Phone, Instagram, Heart } from "lucide-react";
 
 const Footer: React.FC = () => {
   return (
@@ -30,7 +30,7 @@ const Footer: React.FC = () => {
             {/* Columna 2: Accesos rápidos */}
             <div className="flex flex-col items-start gap-2.5">
               <span className="inline-flex items-center gap-1.5 text-base font-bold tracking-wide text-[#FFF000] mb-1">
-                <Sparkles className="w-4 h-4" /> Explorá Upa Lelé
+                Explorá Upa Lelé
               </span>
               <a
                 href="/"

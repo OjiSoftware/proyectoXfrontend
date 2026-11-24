@@ -141,7 +141,7 @@ export default function HomePage() {
                             className="hidden md:block absolute right-8 top-1/2 -translate-y-1/2 w-52 lg:w-64 rounded-[2rem] shadow-2xl ring-4 ring-white/25 rotate-3 animate-[float_4s_ease-in-out_infinite]"
                         />
                         <span className="relative inline-flex items-center gap-1.5 w-fit bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4 shadow-sm">
-                            <Sparkles className="w-3.5 h-3.5 text-[#FFF000]" /> Tu pañalera online
+                            Tu pañalera online
                         </span>
                         <h1 className="relative text-4xl md:text-5xl lg:text-[3.4rem] font-bold text-[#FFF000] leading-[1.05] max-w-md mb-4 drop-shadow-[0_3px_0_rgba(0,0,0,0.14)]">
                             Todo para tu bebé, en un solo lugar.
