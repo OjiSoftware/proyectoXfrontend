@@ -24,10 +24,8 @@ import {
 import toast from "react-hot-toast";
 import { productApi } from "@/services/ProductService";
 import { saleApi } from "@/services/SaleService";
-import { clientApi } from "@/services/ClientService";
 import { Product } from "@/types/product.types";
 import { Category } from "@/types/category.types";
-import { Client } from "@/types/client.types";
 
 // --- CONSTANTES DE SEGURIDAD Y LÍMITES OPERATIVOS ---
 const CARD_DIAPER_SURCHARGE_RATE = 0.05; // +5% en pañales abonando con tarjeta
@@ -35,23 +33,6 @@ const MAX_MULTIPLIER = 999; // Evita desbordamiento si se escanea un EAN seguido
 const MAX_OPEN_TICKETS = 10; // Límite de tickets simultáneos en memoria
 const MAX_COMMAND_LENGTH = 100;
 const MAX_CASH_TENDERED = 999_999_999;
-
-// TODO (Backend): eliminar este bloque temporal cuando clientId sea opcional en POST /sales
-/* const GENERIC_CLIENT_PAYLOAD = {
-  name: "Consumidor",
-  surname: "Final",
-  dni: "99999999",
-  phoneNumber: "1100000000",
-  email: "consumidorfinal@oji.local",
-  addresses: {
-    street: "Mostrador",
-    streetNum: 1,
-    locality: "Local",
-    province: "Entre Ríos",
-    postalCode: "3228",
-    country: "Argentina",
-  },
-} as const; */
 
 // --- HELPERS PUROS DE SANITIZACIÓN Y ARITMÉTICA SEGURA ---
 const roundCurrency = (value: number): number => {
@@ -139,7 +120,6 @@ export default function CreateSalePage() {
   const [categoriesMap, setCategoriesMap] = useState<Map<number, string>>(
     () => new Map()
   );
-  const [defaultClientId, setDefaultClientId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -204,10 +184,9 @@ export default function CreateSalePage() {
     const loadInitial = async () => {
       try {
         setIsLoading(true);
-        const [prodData, catData, cliData] = await Promise.all([
+        const [prodData, catData] = await Promise.all([
           productApi.getAllProducts().catch(() => []),
           productApi.getAllCategories().catch(() => []),
-          clientApi.getAllClients().catch(() => []),
         ]);
 
         if (cancelled || !isMountedRef.current) return;
@@ -227,26 +206,12 @@ export default function CreateSalePage() {
               Boolean(c) && typeof c.id === "number" && typeof c.name === "string"
           )
           : [];
-        const validClients: Client[] = Array.isArray(cliData)
-          ? cliData.filter((c): c is Client => Boolean(c) && typeof c.dni === "string")
-          : [];
 
         const catMap = new Map<number, string>();
         validCats.forEach((c) => catMap.set(c.id, c.name));
 
         setCategoriesMap(catMap);
         setProducts(validProds);
-
-        // TODO (Backend): quitar búsqueda de cliente genérico cuando clientId sea opcional
-        const existingCF = validClients.find(
-          (c) =>
-            c.dni === GENERIC_CLIENT_PAYLOAD.dni ||
-            (c.name?.toLowerCase() === "consumidor" &&
-              c.surname?.toLowerCase() === "final")
-        );
-        if (existingCF?.id && existingCF.id > 0) {
-          setDefaultClientId(existingCF.id);
-        }
       } catch {
         if (!cancelled && isMountedRef.current) {
           toast.error("No se pudieron cargar los datos de caja");
@@ -691,30 +656,12 @@ export default function CreateSalePage() {
       const toastId = toast.loading("Cerrando venta...");
 
       try {
-        // TODO (Backend): eliminar resolución de cliente genérico cuando clientId sea opcional en POST /sales
-        let clientIdToUse: number | undefined =
-          defaultClientId && defaultClientId > 0 ? defaultClientId : undefined;
-
-        if (!clientIdToUse) {
-          const cfResp = await clientApi.create(GENERIC_CLIENT_PAYLOAD);
-          const createdId = Number(cfResp?.id ?? cfResp?.client?.id);
-          if (Number.isInteger(createdId) && createdId > 0) {
-            clientIdToUse = createdId;
-            if (isMountedRef.current) setDefaultClientId(createdId);
-          }
-        }
-
-        if (!clientIdToUse || !Number.isInteger(clientIdToUse) || clientIdToUse <= 0) {
-          throw new Error("CLIENT_RESOLUTION_FAILED");
-        }
-
         const saleDetails = activeTicket.items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
         }));
 
         const createdSale = await saleApi.create({
-          clientId: clientIdToUse,
           status: "COMPLETED",
           sendEmail: false,
           details: saleDetails,
@@ -802,7 +749,6 @@ export default function CreateSalePage() {
     [
       activeTicket,
       cashTenderedNum,
-      defaultClientId,
       potentialCardDiaperSurcharge,
       products,
       safeTicketIndex,
