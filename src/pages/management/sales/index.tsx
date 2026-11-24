@@ -36,9 +36,8 @@ export default function SalesPage() {
 
   // ---------------- Filtros ----------------
   const [filterStatus, setFilterStatus] = useState<
-    'all' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+    'all' | 'COMPLETED' | 'CANCELLED'
   >('all');
-  const [filterChannel, setFilterChannel] = useState<'all' | 'POS' | 'WEB'>('all');
   const [filterPayment, setFilterPayment] = useState<'all' | 'Efectivo' | 'Tarjeta' | 'Mercado Pago'>('all');
   const [filterNotes, setFilterNotes] = useState<'all' | 'withNotes' | 'withoutNotes'>('all');
 
@@ -79,13 +78,11 @@ export default function SalesPage() {
 
   // ---------------- Dropdown refs ----------------
   const [statusOpen, setStatusOpen] = useState(false);
-  const [channelOpen, setChannelOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [paramsOpen, setParamsOpen] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const statusRef = useRef<HTMLDivElement>(null);
-  const channelRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const paramsRef = useRef<HTMLDivElement>(null);
 
@@ -93,8 +90,6 @@ export default function SalesPage() {
     const handler = (e: MouseEvent) => {
       if (statusRef.current && !statusRef.current.contains(e.target as Node))
         setStatusOpen(false);
-      if (channelRef.current && !channelRef.current.contains(e.target as Node))
-        setChannelOpen(false);
       if (filterRef.current && !filterRef.current.contains(e.target as Node))
         setFilterOpen(false);
       if (paramsRef.current && !paramsRef.current.contains(e.target as Node))
@@ -184,12 +179,6 @@ export default function SalesPage() {
 
       if (filterStatus !== 'all' && s.status !== filterStatus) return false;
 
-      if (filterChannel !== 'all') {
-        const isPos = getSaleChannelLabel(s).includes('POS');
-        if (filterChannel === 'POS' && !isPos) return false;
-        if (filterChannel === 'WEB' && isPos) return false;
-      }
-
       if (filterPayment !== 'all') {
         if (getSalePaymentLabel(s) !== filterPayment) return false;
       }
@@ -266,7 +255,6 @@ export default function SalesPage() {
     sortColumn,
     sortDirection,
     filterStatus,
-    filterChannel,
     filterPayment,
     filterNotes,
   ]);
@@ -327,7 +315,6 @@ export default function SalesPage() {
     itemsPerPage,
     query,
     filterStatus,
-    filterChannel,
     filterPayment,
     filterNotes,
   ]);
@@ -335,30 +322,20 @@ export default function SalesPage() {
   const hasActiveFilters =
     query !== '' ||
     filterStatus !== 'all' ||
-    filterChannel !== 'all' ||
     filterPayment !== 'all' ||
     filterNotes !== 'all';
 
   const resetFilters = () => {
     setQuery('');
     setFilterStatus('all');
-    setFilterChannel('all');
     setFilterPayment('all');
     setFilterNotes('all');
   };
 
   const STATUS_LABELS: Record<typeof filterStatus, string> = {
     all: 'Estado',
-    PENDING: 'Pendientes',
-    IN_PROGRESS: 'En curso',
     COMPLETED: 'Completadas',
     CANCELLED: 'Canceladas',
-  };
-
-  const CHANNEL_LABELS: Record<typeof filterChannel, string> = {
-    all: 'Canal',
-    POS: 'Mostrador (POS)',
-    WEB: 'Tienda Web',
   };
 
   return (
@@ -376,78 +353,6 @@ export default function SalesPage() {
             className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] group-hover:rotate-90 transition-transform duration-500"
           />
         </button>
-      }
-      headerWidgets={
-        <div ref={pendingDropdownRef} className="flex items-center gap-2">
-          <div className="relative">
-            <button
-              onClick={() => setPendingDropdownOpen(!pendingDropdownOpen)}
-              className={`relative flex items-center justify-center w-9 h-9 rounded-xl border transition-all duration-200 cursor-pointer ${
-                pendingDropdownOpen
-                  ? 'bg-amber-500/25 border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
-                  : 'bg-amber-900/30 border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-400/40'
-              }`}
-              title="Ventas pendientes"
-            >
-              <Clock className="w-4 h-4 text-amber-400" />
-              {pendingSalesCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-amber-400 text-gray-900 text-[9px] font-black rounded-full flex items-center justify-center leading-none">
-                  {pendingSalesCount}
-                </span>
-              )}
-            </button>
-            {pendingDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-gray-900/95 backdrop-blur-xl border border-amber-500/20 rounded-2xl shadow-2xl shadow-amber-900/20 z-50 overflow-hidden">
-                <div className="px-4 py-3 border-b border-amber-500/15 bg-amber-900/20">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-300" />
-                    <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-                      Pendientes / En curso
-                    </p>
-                  </div>
-                  <p className="text-2xl font-black text-amber-300 mt-1">
-                    {pendingSalesCount}{' '}
-                    <span className="text-xs font-normal text-amber-200/70">
-                      ventas
-                    </span>
-                  </p>
-                </div>
-                <div className="max-h-52 overflow-y-auto py-1">
-                  {pendingSales.length === 0 ? (
-                    <p className="text-xs text-gray-400 px-4 py-3 text-center">
-                      Sin ventas pendientes
-                    </p>
-                  ) : (
-                    pendingSales.map((s) => (
-                      <div
-                        key={s.id}
-                        className="flex items-center justify-between px-4 py-2 hover:bg-white/5 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0 mr-2">
-                          <span className="text-xs font-bold text-gray-200 block">
-                            Venta #{s.id}
-                          </span>
-                          <span className="text-[10px] text-gray-400 truncate block">
-                            {s.client?.name || 'Consumidor Final'}
-                          </span>
-                        </div>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                            s.status === 'PENDING'
-                              ? 'bg-amber-400/15 text-amber-300'
-                              : 'bg-blue-400/15 text-blue-300'
-                          }`}
-                        >
-                          {s.status === 'PENDING' ? 'Pendiente' : 'En curso'}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
       }
     >
       <div className="space-y-3">
@@ -470,7 +375,6 @@ export default function SalesPage() {
               onClick={() => setMobileFilterOpen(true)}
               className={`relative h-9 w-9 shrink-0 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
                 filterStatus !== 'all' ||
-                filterChannel !== 'all' ||
                 filterPayment !== 'all' ||
                 filterNotes !== 'all'
                   ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
@@ -480,7 +384,6 @@ export default function SalesPage() {
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               {(filterStatus !== 'all' ||
-                filterChannel !== 'all' ||
                 filterPayment !== 'all' ||
                 filterNotes !== 'all') && (
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-[#07050C]" />
@@ -520,21 +423,6 @@ export default function SalesPage() {
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               Completadas ({completedCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setFilterStatus(filterStatus === 'PENDING' ? 'all' : 'PENDING');
-                setFilterNotes('all');
-              }}
-              className={`shrink-0 px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5 transition-colors ${
-                filterStatus === 'PENDING'
-                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                  : 'bg-white/5 border-white/10 text-slate-400'
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              Pendientes ({pendingSalesCount})
             </button>
             <button
               type="button"
@@ -594,7 +482,6 @@ export default function SalesPage() {
                 type="button"
                 onClick={() => {
                   setStatusOpen((o) => !o);
-                  setChannelOpen(false);
                   setFilterOpen(false);
                   setParamsOpen(false);
                 }}
@@ -624,8 +511,6 @@ export default function SalesPage() {
                       [
                         ['all', 'Todos los estados'],
                         ['COMPLETED', 'Completadas'],
-                        ['PENDING', 'Pendientes'],
-                        ['IN_PROGRESS', 'En curso'],
                         ['CANCELLED', 'Canceladas'],
                       ] as const
                     ).map(([val, lbl]) => (
@@ -647,63 +532,6 @@ export default function SalesPage() {
               )}
             </div>
 
-            {/* Dropdown CANAL (color índigo igual que Proveedor en Productos) */}
-            <div ref={channelRef} className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setChannelOpen((o) => !o);
-                  setStatusOpen(false);
-                  setFilterOpen(false);
-                  setParamsOpen(false);
-                }}
-                className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                  channelOpen || filterChannel !== 'all'
-                    ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-                    : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-                }`}
-              >
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform ${
-                    channelOpen ? 'rotate-180' : ''
-                  }`}
-                />
-                {CHANNEL_LABELS[filterChannel]}
-                {filterChannel !== 'all' && (
-                  <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
-                )}
-              </button>
-              {channelOpen && (
-                <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Canal de venta
-                  </p>
-                  <div className="space-y-1">
-                    {(
-                      [
-                        ['all', 'Todos los canales'],
-                        ['POS', 'Mostrador (POS)'],
-                        ['WEB', 'Tienda Web'],
-                      ] as const
-                    ).map(([val, lbl]) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setFilterChannel(val)}
-                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                          filterChannel === val
-                            ? 'bg-indigo-500/20 text-indigo-300'
-                            : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                        }`}
-                      >
-                        {lbl}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Dropdown OTROS FILTROS — Pago y Comentarios (igual a Otros filtros en Productos) */}
             <div ref={filterRef} className="relative shrink-0">
               <button
@@ -711,7 +539,6 @@ export default function SalesPage() {
                 onClick={() => {
                   setFilterOpen((o) => !o);
                   setStatusOpen(false);
-                  setChannelOpen(false);
                   setParamsOpen(false);
                 }}
                 className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
@@ -825,7 +652,6 @@ export default function SalesPage() {
                 onClick={() => {
                   setParamsOpen((o) => !o);
                   setStatusOpen(false);
-                  setChannelOpen(false);
                   setFilterOpen(false);
                 }}
                 className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
@@ -962,13 +788,11 @@ export default function SalesPage() {
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   Estado de la Venta
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {(
                     [
                       ['all', 'Todas'],
                       ['COMPLETED', 'Completadas'],
-                      ['PENDING', 'Pendientes'],
-                      ['IN_PROGRESS', 'En curso'],
                       ['CANCELLED', 'Canceladas'],
                     ] as const
                   ).map(([val, lbl]) => (
@@ -979,35 +803,6 @@ export default function SalesPage() {
                       className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
                         filterStatus === val
                           ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                          : 'bg-white/5 text-slate-400 border-white/10'
-                      }`}
-                    >
-                      {lbl}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Canal */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Canal de Venta
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(
-                    [
-                      ['all', 'Todos'],
-                      ['POS', 'Mostrador'],
-                      ['WEB', 'Tienda Web'],
-                    ] as const
-                  ).map(([val, lbl]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setFilterChannel(val)}
-                      className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
-                        filterChannel === val
-                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                           : 'bg-white/5 text-slate-400 border-white/10'
                       }`}
                     >
