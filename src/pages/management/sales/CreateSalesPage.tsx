@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import { ConfirmModal } from "@/components/ConfirmModal";
@@ -10,8 +11,6 @@ import {
   Trash2,
   CreditCard,
   Banknote,
-  QrCode,
-  ArrowLeftRight,
   PauseCircle,
   PlayCircle,
   X,
@@ -114,7 +113,7 @@ interface CartItem {
   isDiaper: boolean;
 }
 
-type PaymentMethodType = "CASH" | "CARD" | "TRANSFER" | "QR";
+type PaymentMethodType = "CASH" | "CARD";
 
 interface PosTicket {
   id: string;
@@ -157,7 +156,6 @@ export default function CreateSalePage() {
   const [pendingMultiplier, setPendingMultiplier] = useState<number | null>(
     null
   );
-  const [clockText, setClockText] = useState("");
 
   // --- MODALES PUNTUALES ---
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -198,23 +196,6 @@ export default function CreateSalePage() {
     showQtyEditModal ||
     showClearConfirm ||
     showHelpModal;
-
-  // Reloj operativo
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      setClockText(
-        `${now.toLocaleDateString("es-AR")} ${now.toLocaleTimeString("es-AR", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })}`
-      );
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Carga inicial segura con guardia de desmontaje
   useEffect(() => {
@@ -655,31 +636,18 @@ export default function CreateSalePage() {
       toast.error("El ticket está vacío", { duration: 1500 });
       return;
     }
-    const totalForCurrentMethod = roundCurrency(
-      subtotal +
-      (activeTicket.paymentMethod === "CARD"
-        ? potentialCardDiaperSurcharge
-        : 0)
-    );
 
     updateActiveTicket((t) => ({
       ...t,
-      cashTendered: String(totalForCurrentMethod),
+      cashTendered: "",
     }));
     setShowCheckoutModal(true);
     setTimeout(() => {
       if (isMountedRef.current) {
         cashInputRef.current?.focus();
-        cashInputRef.current?.select();
       }
     }, 30);
-  }, [
-    activeTicket.items.length,
-    activeTicket.paymentMethod,
-    potentialCardDiaperSurcharge,
-    subtotal,
-    updateActiveTicket,
-  ]);
+  }, [activeTicket.items.length, updateActiveTicket]);
 
   // --- VALIDACIÓN Y PROCESAMIENTO SEGURO DE VENTA ---
   const processSale = useCallback(
@@ -692,8 +660,9 @@ export default function CreateSalePage() {
         method === "CARD" ? potentialCardDiaperSurcharge : 0;
       const computedTotal = roundCurrency(subtotal + appliedSurcharge);
 
-      // Si viene desde el modal de cobro en Efectivo (sin overrideMethod), validar pago suficiente
-      if (!overrideMethod && method === "CASH") {
+      // Si viene desde el modal de cobro en Efectivo y se ingresó un monto, validar que alcance
+      const hasEnteredCash = activeTicket.cashTendered.trim() !== "";
+      if (!overrideMethod && method === "CASH" && hasEnteredCash) {
         if (!Number.isFinite(cashTenderedNum) || cashTenderedNum < computedTotal) {
           toast.error("El monto abonado en efectivo es menor al total a cobrar");
           cashInputRef.current?.focus();
@@ -996,26 +965,15 @@ export default function CreateSalePage() {
     toggleCardMode,
   ]);
 
-  const quickBills = useMemo(() => {
-    if (finalTotal <= 0) return [];
-    return Array.from(
-      new Set([
-        finalTotal,
-        Math.ceil(finalTotal / 1000) * 1000,
-        Math.ceil(finalTotal / 5000) * 5000,
-        Math.ceil(finalTotal / 10000) * 10000,
-        Math.ceil(finalTotal / 20000) * 20000,
-      ])
-    )
-      .filter((n) => n >= finalTotal)
-      .slice(0, 4);
-  }, [finalTotal]);
-
   const selectedItem = activeTicket.items.find(
     (i) => i.productId === selectedRowId
   );
 
   const isCardActive = activeTicket.paymentMethod === "CARD";
+  const hasUnderpaidCash =
+    activeTicket.paymentMethod === "CASH" &&
+    activeTicket.cashTendered.trim() !== "" &&
+    cashTenderedNum < finalTotal;
 
   return (
     <DashboardLayout>
@@ -1154,9 +1112,7 @@ export default function CreateSalePage() {
               <Keyboard size={16} />
             </button>
 
-            <div className="hidden xl:flex items-center pl-2 ml-1 border-l border-white/10 text-[11px] font-mono text-slate-400">
-              {clockText}
-            </div>
+
           </div>
         </div>
 
@@ -1539,11 +1495,12 @@ export default function CreateSalePage() {
       {/* =============================================================== */}
       {/* MODAL BUSCADOR TABULAR RÁPIDO (F3)                              */}
       {/* =============================================================== */}
-      {showSearchModal && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-start justify-center pt-10 md:pt-16 p-4"
-          onClick={() => setShowSearchModal(false)}
-        >
+      {showSearchModal &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-start justify-center pt-10 md:pt-16 p-4 font-poppins"
+            onClick={() => setShowSearchModal(false)}
+          >
           <div
             className="w-full max-w-[780px] bg-[#0F0C1A] border border-white/15 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[78vh] ring-1 ring-white/5"
             onClick={(e) => e.stopPropagation()}
@@ -1649,13 +1606,12 @@ export default function CreateSalePage() {
                               setShowSearchModal(false);
                             }
                           }}
-                          className={`transition-colors ${
-                            noStock
-                              ? "opacity-40 cursor-not-allowed"
-                              : active
+                          className={`transition-colors ${noStock
+                            ? "opacity-40 text-gray cursor-not-allowed"
+                            : active
                               ? "bg-indigo-600/35 text-white cursor-pointer"
                               : "hover:bg-white/5 text-slate-200 cursor-pointer"
-                          }`}
+                            }`}
                         >
                           <td className="py-2.5 px-4 font-mono text-slate-400 truncate">
                             {p.barcode || p.id}
@@ -1665,11 +1621,10 @@ export default function CreateSalePage() {
                           </td>
                           <td className="py-2.5 px-4 text-center font-mono">
                             <span
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                                noStock
-                                  ? "bg-rose-500/20 text-rose-300"
-                                  : "bg-white/5 text-slate-200"
-                              }`}
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${noStock
+                                ? "bg-rose-500/20 text-rose-300"
+                                : "bg-white/5 text-slate-200"
+                                }`}
                             >
                               {Math.max(0, avail)}
                             </span>
@@ -1712,210 +1667,187 @@ export default function CreateSalePage() {
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* =============================================================== */}
       {/* MODAL DE COBRO EXPRESS (= / F4)                                 */}
       {/* =============================================================== */}
-      {showCheckoutModal && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={() => !isSubmitting && setShowCheckoutModal(false)}
-        >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              processSale();
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[460px] bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
+      {showCheckoutModal &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-poppins"
+            onClick={() => !isSubmitting && setShowCheckoutModal(false)}
           >
-            <div className="px-5 py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                Cobro de Venta
-              </h3>
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => setShowCheckoutModal(false)}
-                className="text-slate-400 hover:text-white disabled:opacity-40"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              {/* Medios de Pago */}
-              <div className="grid grid-cols-4 gap-1.5">
-                {(
-                  [
-                    { id: "CASH", label: "Efectivo", icon: Banknote },
-                    { id: "CARD", label: "Tarjeta", icon: CreditCard },
-                    { id: "TRANSFER", label: "Transf.", icon: ArrowLeftRight },
-                    { id: "QR", label: "QR / MP", icon: QrCode },
-                  ] as const
-                ).map((pm) => {
-                  const Icon = pm.icon;
-                  const active = activeTicket.paymentMethod === pm.id;
-                  return (
-                    <button
-                      key={pm.id}
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={() => {
-                        const nextTotal = roundCurrency(
-                          subtotal +
-                          (pm.id === "CARD" ? potentialCardDiaperSurcharge : 0)
-                        );
-                        updateActiveTicket((t) => ({
-                          ...t,
-                          paymentMethod: pm.id,
-                          cashTendered: String(nextTotal),
-                        }));
-                      }}
-                      className={`relative py-2.5 px-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition ${active
-                        ? "bg-indigo-600 text-white border-indigo-400"
-                        : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
-                        }`}
-                    >
-                      <Icon size={17} />
-                      <span>{pm.label}</span>
-                      {pm.id === "CARD" && potentialCardDiaperSurcharge > 0 && (
-                        <span className="text-[9px] font-mono text-amber-300 leading-none">
-                          +5% pañal
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                processSale();
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[460px] bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="px-5 py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Cobro de Venta
+                </h3>
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => setShowCheckoutModal(false)}
+                  className="text-slate-400 hover:text-white disabled:opacity-40"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
-              {/* Desglose y Total */}
-              <div className="bg-[#090710] border border-emerald-500/40 rounded-xl p-3.5 space-y-2">
-                {activeCardSurcharge > 0 && (
-                  <div className="space-y-1 pb-2 border-b border-white/10 text-xs">
-                    <div className="flex justify-between text-slate-400">
-                      <span>Subtotal base</span>
-                      <span className="font-mono">{formatARS(subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-amber-300 font-semibold">
-                      <span>Recargo Tarjeta (+5% en pañales)</span>
-                      <span className="font-mono">
-                        + {formatARS(activeCardSurcharge)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase text-slate-400">
-                    Total a Cobrar
-                  </span>
-                  <span className="text-3xl font-black font-mono text-emerald-400">
-                    {formatARS(finalTotal)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Abona con + Vuelto (Solo en Efectivo) */}
-              {activeTicket.paymentMethod === "CASH" && (
-                <div className="space-y-2.5 bg-[#171426] border border-white/10 rounded-xl p-3.5">
-                  <div className="flex gap-1.5 flex-wrap">
-                    {quickBills.map((b) => (
+              <div className="p-5 space-y-4">
+                {/* Medios de Pago (Solo Efectivo y Tarjeta) */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  {(
+                    [
+                      { id: "CASH", label: "Efectivo", icon: Banknote },
+                      { id: "CARD", label: "Tarjeta", icon: CreditCard },
+                    ] as const
+                  ).map((pm) => {
+                    const Icon = pm.icon;
+                    const active = activeTicket.paymentMethod === pm.id;
+                    return (
                       <button
-                        key={b}
+                        key={pm.id}
                         type="button"
                         disabled={isSubmitting}
                         onClick={() => {
                           updateActiveTicket((t) => ({
                             ...t,
-                            cashTendered: String(b),
+                            paymentMethod: pm.id,
+                            cashTendered: "",
                           }));
-                          cashInputRef.current?.focus();
                         }}
-                        className="flex-1 py-1.5 px-2 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 font-mono text-xs font-bold cursor-pointer"
-                      >
-                        {formatARS(b)}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-                        Abona con ($)
-                      </label>
-                      <input
-                        ref={cashInputRef}
-                        type="number"
-                        step="0.01"
-                        min={finalTotal}
-                        max={MAX_CASH_TENDERED}
-                        autoComplete="off"
-                        value={activeTicket.cashTendered}
-                        onChange={(e) =>
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            cashTendered: e.target.value.slice(0, 12),
-                          }))
-                        }
-                        className={`w-full bg-[#090710]! border rounded-xl! px-3! py-2! text-lg font-mono font-bold text-white outline-none focus:ring-0! ${
-                          cashTenderedNum < finalTotal
-                            ? "border-rose-500/70!"
-                            : "border-indigo-400/50!"
+                        className={`relative py-3 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
+                          active
+                            ? "bg-indigo-600 text-white border-indigo-400"
+                            : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
                         }`}
-                      />
-                    </div>
+                      >
+                        <Icon size={18} />
+                        <span>{pm.label}</span>
+                        {pm.id === "CARD" && potentialCardDiaperSurcharge > 0 && (
+                          <span className="text-[10px] font-mono text-amber-300 bg-black/30 px-1.5 py-0.5 rounded">
+                            +5% pañal
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
 
-                    <div className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 flex flex-col justify-center text-right">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">
-                        Su Vuelto
-                      </span>
-                      <span className="text-xl font-black font-mono text-amber-400">
-                        {formatARS(changeAmount)}
-                      </span>
+                {/* Desglose y Total */}
+                <div className="bg-[#090710] border border-emerald-500/40 rounded-xl p-3.5 space-y-2">
+                  {activeCardSurcharge > 0 && (
+                    <div className="space-y-1 pb-2 border-b border-white/10 text-xs">
+                      <div className="flex justify-between text-slate-400">
+                        <span>Subtotal base</span>
+                        <span className="font-mono">{formatARS(subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-amber-300 font-semibold">
+                        <span>Recargo Tarjeta (+5% en pañales)</span>
+                        <span className="font-mono">
+                          + {formatARS(activeCardSurcharge)}
+                        </span>
+                      </div>
                     </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase text-slate-400">
+                      Total a Cobrar
+                    </span>
+                    <span className="text-3xl font-black font-mono text-emerald-400">
+                      {formatARS(finalTotal)}
+                    </span>
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="px-5 py-3.5 bg-[#181529] border-t border-white/10 flex justify-end gap-2">
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => setShowCheckoutModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 disabled:opacity-40 cursor-pointer"
-              >
-                Cancelar (Esc)
-              </button>
-              <button
-                type="submit"
-                disabled={
-                  isSubmitting ||
-                  (activeTicket.paymentMethod === "CASH" &&
-                    cashTenderedNum < finalTotal)
-                }
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Check size={16} />
-                <span>{isSubmitting ? "Guardando..." : "CONFIRMAR (ENTER)"}</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+                {/* Abona con + Vuelto (Solo en Efectivo, sin montos sugeridos) */}
+                {activeTicket.paymentMethod === "CASH" && (
+                  <div className="bg-[#171426] border border-white/10 rounded-xl p-3.5">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+                          Abona con ($)
+                        </label>
+                        <input
+                          ref={cashInputRef}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max={MAX_CASH_TENDERED}
+                          autoComplete="off"
+                          placeholder="Exacto"
+                          value={activeTicket.cashTendered}
+                          onChange={(e) =>
+                            updateActiveTicket((t) => ({
+                              ...t,
+                              cashTendered: e.target.value.slice(0, 12),
+                            }))
+                          }
+                          className={`w-full bg-[#090710]! border rounded-xl! px-3! py-2! text-lg font-mono font-bold text-white placeholder:text-slate-600 outline-none focus:ring-0! ${
+                            hasUnderpaidCash
+                              ? "border-rose-500/70!"
+                              : "border-indigo-400/50!"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 flex flex-col justify-center text-right">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">
+                          Su Vuelto
+                        </span>
+                        <span className="text-xl font-black font-mono text-amber-400">
+                          {formatARS(changeAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="px-5 py-3.5 bg-[#181529] border-t border-white/10 flex justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => setShowCheckoutModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+                >
+                  Cancelar (Esc)
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || hasUnderpaidCash}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Check size={16} />
+                  <span>{isSubmitting ? "Guardando..." : "CONFIRMAR (ENTER)"}</span>
+                </button>
+              </div>
+            </form>
+          </div>,
+          document.body
+        )}
 
       {/* =============================================================== */}
       {/* MODAL EDICIÓN DIRECTA DE CANTIDAD (BOTÓN ✎)                     */}
       {/* =============================================================== */}
-      {showQtyEditModal && selectedItem && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={() => setShowQtyEditModal(false)}
-        >
+      {showQtyEditModal &&
+        selectedItem &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-poppins"
+            onClick={() => setShowQtyEditModal(false)}
+          >
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -1970,17 +1902,19 @@ export default function CreateSalePage() {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* =============================================================== */}
       {/* MODAL DE ATAJOS DE CAJA                                         */}
       {/* =============================================================== */}
-      {showHelpModal && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={() => setShowHelpModal(false)}
-        >
+      {showHelpModal &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-poppins"
+            onClick={() => setShowHelpModal(false)}
+          >
           <div
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-[440px] bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3 shadow-2xl"
@@ -2020,7 +1954,8 @@ export default function CreateSalePage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <ConfirmModal

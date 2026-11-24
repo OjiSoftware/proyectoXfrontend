@@ -1,4 +1,5 @@
 import { useEffect, ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -39,21 +40,21 @@ export function ConfirmModal({
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-md"
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 font-poppins"
             onClick={onCancel}
         >
             <div
-                className="bg-[#0C0A15]/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center transform transition-all duration-300 scale-95 animate-fade-in ring-1 ring-white/5"
+                className="bg-[#0C0A15]/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-[384px] shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center transform transition-all duration-300 scale-95 animate-fade-in ring-1 ring-white/5"
                 onClick={(e) => e.stopPropagation()}
             >
                 <h2 className="text-xl font-bold text-slate-100 mb-2">
                     {title}
                 </h2>
-                <p className="mt-2 text-sm text-slate-400">
+                <div className="mt-2 text-sm text-slate-400">
                     {message}
-                </p>
+                </div>
                 <div className="mt-6 flex flex-col md:flex-row justify-center gap-3 w-full">
                     <button
                         className="flex-1 w-full px-5 py-2.5 bg-transparent border border-white/10 text-slate-300 rounded-2xl hover:bg-white/5 hover:text-white transition-all cursor-pointer font-bold text-sm active:scale-95"
@@ -71,7 +72,8 @@ export function ConfirmModal({
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

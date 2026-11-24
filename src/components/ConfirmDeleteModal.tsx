@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface ConfirmDeleteModalProps {
     isOpen: boolean;
@@ -27,13 +28,13 @@ export function ConfirmDeleteModal({
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-md"
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 font-poppins"
             onClick={onCancel}
         >
             <div
-                className="bg-[#0C0A15]/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center transform transition-all duration-300 scale-95 animate-fade-in ring-1 ring-white/5"
+                className="bg-[#0C0A15]/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-[384px] shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center transform transition-all duration-300 scale-95 animate-fade-in ring-1 ring-white/5"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-500/10 mb-4 border border-rose-500/20 shadow-[0_0_15px_rgba(225,29,72,0.1)]">
@@ -64,6 +65,7 @@ export function ConfirmDeleteModal({
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
