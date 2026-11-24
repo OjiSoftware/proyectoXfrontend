@@ -391,9 +391,9 @@ export function SaleDetailsModal({
         )}
 
         {/* Footer */}
-        <div className="mt-4 md:mt-6 flex justify-end border-t border-white/5 pt-4 gap-2 md:gap-3 shrink-0">
+        <div className="mt-4 md:mt-6 flex justify-end border-t border-[var(--border-subtle)] pt-4 gap-2 md:gap-3 shrink-0">
           <button
-            className="px-4 md:px-6 py-3 md:py-2.5 font-bold rounded-2xl text-xs flex-1 md:flex-none border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white"
+            className="btn btn-md btn-ghost rounded-2xl flex-1 md:flex-none"
             onClick={onClose}
           >
             Cerrar
@@ -405,10 +405,13 @@ export function SaleDetailsModal({
                 : 'Editar venta'
             }
             to={ROUTES.sales.edit(Number(sale?.id))}
-            className={`px-4 md:px-6 py-3 md:py-2.5 font-bold rounded-2xl transition text-xs flex items-center justify-center gap-2 flex-1 md:flex-none ${
+            aria-disabled={
               currentStatus === 'CANCELLED' || currentStatus === 'COMPLETED'
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed pointer-events-none border border-white/5'
-                : 'bg-indigo-600 text-white hover:bg-indigo-500 hover:-translate-y-0.5 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.4)] border border-indigo-500/30'
+            }
+            className={`btn btn-md rounded-2xl flex-1 md:flex-none ${
+              currentStatus === 'CANCELLED' || currentStatus === 'COMPLETED'
+                ? 'btn-subtle opacity-45 pointer-events-none'
+                : 'btn-primary'
             }`}
           >
             <PencilIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />

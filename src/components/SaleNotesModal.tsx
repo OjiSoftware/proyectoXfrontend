@@ -113,7 +113,7 @@ export function SaleNotesModal({
           <div className="flex flex-col items-end w-full shrink-0 border-t border-white/5 pt-5">
             <div className="flex flex-col-reverse md:flex-row gap-3 w-full">
               <button
-                className="flex-1 w-full px-5 py-3 md:py-2.5 font-bold rounded-2xl text-sm border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white active:scale-95"
+                className="btn btn-md btn-ghost flex-1 w-full rounded-2xl"
                 onClick={onClose}
                 disabled={isLoading}
               >
@@ -122,12 +122,7 @@ export function SaleNotesModal({
               <button
                 onClick={() => setIsConfirmOpen(true)}
                 disabled={isSaveDisabled}
-                className={`flex-1 w-full px-5 py-3 md:py-2.5 font-bold rounded-2xl transition-all duration-300 text-sm flex items-center justify-center gap-2 border
-                  ${
-                    isSaveDisabled
-                      ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-40 border-white/5 pointer-events-none'
-                      : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 cursor-pointer hover:bg-emerald-500/30 hover:border-emerald-400/50 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
-                  }`}
+                className="btn btn-md btn-success flex-1 w-full rounded-2xl"
               >
                 Guardar notas
               </button>

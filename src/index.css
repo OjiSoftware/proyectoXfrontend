@@ -8,6 +8,203 @@
   --font-management: "Poppins", sans-serif;
 }
 
+/* ==========================================================================
+   SISTEMA DE TEMAS (Public / Management Dark / Management Light)
+   Se aplica en <html data-theme="..."> para que los portales (modales en body)
+   hereden los tokens automáticamente.
+   ========================================================================== */
+
+:root,
+[data-theme="public"] {
+  --bg-app: #ffffff;
+  --bg-surface: #f8f8f8;
+  --bg-elevated: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.95);
+  --bg-modal: #ffffff;
+  --bg-input: #ffffff;
+
+  --border-subtle: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  --text-primary: #1a2d2a;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+
+  /* Botones - Tema Public (Sólidos / Storefront) */
+  --btn-primary-bg: #37b9c7;
+  --btn-primary-hover: #2baab0;
+  --btn-primary-text: #ffffff;
+  --btn-primary-border: transparent;
+  --btn-primary-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+
+  --btn-success-bg: #16a34a;
+  --btn-success-hover: #15803d;
+  --btn-success-text: #ffffff;
+  --btn-success-border: transparent;
+  --btn-success-shadow: 0 0 20px rgba(22, 163, 74, 0.3);
+
+  --btn-danger-bg: #f43f5e;
+  --btn-danger-hover: #e11d48;
+  --btn-danger-text: #ffffff;
+  --btn-danger-border: transparent;
+  --btn-danger-shadow: 0 1px 2px rgba(244, 63, 94, 0.2);
+
+  --btn-warning-bg: #f59e0b;
+  --btn-warning-hover: #d97706;
+  --btn-warning-text: #ffffff;
+  --btn-warning-border: transparent;
+  --btn-warning-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
+
+  --btn-ghost-bg: transparent;
+  --btn-ghost-hover: #f3f4f6;
+  --btn-ghost-text: #374151;
+  --btn-ghost-border: #e5e7eb;
+
+  --btn-subtle-bg: #e5e7eb;
+  --btn-subtle-hover: #d1d5db;
+  --btn-subtle-text: #374151;
+  --btn-subtle-border: transparent;
+
+  --btn-outline-bg: transparent;
+  --btn-outline-hover: #2baab0;
+  --btn-outline-text: #37b9c7;
+  --btn-outline-hover-text: #ffffff;
+  --btn-outline-border: #2baab0;
+}
+
+[data-theme="mgmt-dark"] {
+  --bg-app: #07050c;
+  --bg-surface: #0d0a18;
+  --bg-elevated: #151320;
+  --bg-sidebar: #0a0812;
+  --bg-header: rgba(10, 8, 18, 0.9);
+  --bg-modal: rgba(12, 10, 21, 0.95);
+  --bg-input: #151320;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  /* Tablas Management Dark */
+  --mgmt-table-bg: #0d0a18;
+  --mgmt-table-th-bg: #151124;
+  --mgmt-table-th-text: #cbd5e1;
+  --mgmt-table-zebra: rgba(255, 255, 255, 0.015);
+  --mgmt-table-hover: rgba(99, 102, 241, 0.08);
+  --mgmt-table-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+
+  /* Botones - Tema Management Dark (Glassmorphism) */
+  --btn-primary-bg: rgba(79, 70, 229, 0.22);
+  --btn-primary-hover: rgba(99, 102, 241, 0.34);
+  --btn-primary-text: #a5b4fc;
+  --btn-primary-border: rgba(99, 102, 241, 0.35);
+  --btn-primary-shadow: 0 0 20px rgba(79, 70, 229, 0.18);
+
+  --btn-success-bg: rgba(5, 150, 105, 0.2);
+  --btn-success-hover: rgba(16, 185, 129, 0.3);
+  --btn-success-text: #34d399;
+  --btn-success-border: rgba(16, 185, 129, 0.32);
+  --btn-success-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+
+  --btn-danger-bg: rgba(225, 29, 72, 0.2);
+  --btn-danger-hover: rgba(244, 63, 94, 0.3);
+  --btn-danger-text: #fb7185;
+  --btn-danger-border: rgba(244, 63, 94, 0.32);
+  --btn-danger-shadow: 0 0 20px rgba(225, 29, 72, 0.15);
+
+  --btn-warning-bg: rgba(245, 158, 11, 0.18);
+  --btn-warning-hover: rgba(245, 158, 11, 0.28);
+  --btn-warning-text: #fcd34d;
+  --btn-warning-border: rgba(245, 158, 11, 0.35);
+  --btn-warning-shadow: 0 0 18px rgba(245, 158, 11, 0.12);
+
+  --btn-ghost-bg: transparent;
+  --btn-ghost-hover: rgba(255, 255, 255, 0.06);
+  --btn-ghost-text: #cbd5e1;
+  --btn-ghost-border: rgba(255, 255, 255, 0.1);
+
+  --btn-subtle-bg: rgba(255, 255, 255, 0.05);
+  --btn-subtle-hover: rgba(255, 255, 255, 0.1);
+  --btn-subtle-text: #e2e8f0;
+  --btn-subtle-border: rgba(255, 255, 255, 0.1);
+
+  --btn-outline-bg: transparent;
+  --btn-outline-hover: rgba(99, 102, 241, 0.15);
+  --btn-outline-text: #818cf8;
+  --btn-outline-hover-text: #c7d2fe;
+  --btn-outline-border: rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="mgmt-light"] {
+  --bg-app: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.92);
+  --bg-modal: #ffffff;
+  --bg-input: #f8fafc;
+
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+
+  /* Tablas Management Light */
+  --mgmt-table-bg: #ffffff;
+  --mgmt-table-th-bg: #f8fafc;
+  --mgmt-table-th-text: #475569;
+  --mgmt-table-zebra: rgba(15, 23, 42, 0.02);
+  --mgmt-table-hover: rgba(79, 70, 229, 0.05);
+  --mgmt-table-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.1);
+
+  /* Botones - Tema Management Light */
+  --btn-primary-bg: #4f46e5;
+  --btn-primary-hover: #4338ca;
+  --btn-primary-text: #ffffff;
+  --btn-primary-border: #4f46e5;
+  --btn-primary-shadow: 0 4px 12px rgba(79, 70, 229, 0.22);
+
+  --btn-success-bg: #059669;
+  --btn-success-hover: #047857;
+  --btn-success-text: #ffffff;
+  --btn-success-border: #059669;
+  --btn-success-shadow: 0 4px 12px rgba(5, 150, 105, 0.22);
+
+  --btn-danger-bg: #e11d48;
+  --btn-danger-hover: #be123c;
+  --btn-danger-text: #ffffff;
+  --btn-danger-border: #e11d48;
+  --btn-danger-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);
+
+  --btn-warning-bg: #fef3c7;
+  --btn-warning-hover: #fde68a;
+  --btn-warning-text: #92400e;
+  --btn-warning-border: #f59e0b;
+  --btn-warning-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+
+  --btn-ghost-bg: transparent;
+  --btn-ghost-hover: #f1f5f9;
+  --btn-ghost-text: #334155;
+  --btn-ghost-border: #cbd5e1;
+
+  --btn-subtle-bg: #f1f5f9;
+  --btn-subtle-hover: #e2e8f0;
+  --btn-subtle-text: #1e293b;
+  --btn-subtle-border: #e2e8f0;
+
+  --btn-outline-bg: transparent;
+  --btn-outline-hover: #eef2ff;
+  --btn-outline-text: #4f46e5;
+  --btn-outline-hover-text: #3730a3;
+  --btn-outline-border: #c7d2fe;
+}
+
 @layer base {
   body {
     font-family: var(--font-public-body);
@@ -35,18 +232,18 @@
 
   /* Estandarización de tablas del panel de gestión */
   .management-table-container {
-    background-color: #0d0a18;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+    background-color: var(--mgmt-table-bg, #0d0a18);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    box-shadow: var(--mgmt-table-shadow, 0 20px 40px -15px rgba(0, 0, 0, 0.7));
   }
 
   .management-table th {
-    background-color: #151124 !important;
+    background-color: var(--mgmt-table-th-bg, #151124) !important;
     font-size: 0.75rem !important; /* 12px (text-xs) */
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
-    color: #cbd5e1 !important; /* slate-300 para óptimo contraste sobre fondo oscuro */
+    color: var(--mgmt-table-th-text, #cbd5e1) !important;
   }
 
   .management-table td {
@@ -54,20 +251,20 @@
   }
 
   .management-table tbody tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.015);
+    background-color: var(--mgmt-table-zebra, rgba(255, 255, 255, 0.015));
   }
 
   .management-table tbody tr:hover {
-    background-color: rgba(99, 102, 241, 0.08) !important;
+    background-color: var(--mgmt-table-hover, rgba(99, 102, 241, 0.08)) !important;
   }
 
   .management-table td .data-primary {
-    color: #f1f5f9 !important; /* slate-100 */
+    color: var(--text-primary, #f1f5f9) !important;
     font-weight: 600;
   }
 
   .management-table td .data-secondary {
-    color: #94a3b8 !important; /* slate-400 */
+    color: var(--text-muted, #94a3b8) !important;
   }
 
   button,
@@ -81,6 +278,132 @@
   button:disabled,
   [role="button"][aria-disabled="true"] {
     cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* ==========================================================================
+     BOTONES UNIFICADOS (.btn + tamaño + variante)
+     ========================================================================== */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-bold border transition-all duration-200 cursor-pointer select-none active:scale-95 focus:outline-none disabled:opacity-45 disabled:pointer-events-none disabled:cursor-not-allowed;
+  }
+
+  /* Medidas / Escalas */
+  .btn-xs {
+    @apply h-8 px-2.5 text-[11px] rounded-lg;
+  }
+
+  .btn-sm {
+    @apply h-9 px-3.5 text-xs rounded-xl;
+  }
+
+  .btn-md {
+    @apply h-10 md:h-11 px-5 text-sm rounded-xl;
+  }
+
+  .btn-lg {
+    @apply h-12 px-6 text-base rounded-2xl;
+  }
+
+  .btn-icon {
+    @apply w-9 h-9 p-0 rounded-lg shrink-0;
+  }
+
+  .btn-icon-sm {
+    @apply w-8 h-8 p-0 rounded-lg shrink-0;
+  }
+
+  /* Variantes semánticas (adaptativas al data-theme activo) */
+  .btn-primary {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border-color: var(--btn-primary-border);
+    box-shadow: var(--btn-primary-shadow);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--btn-primary-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-success {
+    background-color: var(--btn-success-bg);
+    color: var(--btn-success-text);
+    border-color: var(--btn-success-border);
+    box-shadow: var(--btn-success-shadow);
+  }
+  .btn-success:hover:not(:disabled) {
+    background-color: var(--btn-success-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger {
+    background-color: var(--btn-danger-bg);
+    color: var(--btn-danger-text);
+    border-color: var(--btn-danger-border);
+    box-shadow: var(--btn-danger-shadow);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background-color: var(--btn-danger-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-warning {
+    background-color: var(--btn-warning-bg);
+    color: var(--btn-warning-text);
+    border-color: var(--btn-warning-border);
+    box-shadow: var(--btn-warning-shadow);
+  }
+  .btn-warning:hover:not(:disabled) {
+    background-color: var(--btn-warning-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    background-color: var(--btn-ghost-bg);
+    color: var(--btn-ghost-text);
+    border-color: var(--btn-ghost-border);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background-color: var(--btn-ghost-hover);
+  }
+
+  .btn-subtle {
+    background-color: var(--btn-subtle-bg);
+    color: var(--btn-subtle-text);
+    border-color: var(--btn-subtle-border);
+  }
+  .btn-subtle:hover:not(:disabled) {
+    background-color: var(--btn-subtle-hover);
+  }
+
+  .btn-outline {
+    background-color: var(--btn-outline-bg);
+    color: var(--btn-outline-text);
+    border-color: var(--btn-outline-border);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background-color: var(--btn-outline-hover);
+    color: var(--btn-outline-hover-text);
+  }
+
+  /* Contenedores Management adaptativos */
+  .mgmt-modal {
+    background-color: var(--bg-modal);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+
+  .mgmt-surface {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+
+  .mgmt-input {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
   }
 }
 
@@ -98,6 +421,18 @@
   --color-dark: #1A2D2A;
   --color-accent: #FAD390;
   --color-surface: #F8F8F8;
+
+  /* Tokens de marca para reparar clases brand-* existentes */
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+
+  /* Tokens tienda pública */
+  --color-store-primary: #37b9c7;
+  --color-store-primary-hover: #2baab0;
+  --color-store-success: #16a34a;
+  --color-store-success-hover: #15803d;
 }
 
 /* Custom Scrollbar for Dark UI */

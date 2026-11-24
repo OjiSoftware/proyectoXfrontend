@@ -16,8 +16,9 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
 import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
-import { BlocksIcon, DollarSign, Truck, MoreHorizontal } from "lucide-react";
+import { BlocksIcon, DollarSign, Truck, MoreHorizontal, Sun, Moon } from "lucide-react";
 
 const navigation = [
     /*     { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon }, */
@@ -50,16 +51,19 @@ export default function DashboardLayout({
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { managementTheme, toggleManagementTheme, setActiveScope } = useTheme();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [mobileQuickCreateOpen, setMobileQuickCreateOpen] = useState(false);
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
     useEffect(() => {
-        document.body.classList.add("bg-[#07050C]", "overflow-hidden");
+        setActiveScope("management");
+        document.body.classList.add("overflow-hidden");
         return () => {
-            document.body.classList.remove("bg-[#07050C]", "overflow-hidden");
+            setActiveScope("public");
+            document.body.classList.remove("overflow-hidden");
         };
-    }, []);
+    }, [setActiveScope]);
 
     const handleLogout = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -81,12 +85,12 @@ export default function DashboardLayout({
         "&background=6366f1&color=fff";
 
     return (
-        <div className="flex h-screen w-full bg-[#07050C] overflow-hidden font-poppins">
+        <div className="flex h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-hidden font-poppins transition-colors duration-200">
 
             {/* --------------------------- */}
             {/* SIDEBAR ESCRITORIO          */}
             {/* --------------------------- */}
-            <aside className="hidden md:flex md:w-64 md:flex-col bg-[#0A0812] backdrop-blur-xl border-r border-white/5 shadow-2xl relative z-20">
+            <aside className="hidden md:flex md:w-64 md:flex-col bg-[var(--bg-sidebar)] backdrop-blur-xl border-r border-[var(--border-subtle)] shadow-2xl relative z-20 transition-colors duration-200">
                 {/* Header Layout Lateral (Logo) */}
                 <Link
                     to="/management"
@@ -174,6 +178,28 @@ export default function DashboardLayout({
                                 <span>Ver tienda pública</span>
                             </Link>
                         </div>
+
+                        {/* Selector de tema Management (Dark / Light) */}
+                        <div className="pt-2">
+                            <button
+                                type="button"
+                                onClick={toggleManagementTheme}
+                                className="btn btn-sm btn-subtle w-full justify-between px-4"
+                                title={managementTheme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+                            >
+                                <span className="flex items-center gap-2">
+                                    {managementTheme === "dark" ? (
+                                        <Moon className="h-4 w-4 text-indigo-400" />
+                                    ) : (
+                                        <Sun className="h-4 w-4 text-amber-500" />
+                                    )}
+                                    <span>{managementTheme === "dark" ? "Tema Oscuro" : "Tema Claro"}</span>
+                                </span>
+                                <span className="text-[10px] uppercase tracking-wider opacity-70">
+                                    {managementTheme === "dark" ? "Dark" : "Light"}
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -214,13 +240,27 @@ export default function DashboardLayout({
                                 Gestión
                             </span>
                         </div>
-                        <button
-                            onClick={() => setMobileDrawerOpen(true)}
-                            className="shrink-0 inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all"
-                        >
-                            <span className="sr-only">Menú</span>
-                            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={toggleManagementTheme}
+                                className="btn btn-icon btn-ghost"
+                                title={managementTheme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+                            >
+                                {managementTheme === "dark" ? (
+                                    <Moon className="h-4 w-4 text-indigo-400" />
+                                ) : (
+                                    <Sun className="h-4 w-4 text-amber-500" />
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setMobileDrawerOpen(true)}
+                                className="shrink-0 inline-flex items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none active:scale-95 transition-all"
+                            >
+                                <span className="sr-only">Menú</span>
+                                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -228,21 +268,21 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* AREA PRINCIPAL 100% WIDTH   */}
             {/* --------------------------- */}
-            <div className="flex flex-1 flex-col overflow-hidden pt-14 md:pt-0 bg-[#07050C]">
+            <div className="flex flex-1 flex-col overflow-hidden pt-14 md:pt-0 bg-[var(--bg-app)] transition-colors duration-200">
                 {title && (
                     <>
                         {/* HEADER MOBILE (< md): Ultracompacto, sin widgets de stock ni botón crear */}
-                        <header className="md:hidden shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-30 shadow-sm px-3.5 py-2">
-                            <h1 className="text-sm font-bold tracking-tight text-white truncate">{title}</h1>
-                            {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
+                        <header className="md:hidden shrink-0 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)] relative z-30 shadow-sm px-3.5 py-2">
+                            <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
+                            {subtitle && <p className="text-[11px] text-[var(--text-muted)] truncate">{subtitle}</p>}
                         </header>
 
                         {/* HEADER DESKTOP (md+): Sin tocar, mantiene widgets de alertas y botón crear */}
-                        <header className="hidden md:block shrink-0 bg-[#0A0812]/90 backdrop-blur-md border-b border-white/5 relative z-30 shadow-sm overflow-visible">
+                        <header className="hidden md:block shrink-0 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)] relative z-30 shadow-sm overflow-visible">
                             <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
-                                    <h1 className="text-2xl font-bold tracking-tight text-white truncate">{title}</h1>
-                                    {subtitle && <p className="text-sm text-slate-300 mt-1 truncate">{subtitle}</p>}
+                                    <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
+                                    {subtitle && <p className="text-sm text-[var(--text-muted)] mt-1 truncate">{subtitle}</p>}
                                 </div>
 
                                 {/* WIDGETS + ACCIONES agrupados a la derecha */}
