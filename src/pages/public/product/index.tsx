@@ -141,6 +141,7 @@ export default function ProductDetailPage() {
           >
             {product.category.name}
           </span>
+          <span>/</span>
           <span className="cursor-default font-semibold text-gray-500">
             {product.name}
           </span>

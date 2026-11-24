@@ -8,10 +8,42 @@ import { catalogApi } from "@/services/CatalogService";
 import { Product } from "@/types/product.types";
 
 import {
-    Baby, Droplets, Heart, Tag, ShieldCheck, Truck,
+    Baby, Droplets, Heart, Tag, Truck,
     ChevronLeft, ChevronRight, ArrowRight, BadgeCheck, Sparkles,
-    DollarSign, Shirt, ToyBrick, Car,
+    DollarSign, Shirt, ToyBrick,
 } from 'lucide-react';
+
+type IconProps = { className?: string; strokeWidth?: number };
+
+const BabyBottleIcon = ({ className, strokeWidth = 1.6 }: IconProps) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M10 3h4v2a2 2 0 0 1-4 0V3Z" />
+        <path d="M8 7h8a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z" />
+        <path d="M8 10h8v9a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-9Z" />
+        <path d="M10 14h2" />
+        <path d="M10 17h2" />
+    </svg>
+);
+
+const ElderlyIcon = ({ className, strokeWidth = 1.6 }: IconProps) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="11" cy="5" r="2.2" />
+        <path d="M13 10.5c-1-1.5-2.5-2-4-1.5l-1.5 5.5" />
+        <path d="M9.5 14.5 8 21" />
+        <path d="M11.5 14.5 13 21" />
+        <path d="M13 10.5l3 3.5" />
+        <path d="M17.5 14a1.5 1.5 0 0 0-3 0v7" />
+    </svg>
+);
+
+const StrollerIcon = ({ className, strokeWidth = 1.6 }: IconProps) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M4 6h2.5l2.5 8h8.5a2 2 0 0 0 1.9-1.4L21 8H10" />
+        <path d="M10 8a5 5 0 0 1 9 0" />
+        <circle cx="9.5" cy="18.5" r="2" />
+        <circle cx="17.5" cy="18.5" r="2" />
+    </svg>
+);
 
 const categories = [
     { name: "Pañales", icon: Baby, bg: "bg-[#FFF6B8]" },
@@ -19,9 +51,9 @@ const categories = [
     { name: "Perfumería", icon: Sparkles, bg: "bg-[#FFE0E6]" },
     { name: "Indumentaria", icon: Shirt, bg: "bg-[#FFF6B8]" },
     { name: "Juguetes", icon: ToyBrick, bg: "bg-[#D5F3F4]" },
-    { name: "Accesorios", icon: Heart, bg: "bg-[#FFE0E6]" },
-    { name: "Adultos", icon: ShieldCheck, bg: "bg-[#FFF6B8]" },
-    { name: "Rodados y Mobiliario", icon: Car, bg: "bg-[#D5F3F4]" },
+    { name: "Accesorios", icon: BabyBottleIcon, bg: "bg-[#FFE0E6]" },
+    { name: "Adultos", icon: ElderlyIcon, bg: "bg-[#FFF6B8]" },
+    { name: "Cochecitos", icon: StrollerIcon, bg: "bg-[#D5F3F4]" },
 ];
 
 const formatPrice = (n: number) =>
@@ -47,7 +79,7 @@ export default function HomePage() {
     const goSearch = (term: string) => navigate(`/catalogo?search=${encodeURIComponent(term)}`);
 
     return (
-        <div className="flex flex-col min-h-screen w-full bg-white font-nunito text-[#1A2D2A]">
+        <div className="flex flex-col min-h-screen w-full bg-[linear-gradient(180deg,#d8f3f5_0%,#ffffff_460px,#ffffff_100%)] font-nunito text-[#1A2D2A]">
             <Navbar search={search} setSearch={setSearch} />
 
             {/* Hero: banner principal + dos banners secundarios (estilo Babylist) */}
