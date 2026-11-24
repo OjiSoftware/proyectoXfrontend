@@ -135,6 +135,12 @@ export default function ProductDetailPage() {
             Catálogo
           </span>
           <span>/</span>
+          <span
+            className="hover:text-gray-600 cursor-pointer transition-colors"
+            onClick={() => navigate("/catalogo?category=${product.category")}
+          >
+            {product.category.name}
+          </span>
           <span className="cursor-default font-semibold text-gray-500">
             {product.name}
           </span>

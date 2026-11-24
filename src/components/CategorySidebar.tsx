@@ -3,13 +3,17 @@ import { categoryApi } from '@/services/CategoryService';
 import { Category } from '@/types/category.types';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 
+export type SortOption = "default" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
+
 interface SidebarProps {
     onSelectCategory: (id: number, catName: string) => void;
     onClearFilters: () => void;
     selectedCategory?: number | null;
+    sortBy: SortOption;
+    onSortChange: (sort: SortOption) => void;
 }
 
-export function CategorySidebar({ onSelectCategory, onClearFilters, selectedCategory }: SidebarProps) {
+export function CategorySidebar({ onSelectCategory, onClearFilters, selectedCategory, sortBy, onSortChange }: SidebarProps) {
     const [categories, setCategories] = useState<Category[]>([]);
     const [isMobileExpanded, setIsMobileExpanded] = useState<boolean>(false);
 
@@ -54,6 +58,25 @@ export function CategorySidebar({ onSelectCategory, onClearFilters, selectedCate
                     >
                         MOSTRAR TODO
                     </button>
+
+                    {/* SECCIÓN DE ORDENAMIENTO */}
+                    <div className="mb-6">
+                        <h2 className="text-xs text-[#1A2D2A] font-bold font-fredoka uppercase tracking-wider mb-3">
+                            Ordenar por
+                        </h2>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => onSortChange(e.target.value as SortOption)}
+                            aria-label="Ordenar productos"
+                            className="w-full border border-gray-200 bg-white px-3 py-2 rounded-xl text-sm font-nunito text-[#1A2D2A] focus:outline-none focus:border-[#37b9c7] cursor-pointer"
+                        >
+                            <option value="default">Más recientes</option>
+                            <option value="price_asc">Menor precio</option>
+                            <option value="price_desc">Mayor precio</option>
+                            <option value="name_asc">Nombre: A - Z</option>
+                            <option value="name_desc">Nombre: Z - A</option>
+                        </select>
+                    </div>
 
                     {/* SECCIÓN DE CATEGORÍAS */}
                     <div>
