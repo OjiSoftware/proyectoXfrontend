@@ -94,10 +94,10 @@ const StrollerIcon = ({ className, strokeWidth = 1.6 }: IconProps) => (
 const categories = [
     { name: "Pañales", icon: DiaperIcon, bg: "bg-[#FFF6B8]", ring: "group-hover:shadow-[#FFF6B8]/80" },
     { name: "Toallitas", icon: WipesIcon, bg: "bg-[#D5F3F4]", ring: "group-hover:shadow-[#D5F3F4]/90" },
-    { name: "Perfumería", icon: PerfumeIcon, bg: "bg-[#FFE0E6]", ring: "group-hover:shadow-[#FFE0E6]/90" },
+    { name: "Perfumería", icon: PerfumeIcon, bg: "bg-[#FFE5C8]", ring: "group-hover:shadow-[#FFE5C8]/90" },
     { name: "Indumentaria", icon: BabyOnesieIcon, bg: "bg-[#FFF6B8]", ring: "group-hover:shadow-[#FFF6B8]/80" },
     { name: "Juguetes", icon: RattleToyIcon, bg: "bg-[#D5F3F4]", ring: "group-hover:shadow-[#D5F3F4]/90" },
-    { name: "Accesorios", icon: BabyBottleIcon, bg: "bg-[#FFE0E6]", ring: "group-hover:shadow-[#FFE0E6]/90" },
+    { name: "Accesorios", icon: BabyBottleIcon, bg: "bg-[#FFE5C8]", ring: "group-hover:shadow-[#FFE5C8]/90" },
     { name: "Adultos", icon: ElderlyIcon, bg: "bg-[#FFF6B8]", ring: "group-hover:shadow-[#FFF6B8]/80" },
     { name: "Rodados", icon: StrollerIcon, bg: "bg-[#D5F3F4]", ring: "group-hover:shadow-[#D5F3F4]/90" },
 ];
@@ -161,28 +161,28 @@ export default function HomePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                         <button
                             onClick={() => goSearch("Pañales")}
-                            className="group relative overflow-hidden text-left rounded-3xl bg-gradient-to-br from-[#FFF9CE] to-[#FFF29C] p-6 md:p-7 min-h-[190px] flex flex-col justify-between border border-amber-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                            className="group relative overflow-hidden text-left rounded-3xl bg-gradient-to-br from-[#FFF9CE] to-[#FFF29C] p-6 md:p-8 min-h-[190px] flex flex-col justify-end border border-amber-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                         >
-                            <div className="pointer-events-none absolute -right-8 -top-8 w-36 h-36 rounded-full bg-white/45" />
-                            <DiaperIcon className="pointer-events-none absolute right-4 top-3 w-24 h-24 text-[#37b9c7]/15 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.3} />
+                            <div className="pointer-events-none absolute -right-6 -top-6 w-36 h-36 rounded-full bg-white/50" />
+                            <DiaperIcon className="pointer-events-none absolute right-5 top-4 w-20 h-20 text-[#37b9c7]/35 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.5} />
 
-                            <div className="relative mt-4">
-                                <h2 className="text-2xl font-bold text-[#1A2D2A] leading-tight">Pañales para cada etapa</h2>
-                                <span className="inline-flex items-center gap-1.5 mt-2 text-sm font-bold text-[#2b99a6] group-hover:gap-2.5 transition-all">
+                            <div className="relative mt-auto pt-12">
+                                <h2 className="text-2xl font-bold text-[#2b99a6] leading-tight">Pañales para cada etapa</h2>
+                                <span className="inline-flex items-center gap-1.5 mt-2 text-sm font-bold text-[#3d635f] group-hover:text-[#2b99a6] group-hover:gap-2.5 transition-all">
                                     Ver pañales <ArrowRight className="w-4 h-4" />
                                 </span>
                             </div>
                         </button>
                         <button
                             onClick={() => goSearch("Ofertas")}
-                            className="group relative overflow-hidden text-left rounded-3xl bg-gradient-to-br from-[#FFE8ED] to-[#FFD4DE] p-6 md:p-7 min-h-[190px] flex flex-col justify-between border border-pink-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                            className="group relative overflow-hidden text-left rounded-3xl bg-gradient-to-br from-[#FFF0DC] to-[#FFDDB5] p-6 md:p-8 min-h-[190px] flex flex-col justify-end border border-orange-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                         >
-                            <div className="pointer-events-none absolute -right-8 -top-8 w-36 h-36 rounded-full bg-white/45" />
-                            <Tag className="pointer-events-none absolute right-4 top-3 w-24 h-24 text-[#37b9c7]/15 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.3} />
+                            <div className="pointer-events-none absolute -right-6 -top-6 w-36 h-36 rounded-full bg-white/50" />
+                            <Tag className="pointer-events-none absolute right-5 top-4 w-20 h-20 text-[#37b9c7]/35 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.5} />
 
-                            <div className="relative mt-4">
-                                <h2 className="text-2xl font-bold text-[#1A2D2A] leading-tight">Ofertas de la semana</h2>
-                                <span className="inline-flex items-center gap-1.5 mt-2 text-sm font-bold text-[#2b99a6] group-hover:gap-2.5 transition-all">
+                            <div className="relative mt-auto pt-12">
+                                <h2 className="text-2xl font-bold text-[#2b99a6] leading-tight">Ofertas de la semana</h2>
+                                <span className="inline-flex items-center gap-1.5 mt-2 text-sm font-bold text-[#3d635f] group-hover:text-[#2b99a6] group-hover:gap-2.5 transition-all">
                                     Ver ofertas <ArrowRight className="w-4 h-4" />
                                 </span>
                             </div>
@@ -199,16 +199,15 @@ export default function HomePage() {
                         <h2 className="text-2xl md:text-3xl font-bold">Comprá por categoría</h2>
                     </div>
                 </div>
-                <div className="flex pt-4 pl-3 pr-3 gap-5 md:gap-7 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-5 pt-2 pb-2 w-full">
                     {categories.map(({ name, icon: Icon, bg, ring }) => (
                         <button
                             key={name}
                             onClick={() => goSearch(name)}
-                            className="group flex flex-col items-center gap-2.5 shrink-0 w-28 md:w-32"
+                            className="group flex flex-col items-center gap-2.5 w-full"
                         >
-                            <div className={`relative ${bg} w-24 h-24 md:w-28 md:h-28 rounded-[2rem] flex items-center justify-center ring-4 ring-white shadow-md ${ring} group-hover:shadow-xl group-hover:-translate-y-1.5 group-hover:rotate-2 transition-all duration-300 border-2 border-black/5 group-hover:border-[#2BAAB0]`}>
-
-                                <Icon className="relative w-10 h-10 md:w-12 md:h-12 text-[#2b99a6] drop-shadow-[0_2px_0_rgba(255,255,255,0.8)] group-hover:scale-110 transition-transform duration-300" strokeWidth={1.7} />
+                            <div className={`relative ${bg} w-24 h-24 lg:w-full lg:max-w-[116px] lg:h-auto lg:aspect-square rounded-[2rem] flex items-center justify-center ring-4 ring-white shadow-md ${ring} group-hover:shadow-xl group-hover:-translate-y-1.5 group-hover:rotate-2 transition-all duration-300 border-2 border-black/5 group-hover:border-[#2BAAB0]`}>
+                                <Icon className="relative w-10 h-10 md:w-11 md:h-11 text-[#2b99a6] drop-shadow-[0_2px_0_rgba(255,255,255,0.8)] group-hover:scale-110 transition-transform duration-300" strokeWidth={1.7} />
                             </div>
                             <span className="text-sm md:text-base font-bold text-center text-[#1A2D2A] group-hover:text-[#37b9c7] transition-colors">
                                 {name}
@@ -247,7 +246,7 @@ export default function HomePage() {
                                 className="group snap-start shrink-0 w-[46%] sm:w-[31%] md:w-[23.5%] cursor-pointer bg-white rounded-3xl p-3.5 border border-gray-100 shadow-sm hover:shadow-xl hover:border-[#D5F3F4] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                             >
                                 <div>
-                                    <div className="relative aspect-square rounded-2xl bg-gradient-to-b from-[#F4FBFB] to-[#E8F7F8] overflow-hidden flex items-center justify-center mb-3 border border-[#D5F3F4]/60">
+                                    <div className="relative aspect-square rounded-2xl bg-white overflow-hidden flex items-center justify-center mb-3 border border-[#D5F3F4]/60">
                                         {p.imageUrl ? (
                                             <img src={p.imageUrl} alt={p.name} loading="lazy" className="w-full h-full object-contain p-3 group-hover:scale-108 transition-transform duration-300 drop-shadow-sm" />
                                         ) : (
@@ -311,7 +310,7 @@ export default function HomePage() {
                     {[
                         { icon: Baby, title: "Productos seleccionados", text: "Calidad, suavidad y cuidado para cada etapa de tu bebé.", bg: "from-[#E2F8F9] to-[#D5F3F4]", border: "border-[#bce8ea]" },
                         { icon: Heart, title: "Atención personalizada", text: "Te asesoramos con amor, cercanía y confianza siempre.", bg: "from-[#FFF9CE] to-[#FFF6B8]", border: "border-amber-200/70" },
-                        { icon: DollarSign, title: "Cuidamos tu bolsillo", text: "Las mejores marcas y ofertas pensadas para tu familia.", bg: "from-[#FFEBEF] to-[#FFE0E6]", border: "border-pink-200/70" },
+                        { icon: DollarSign, title: "Cuidamos tu bolsillo", text: "Las mejores marcas y ofertas pensadas para tu familia.", bg: "from-[#FFF0DC] to-[#FFE2C0]", border: "border-orange-200/70" },
                     ].map(({ icon: Icon, title, text, bg, border }) => (
                         <div
                             key={title}
@@ -322,8 +321,8 @@ export default function HomePage() {
                                 <Icon className="w-6 h-6 text-[#2b99a6]" strokeWidth={2} />
                             </div>
                             <div className="relative">
-                                <h3 className="font-bold text-lg text-[#1A2D2A]">{title}</h3>
-                                <p className="text-sm text-[#1A2D2A]/80 mt-0.5 leading-relaxed">{text}</p>
+                                <h3 className="font-bold text-lg text-[#2b99a6]">{title}</h3>
+                                <p className="text-sm text-[#3d635f] mt-0.5 leading-relaxed">{text}</p>
                             </div>
                         </div>
                     ))}
