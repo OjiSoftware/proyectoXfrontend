@@ -199,17 +199,17 @@ export default function HomePage() {
                         <h2 className="text-2xl md:text-3xl font-bold">Comprá por categoría</h2>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-5 pt-2 pb-2 w-full">
+                <div className="flex items-start justify-between gap-3 md:gap-5 pt-2 pb-2 w-full">
                     {categories.map(({ name, icon: Icon, bg, ring }) => (
                         <button
                             key={name}
                             onClick={() => goSearch(name)}
-                            className="group flex flex-col items-center gap-2.5 w-full"
+                            className="group flex flex-col items-center gap-2.5 flex-1 min-w-0"
                         >
-                            <div className={`relative ${bg} w-24 h-24 lg:w-full lg:max-w-[116px] lg:h-auto lg:aspect-square rounded-[2rem] flex items-center justify-center ring-4 ring-white shadow-md ${ring} group-hover:shadow-xl group-hover:-translate-y-1.5 group-hover:rotate-2 transition-all duration-300 border-2 border-black/5 group-hover:border-[#2BAAB0]`}>
-                                <Icon className="relative w-10 h-10 md:w-11 md:h-11 text-[#2b99a6] drop-shadow-[0_2px_0_rgba(255,255,255,0.8)] group-hover:scale-110 transition-transform duration-300" strokeWidth={1.7} />
+                            <div className={`relative ${bg} w-full max-w-[112px] aspect-square rounded-[2rem] flex items-center justify-center ring-4 ring-white shadow-md ${ring} group-hover:shadow-xl group-hover:-translate-y-1.5 group-hover:rotate-2 transition-all duration-300 border-2 border-black/5 group-hover:border-[#2BAAB0]`}>
+                                <Icon className="relative w-9 h-9 md:w-11 md:h-11 text-[#2b99a6] drop-shadow-[0_2px_0_rgba(255,255,255,0.8)] group-hover:scale-110 transition-transform duration-300" strokeWidth={1.7} />
                             </div>
-                            <span className="text-sm md:text-base font-bold text-center text-[#1A2D2A] group-hover:text-[#37b9c7] transition-colors">
+                            <span className="text-xs md:text-base font-bold text-center text-[#1A2D2A] group-hover:text-[#37b9c7] transition-colors truncate w-full">
                                 {name}
                             </span>
                         </button>
@@ -248,7 +248,7 @@ export default function HomePage() {
                                 <div>
                                     <div className="relative aspect-square rounded-2xl bg-white overflow-hidden flex items-center justify-center mb-3 border border-[#D5F3F4]/60">
                                         {p.imageUrl ? (
-                                            <img src={p.imageUrl} alt={p.name} loading="lazy" className="w-full h-full object-contain p-3 group-hover:scale-108 transition-transform duration-300 drop-shadow-sm" />
+                                            <img src={p.imageUrl} alt={p.name} loading="lazy" className="w-full h-full object-contain p-3 group-hover:scale-108 transition-transform duration-300 " />
                                         ) : (
                                             <Baby className="w-12 h-12 text-[#2BAAB0]/50" />
                                         )}
