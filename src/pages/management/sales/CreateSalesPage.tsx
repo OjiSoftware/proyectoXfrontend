@@ -8,8 +8,6 @@ import {
   Plus,
   Minus,
   Trash2,
-  User,
-  UserPlus,
   CreditCard,
   Banknote,
   QrCode,
@@ -19,7 +17,6 @@ import {
   X,
   ArrowUp,
   ArrowDown,
-  Zap,
   LogOut,
   Pencil,
   Check,
@@ -33,6 +30,80 @@ import { Product } from "@/types/product.types";
 import { Category } from "@/types/category.types";
 import { Client } from "@/types/client.types";
 
+// --- CONSTANTES DE SEGURIDAD Y LÍMITES OPERATIVOS ---
+const CARD_DIAPER_SURCHARGE_RATE = 0.05; // +5% en pañales abonando con tarjeta
+const MAX_MULTIPLIER = 999; // Evita desbordamiento si se escanea un EAN seguido de '*'
+const MAX_OPEN_TICKETS = 10; // Límite de tickets simultáneos en memoria
+const MAX_COMMAND_LENGTH = 100;
+const MAX_CASH_TENDERED = 999_999_999;
+
+// TODO (Backend): eliminar este bloque temporal cuando clientId sea opcional en POST /sales
+const GENERIC_CLIENT_PAYLOAD = {
+  name: "Consumidor",
+  surname: "Final",
+  dni: "99999999",
+  phoneNumber: "1100000000",
+  email: "consumidorfinal@oji.local",
+  addresses: {
+    street: "Mostrador",
+    streetNum: 1,
+    locality: "Local",
+    province: "Entre Ríos",
+    postalCode: "3228",
+    country: "Argentina",
+  },
+} as const;
+
+// --- HELPERS PUROS DE SANITIZACIÓN Y ARITMÉTICA SEGURA ---
+const roundCurrency = (value: number): number => {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+};
+
+const toSafePrice = (raw: unknown): number => {
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num < 0) return 0;
+  return roundCurrency(num);
+};
+
+const toSafeStock = (raw: unknown): number => {
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num <= 0) return 0;
+  return Math.min(MAX_CASH_TENDERED, Math.floor(num));
+};
+
+/** Elimina caracteres de control, etiquetas HTML/script y limita longitud de forma segura */
+const sanitizeText = (raw: string, maxLen: number): string => {
+  let clean = "";
+  for (let i = 0; i < raw.length && clean.length < maxLen; i++) {
+    const code = raw.charCodeAt(i);
+    if (code >= 32 && code !== 127 && code !== 60 && code !== 62) {
+      clean += raw[i];
+    }
+  }
+  return clean;
+};
+
+const sanitizeDigits = (raw: string, maxLen: number): string =>
+  raw.replace(/\D/g, "").slice(0, maxLen);
+
+const normalizeSearchText = (value?: string | null): string =>
+  (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const arsFormatter = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "ARS",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const formatARS = (val: number): string =>
+  arsFormatter.format(Number.isFinite(val) ? val : 0);
+
+// --- TIPOS DEL POS ---
 interface CartItem {
   productId: number;
   code: string;
@@ -45,41 +116,13 @@ interface CartItem {
 
 type PaymentMethodType = "CASH" | "CARD" | "TRANSFER" | "QR";
 
-interface CustomerData {
-  mode: "FINAL_CONSUMER" | "EXISTING" | "NEW";
-  existingClientId?: number;
-  name: string;
-  surname: string;
-  dni: string;
-  phoneNumber: string;
-  email: string;
-}
-
 interface PosTicket {
   id: string;
   label: string;
   items: CartItem[];
   paymentMethod: PaymentMethodType;
   cashTendered: string;
-  customer: CustomerData;
 }
-
-const CARD_DIAPER_SURCHARGE_RATE = 0.05; // +5% en pañales abonando con tarjeta
-
-const normalizeText = (value?: string | null): string =>
-  (value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-const DEFAULT_CUSTOMER: CustomerData = {
-  mode: "FINAL_CONSUMER",
-  name: "Consumidor",
-  surname: "Final",
-  dni: "99999999",
-  phoneNumber: "1100000000",
-  email: "consumidorfinal@oji.local",
-};
 
 const createEmptyTicket = (num: number): PosTicket => ({
   id: `t-${Date.now()}-${num}`,
@@ -87,72 +130,85 @@ const createEmptyTicket = (num: number): PosTicket => ({
   items: [],
   paymentMethod: "CASH",
   cashTendered: "",
-  customer: { ...DEFAULT_CUSTOMER },
 });
 
 export default function CreateSalePage() {
   const navigate = useNavigate();
 
-  // --- DATOS CACHEADOS EN MEMORIA PARA RESPUESTA INSTANTÁNEA ---
+  // --- DATOS CACHEADOS EN MEMORIA ---
   const [products, setProducts] = useState<Product[]>([]);
   const [categoriesMap, setCategoriesMap] = useState<Map<number, string>>(
     () => new Map()
   );
-  const [clients, setClients] = useState<Client[]>([]);
   const [defaultClientId, setDefaultClientId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- ESTADO DE CAJA Y TICKETS ---
-  const [tickets, setTickets] = useState<PosTicket[]>(() => [createEmptyTicket(1)]);
+  const [tickets, setTickets] = useState<PosTicket[]>(() => [
+    createEmptyTicket(1),
+  ]);
   const [activeTicketIndex, setActiveTicketIndex] = useState(0);
   const [ticketCounter, setTicketCounter] = useState(2);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
 
-  // --- ENTRADA PRINCIPAL (ESCÁNER / TECLADO NUMÉRICO / MULTIPLICADOR) ---
+  // --- ENTRADA PRINCIPAL (ESCÁNER / MULTIPLICADOR) ---
   const [commandInput, setCommandInput] = useState("");
-  const [pendingMultiplier, setPendingMultiplier] = useState<number | null>(null);
+  const [pendingMultiplier, setPendingMultiplier] = useState<number | null>(
+    null
+  );
   const [clockText, setClockText] = useState("");
 
-  // --- MODALES PUNTUALES (SOLO CUANDO SE NECESITAN) ---
+  // --- MODALES PUNTUALES ---
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchModalQuery, setSearchModalQuery] = useState("");
   const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
 
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [showClientModal, setShowClientModal] = useState(false);
   const [showQtyEditModal, setShowQtyEditModal] = useState(false);
   const [qtyEditValue, setQtyEditValue] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
 
-  // --- REFS PARA FOCO PERMANENTE (CERO CLICS) ---
+  // --- REFS DE FOCO Y MUTEX ANTI DOBLE COBRO ---
   const commandInputRef = useRef<HTMLInputElement>(null);
   const searchModalInputRef = useRef<HTMLInputElement>(null);
   const cashInputRef = useRef<HTMLInputElement>(null);
+  const submittingLockRef = useRef(false);
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
 
-  const activeTicket = tickets[activeTicketIndex] || tickets[0];
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    };
+  }, []);
+
+  const safeTicketIndex =
+    activeTicketIndex >= 0 && activeTicketIndex < tickets.length
+      ? activeTicketIndex
+      : 0;
+  const activeTicket = tickets[safeTicketIndex];
 
   const isAnyModalOpen =
     showSearchModal ||
     showCheckoutModal ||
-    showClientModal ||
     showQtyEditModal ||
     showClearConfirm ||
     showHelpModal;
 
-  // Reloj operativo estilo POS clásico
+  // Reloj operativo
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
       setClockText(
-        now.toLocaleDateString("es-AR") +
-        " " +
-        now.toLocaleTimeString("es-AR", {
+        `${now.toLocaleDateString("es-AR")} ${now.toLocaleTimeString("es-AR", {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
-        })
+        })}`
       );
     };
     updateClock();
@@ -160,8 +216,10 @@ export default function CreateSalePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Carga inicial en paralelo
+  // Carga inicial segura con guardia de desmontaje
   useEffect(() => {
+    let cancelled = false;
+
     const loadInitial = async () => {
       try {
         setIsLoading(true);
@@ -170,76 +228,103 @@ export default function CreateSalePage() {
           productApi.getAllCategories().catch(() => []),
           clientApi.getAllClients().catch(() => []),
         ]);
+
+        if (cancelled || !isMountedRef.current) return;
+
         const validProds = Array.isArray(prodData)
-          ? prodData.filter((p) => p.status !== false)
+          ? prodData.filter(
+            (p): p is Product =>
+              Boolean(p) &&
+              typeof p.id === "number" &&
+              p.id > 0 &&
+              p.status !== false
+          )
           : [];
-        const validCats: Category[] = Array.isArray(catData) ? catData : [];
-        const validClients = Array.isArray(cliData) ? cliData : [];
+        const validCats: Category[] = Array.isArray(catData)
+          ? catData.filter(
+            (c): c is Category =>
+              Boolean(c) && typeof c.id === "number" && typeof c.name === "string"
+          )
+          : [];
+        const validClients: Client[] = Array.isArray(cliData)
+          ? cliData.filter((c): c is Client => Boolean(c) && typeof c.dni === "string")
+          : [];
 
         const catMap = new Map<number, string>();
         validCats.forEach((c) => catMap.set(c.id, c.name));
 
         setCategoriesMap(catMap);
         setProducts(validProds);
-        setClients(validClients);
 
+        // TODO (Backend): quitar búsqueda de cliente genérico cuando clientId sea opcional
         const existingCF = validClients.find(
           (c) =>
-            c.dni === "99999999" ||
+            c.dni === GENERIC_CLIENT_PAYLOAD.dni ||
             (c.name?.toLowerCase() === "consumidor" &&
               c.surname?.toLowerCase() === "final")
         );
-        if (existingCF?.id) {
+        if (existingCF?.id && existingCF.id > 0) {
           setDefaultClientId(existingCF.id);
         }
-      } catch (error) {
-        console.error("Error cargando POS:", error);
-        toast.error("Error al cargar datos de caja");
+      } catch {
+        if (!cancelled && isMountedRef.current) {
+          toast.error("No se pudieron cargar los datos de caja");
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled && isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
     };
+
     loadInitial();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Detector de artículo de pañales (por categoría o por nombre del producto)
+  // Detector de pañales (por categoría o nombre, normalizando tildes)
   const isDiaperProduct = useCallback(
     (product: Product): boolean => {
       const categoryName =
         product.category?.name ||
         (product.categoryId ? categoriesMap.get(product.categoryId) : "");
-      const normCat = normalizeText(categoryName);
-      const normName = normalizeText(product.name);
+      const normCat = normalizeSearchText(categoryName);
+      const normName = normalizeSearchText(product.name);
       return normCat.includes("panal") || normName.includes("panal");
     },
     [categoriesMap]
   );
 
-  // Mantener foco siempre en la lectora cuando no hay un modal abierto
+  // Gestión limpia del foco en el lector
   const focusScanner = useCallback(() => {
-    if (!isAnyModalOpen) {
-      setTimeout(() => commandInputRef.current?.focus(), 10);
-    }
+    if (isAnyModalOpen || submittingLockRef.current) return;
+    if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    focusTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current && !isAnyModalOpen) {
+        commandInputRef.current?.focus();
+      }
+    }, 15);
   }, [isAnyModalOpen]);
 
   useEffect(() => {
     focusScanner();
-  }, [isAnyModalOpen, activeTicketIndex, focusScanner]);
+  }, [isAnyModalOpen, safeTicketIndex, focusScanner]);
 
-  // --- HELPER ACTUALIZACIÓN TICKET ---
+  // Updater puro sobre el ticket activo
   const updateActiveTicket = useCallback(
     (updater: (prev: PosTicket) => PosTicket) => {
       setTickets((prev) =>
-        prev.map((t, idx) => (idx === activeTicketIndex ? updater(t) : t))
+        prev.map((t, idx) => (idx === safeTicketIndex ? updater(t) : t))
       );
     },
-    [activeTicketIndex]
+    [safeTicketIndex]
   );
 
   // Mantener fila seleccionada válida
   useEffect(() => {
     if (activeTicket.items.length === 0) {
-      setSelectedRowId(null);
+      if (selectedRowId !== null) setSelectedRowId(null);
     } else if (
       selectedRowId === null ||
       !activeTicket.items.some((i) => i.productId === selectedRowId)
@@ -250,27 +335,32 @@ export default function CreateSalePage() {
     }
   }, [activeTicket.items, selectedRowId]);
 
-  // --- TOTALES Y RECARGO TARJETA EN PAÑALES (+5%) ---
+  // --- TOTALES CON ARITMÉTICA REDONDEADA A CENTAVOS ---
   const subtotal = useMemo(
     () =>
-      activeTicket.items.reduce(
-        (acc, item) => acc + item.price * item.quantity,
-        0
+      roundCurrency(
+        activeTicket.items.reduce(
+          (acc, item) => acc + roundCurrency(item.price * item.quantity),
+          0
+        )
       ),
     [activeTicket.items]
   );
 
   const diaperSubtotal = useMemo(
     () =>
-      activeTicket.items.reduce(
-        (acc, item) => (item.isDiaper ? acc + item.price * item.quantity : acc),
-        0
+      roundCurrency(
+        activeTicket.items.reduce(
+          (acc, item) =>
+            item.isDiaper ? acc + roundCurrency(item.price * item.quantity) : acc,
+          0
+        )
       ),
     [activeTicket.items]
   );
 
   const potentialCardDiaperSurcharge = useMemo(
-    () => Number((diaperSubtotal * CARD_DIAPER_SURCHARGE_RATE).toFixed(2)),
+    () => roundCurrency(diaperSubtotal * CARD_DIAPER_SURCHARGE_RATE),
     [diaperSubtotal]
   );
 
@@ -281,7 +371,7 @@ export default function CreateSalePage() {
   );
 
   const finalTotal = useMemo(
-    () => Math.max(0, Number((subtotal + activeCardSurcharge).toFixed(2))),
+    () => Math.max(0, roundCurrency(subtotal + activeCardSurcharge)),
     [subtotal, activeCardSurcharge]
   );
 
@@ -290,61 +380,90 @@ export default function CreateSalePage() {
     [activeTicket.items]
   );
 
-  const cashTenderedNum = parseFloat(activeTicket.cashTendered) || 0;
-  const changeAmount = Math.max(
-    0,
-    Number((cashTenderedNum - finalTotal).toFixed(2))
+  const parsedCashTendered = Number(activeTicket.cashTendered);
+  const cashTenderedNum =
+    Number.isFinite(parsedCashTendered) && parsedCashTendered >= 0
+      ? Math.min(MAX_CASH_TENDERED, roundCurrency(parsedCashTendered))
+      : 0;
+
+  const changeAmount =
+    cashTenderedNum >= finalTotal
+      ? roundCurrency(cashTenderedNum - finalTotal)
+      : 0;
+
+  // Stock reservado en otros tickets abiertos en espera
+  const getReservedInOtherTickets = useCallback(
+    (productId: number): number =>
+      tickets.reduce((sum, ticket, idx) => {
+        if (idx === safeTicketIndex) return sum;
+        const found = ticket.items.find((i) => i.productId === productId);
+        return sum + (found ? found.quantity : 0);
+      }, 0),
+    [tickets, safeTicketIndex]
   );
 
-  const formatARS = (val: number) =>
-    Number(val || 0).toLocaleString("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-  // --- OPERACIONES DE LÍNEAS DEL TICKET ---
+  // --- OPERACIONES PURAS DE LÍNEAS DEL TICKET ---
   const addProduct = useCallback(
-    (product: Product, qtyToAdd?: number) => {
-      const qty = qtyToAdd ?? pendingMultiplier ?? 1;
-      const available = product.stock ?? 0;
+    (product: Product, explicitQty?: number): boolean => {
+      const rawQty = explicitQty ?? pendingMultiplier ?? 1;
+      const qty = Math.floor(rawQty);
 
-      if (available <= 0) {
-        toast.error(`SIN STOCK: ${product.name}`, { duration: 1800 });
+      if (!Number.isFinite(qty) || qty <= 0 || qty > MAX_MULTIPLIER) {
+        toast.error(`Cantidad inválida (máx. ${MAX_MULTIPLIER})`, {
+          duration: 1800,
+        });
         setPendingMultiplier(null);
         return false;
       }
 
+      const totalStock = toSafeStock(product.stock);
+      const reservedElsewhere = getReservedInOtherTickets(product.id);
+      const availableForThisTicket = Math.max(0, totalStock - reservedElsewhere);
+
+      if (availableForThisTicket <= 0) {
+        toast.error(
+          reservedElsewhere > 0
+            ? `Sin stock libre (${reservedElsewhere} u. en otro ticket en espera)`
+            : `SIN STOCK: ${product.name}`,
+          { duration: 2000 }
+        );
+        setPendingMultiplier(null);
+        return false;
+      }
+
+      const existing = activeTicket.items.find(
+        (i) => i.productId === product.id
+      );
+      const nextQty = (existing?.quantity ?? 0) + qty;
+
+      if (nextQty > availableForThisTicket) {
+        toast.error(
+          `Stock disponible insuficiente (máx. ${availableForThisTicket} u.)`,
+          { duration: 1800 }
+        );
+        return false;
+      }
+
+      const safePrice = toSafePrice(product.price);
       const diaperFlag = isDiaperProduct(product);
-      let addedOk = true;
 
       updateActiveTicket((ticket) => {
-        const existing = ticket.items.find((i) => i.productId === product.id);
-        if (existing) {
-          if (existing.quantity + qty > available) {
-            toast.error(`Stock máximo disponible: ${available}`, {
-              duration: 1800,
-            });
-            addedOk = false;
-            return ticket;
-          }
+        const itemExists = ticket.items.some((i) => i.productId === product.id);
+        if (itemExists) {
           return {
             ...ticket,
             items: ticket.items.map((i) =>
               i.productId === product.id
-                ? { ...i, quantity: i.quantity + qty, isDiaper: diaperFlag }
+                ? {
+                  ...i,
+                  price: safePrice,
+                  quantity: i.quantity + qty,
+                  stock: totalStock,
+                  isDiaper: diaperFlag,
+                }
                 : i
             ),
           };
-        }
-
-        if (qty > available) {
-          toast.error(`Solo hay ${available} u. disponibles`, {
-            duration: 1800,
-          });
-          addedOk = false;
-          return ticket;
         }
 
         return {
@@ -353,49 +472,69 @@ export default function CreateSalePage() {
             ...ticket.items,
             {
               productId: product.id,
-              code: product.barcode || String(product.id),
-              name: product.name,
-              price: Number(product.price),
+              code: sanitizeText(product.barcode || String(product.id), 40),
+              name: sanitizeText(product.name, 120),
+              price: safePrice,
               quantity: qty,
-              stock: available,
+              stock: totalStock,
               isDiaper: diaperFlag,
             },
           ],
         };
       });
 
-      if (addedOk) {
-        setSelectedRowId(product.id);
-        setPendingMultiplier(null);
-      }
-      return addedOk;
+      setSelectedRowId(product.id);
+      setPendingMultiplier(null);
+      return true;
     },
-    [isDiaperProduct, pendingMultiplier, updateActiveTicket]
+    [
+      activeTicket.items,
+      getReservedInOtherTickets,
+      isDiaperProduct,
+      pendingMultiplier,
+      updateActiveTicket,
+    ]
   );
 
   const setLineQuantity = useCallback(
-    (productId: number, newQty: number) => {
-      updateActiveTicket((ticket) => {
-        if (newQty <= 0) {
-          return {
-            ...ticket,
-            items: ticket.items.filter((i) => i.productId !== productId),
-          };
-        }
-        return {
+    (productId: number, requestedQty: number) => {
+      const cleanQty = Math.floor(requestedQty);
+      if (!Number.isFinite(cleanQty) || cleanQty <= 0) {
+        updateActiveTicket((ticket) => ({
           ...ticket,
-          items: ticket.items.map((item) => {
-            if (item.productId !== productId) return item;
-            if (newQty > item.stock) {
-              toast.error(`Stock máximo: ${item.stock}`, { duration: 1500 });
-              return { ...item, quantity: item.stock };
-            }
-            return { ...item, quantity: newQty };
-          }),
-        };
-      });
+          items: ticket.items.filter((i) => i.productId !== productId),
+        }));
+        return;
+      }
+
+      const liveProd = products.find((p) => p.id === productId);
+      const totalStock = liveProd
+        ? toSafeStock(liveProd.stock)
+        : activeTicket.items.find((i) => i.productId === productId)?.stock ?? 0;
+      const reservedElsewhere = getReservedInOtherTickets(productId);
+      const maxAllowed = Math.max(
+        1,
+        Math.min(MAX_MULTIPLIER, totalStock - reservedElsewhere)
+      );
+
+      let finalQty = cleanQty;
+      if (cleanQty > maxAllowed) {
+        toast.error(`Stock máximo disponible: ${maxAllowed} u.`, {
+          duration: 1500,
+        });
+        finalQty = maxAllowed;
+      }
+
+      updateActiveTicket((ticket) => ({
+        ...ticket,
+        items: ticket.items.map((item) =>
+          item.productId === productId
+            ? { ...item, quantity: finalQty, stock: totalStock }
+            : item
+        ),
+      }));
     },
-    [updateActiveTicket]
+    [activeTicket.items, getReservedInOtherTickets, products, updateActiveTicket]
   );
 
   const adjustSelectedRowQty = useCallback(
@@ -434,26 +573,45 @@ export default function CreateSalePage() {
     [activeTicket.items, selectedRowId, focusScanner]
   );
 
-  // --- PROCESADOR DE ENTRADA RÁPIDA (BARCODE / CANT*CODIGO / TEXTO) ---
+  // --- PROCESADOR SEGURO DE ENTRADA RÁPIDA ---
   const executeCommand = (rawInput: string) => {
-    const trimmed = rawInput.trim();
+    const trimmed = sanitizeText(rawInput, MAX_COMMAND_LENGTH).trim();
     if (!trimmed) return;
 
-    const multOnlyMatch = trimmed.match(/^(\d+)\*$/);
+    // Multiplicador aislado: ej. "5*" (limitado a 1..999 para no confundir con códigos EAN)
+    const multOnlyMatch = trimmed.match(/^(\d{1,3})\*$/);
     if (multOnlyMatch) {
-      const qty = Math.max(1, parseInt(multOnlyMatch[1], 10));
-      setPendingMultiplier(qty);
+      const qty = parseInt(multOnlyMatch[1], 10);
+      if (qty >= 1 && qty <= MAX_MULTIPLIER) {
+        setPendingMultiplier(qty);
+        setCommandInput("");
+      } else {
+        toast.error(`Multiplicador válido entre 1 y ${MAX_MULTIPLIER}`);
+      }
+      return;
+    }
+
+    // Rechazar si intentó poner un número gigante con asterisco (ej. código escaneado + *)
+    if (/^\d{4,}\*$/.test(trimmed)) {
+      toast.error(`Multiplicador demasiado grande (máx. ${MAX_MULTIPLIER})`);
       setCommandInput("");
       return;
     }
 
     let qty = pendingMultiplier ?? 1;
     let query = trimmed;
-    const inlineMultMatch = trimmed.match(/^(\d+)\*(.+)$/);
+    const inlineMultMatch = trimmed.match(/^(\d{1,3})\*(.+)$/);
     if (inlineMultMatch) {
-      qty = Math.max(1, parseInt(inlineMultMatch[1], 10));
+      const parsedMult = parseInt(inlineMultMatch[1], 10);
+      if (parsedMult < 1 || parsedMult > MAX_MULTIPLIER) {
+        toast.error(`Cantidad inválida (máx. ${MAX_MULTIPLIER})`);
+        return;
+      }
+      qty = parsedMult;
       query = inlineMultMatch[2].trim();
     }
+
+    if (!query) return;
 
     const exactProduct = products.find(
       (p) =>
@@ -484,7 +642,7 @@ export default function CreateSalePage() {
       setSearchSelectedIndex(0);
       setShowSearchModal(true);
     } else {
-      toast.error(`Código o artículo no encontrado: "${query}"`, {
+      toast.error(`Código o artículo no encontrado`, {
         duration: 1800,
       });
       setCommandInput("");
@@ -492,22 +650,28 @@ export default function CreateSalePage() {
   };
 
   const openCheckout = useCallback(() => {
+    if (submittingLockRef.current) return;
     if (activeTicket.items.length === 0) {
       toast.error("El ticket está vacío", { duration: 1500 });
       return;
     }
-    const totalForCurrentMethod =
+    const totalForCurrentMethod = roundCurrency(
       subtotal +
-      (activeTicket.paymentMethod === "CARD" ? potentialCardDiaperSurcharge : 0);
+      (activeTicket.paymentMethod === "CARD"
+        ? potentialCardDiaperSurcharge
+        : 0)
+    );
 
     updateActiveTicket((t) => ({
       ...t,
-      cashTendered: String(Number(totalForCurrentMethod.toFixed(2))),
+      cashTendered: String(totalForCurrentMethod),
     }));
     setShowCheckoutModal(true);
     setTimeout(() => {
-      cashInputRef.current?.focus();
-      cashInputRef.current?.select();
+      if (isMountedRef.current) {
+        cashInputRef.current?.focus();
+        cashInputRef.current?.select();
+      }
     }, 30);
   }, [
     activeTicket.items.length,
@@ -517,77 +681,62 @@ export default function CreateSalePage() {
     updateActiveTicket,
   ]);
 
-  // --- PROCESAR VENTA EN SERVIDOR ---
+  // --- VALIDACIÓN Y PROCESAMIENTO SEGURO DE VENTA ---
   const processSale = useCallback(
     async (overrideMethod?: PaymentMethodType) => {
-      if (activeTicket.items.length === 0 || isSubmitting) return;
-
-      const cust = activeTicket.customer;
-      if (cust.mode === "NEW") {
-        if (
-          !cust.name.trim() ||
-          !cust.surname.trim() ||
-          !/^\d{7,8}$/.test(cust.dni.trim())
-        ) {
-          toast.error("Revisá Nombre, Apellido y DNI (7-8 dígitos) del cliente");
-          setShowClientModal(true);
-          return;
-        }
-      }
+      // Mutex sincrónico contra doble disparo (Enter / F12 simultáneos)
+      if (submittingLockRef.current || activeTicket.items.length === 0) return;
 
       const method = overrideMethod || activeTicket.paymentMethod;
       const appliedSurcharge =
         method === "CARD" ? potentialCardDiaperSurcharge : 0;
-      const computedTotal = Number((subtotal + appliedSurcharge).toFixed(2));
+      const computedTotal = roundCurrency(subtotal + appliedSurcharge);
 
+      // Si viene desde el modal de cobro en Efectivo (sin overrideMethod), validar pago suficiente
+      if (!overrideMethod && method === "CASH") {
+        if (!Number.isFinite(cashTenderedNum) || cashTenderedNum < computedTotal) {
+          toast.error("El monto abonado en efectivo es menor al total a cobrar");
+          cashInputRef.current?.focus();
+          return;
+        }
+      }
+
+      // Verificar integridad de stock actual antes de enviar al servidor
+      for (const item of activeTicket.items) {
+        const liveProduct = products.find((p) => p.id === item.productId);
+        const currentStock = liveProduct ? toSafeStock(liveProduct.stock) : 0;
+        if (
+          !Number.isInteger(item.quantity) ||
+          item.quantity <= 0 ||
+          item.quantity > currentStock
+        ) {
+          toast.error(
+            `Stock insuficiente para "${item.name}" (disp: ${currentStock})`
+          );
+          return;
+        }
+      }
+
+      submittingLockRef.current = true;
       setIsSubmitting(true);
       const toastId = toast.loading("Cerrando venta...");
 
       try {
-        let clientIdToUse: number | undefined;
+        // TODO (Backend): eliminar resolución de cliente genérico cuando clientId sea opcional en POST /sales
+        let clientIdToUse: number | undefined =
+          defaultClientId && defaultClientId > 0 ? defaultClientId : undefined;
 
-        if (cust.mode === "EXISTING" && cust.existingClientId) {
-          clientIdToUse = cust.existingClientId;
-        } else if (cust.mode === "FINAL_CONSUMER") {
-          if (defaultClientId) {
-            clientIdToUse = defaultClientId;
-          } else {
-            const cfResp = await clientApi.create({
-              name: "Consumidor",
-              surname: "Final",
-              dni: "99999999",
-              phoneNumber: "1100000000",
-              email: "consumidorfinal@oji.local",
-              addresses: {
-                street: "Mostrador",
-                streetNum: 1,
-                locality: "Local",
-                province: "Entre Ríos",
-                postalCode: "3228",
-                country: "Argentina",
-              },
-            });
-            const createdId = cfResp.id || cfResp.client?.id;
+        if (!clientIdToUse) {
+          const cfResp = await clientApi.create(GENERIC_CLIENT_PAYLOAD);
+          const createdId = Number(cfResp?.id ?? cfResp?.client?.id);
+          if (Number.isInteger(createdId) && createdId > 0) {
             clientIdToUse = createdId;
-            if (createdId) setDefaultClientId(createdId);
+            if (isMountedRef.current) setDefaultClientId(createdId);
           }
-        } else {
-          const newCliResp = await clientApi.create({
-            name: cust.name.trim(),
-            surname: cust.surname.trim(),
-            dni: cust.dni.trim(),
-            phoneNumber: cust.phoneNumber.trim() || "1100000000",
-            email: cust.email.trim() || "cliente@oji.local",
-            addresses: {
-              street: "Mostrador",
-              streetNum: 1,
-              locality: "Local",
-              province: "Entre Ríos",
-              postalCode: "3228",
-              country: "Argentina",
-            },
-          });
-          clientIdToUse = newCliResp.id || newCliResp.client?.id;
+        }
+
+        if (!clientIdToUse || !Number.isInteger(clientIdToUse) || clientIdToUse <= 0) {
+          throw new Error("CLIENT_RESOLUTION_FAILED");
         }
 
         const saleDetails = activeTicket.items.map((i) => ({
@@ -602,9 +751,14 @@ export default function CreateSalePage() {
           details: saleDetails,
         });
 
-        // Si hubo recargo del 5% en pañales con tarjeta, dejar constancia en notas sin bloquear la caja
-        const createdSaleId = createdSale?.id || createdSale?.sale?.id;
-        if (createdSaleId && method === "CARD" && appliedSurcharge > 0) {
+        // Dejar constancia segura en notas si hubo recargo del 5% en pañales con tarjeta
+        const createdSaleId = Number(createdSale?.id ?? createdSale?.sale?.id);
+        if (
+          Number.isInteger(createdSaleId) &&
+          createdSaleId > 0 &&
+          method === "CARD" &&
+          appliedSurcharge > 0
+        ) {
           saleApi
             .update(String(createdSaleId), {
               status: "COMPLETED",
@@ -613,15 +767,22 @@ export default function CreateSalePage() {
               )}) • Total cobrado: ${formatARS(computedTotal)}`,
               details: saleDetails,
             })
-            .catch(() => { });
+            .catch(() => {
+              // No interrumpir flujo de caja si falla actualización secundaria de nota
+            });
         }
 
-        // Descontar stock local al instante sin recargar
+        if (!isMountedRef.current) return;
+
+        // Actualizar stock en memoria tanto en catálogo como en tickets en espera abiertos
+        const soldMap = new Map<number, number>();
+        activeTicket.items.forEach((i) => soldMap.set(i.productId, i.quantity));
+
         setProducts((prev) =>
           prev.map((p) => {
-            const sold = activeTicket.items.find((i) => i.productId === p.id);
-            return sold
-              ? { ...p, stock: Math.max(0, (p.stock ?? 0) - sold.quantity) }
+            const soldQty = soldMap.get(p.id);
+            return soldQty
+              ? { ...p, stock: Math.max(0, toSafeStock(p.stock) - soldQty) }
               : p;
           })
         );
@@ -636,26 +797,46 @@ export default function CreateSalePage() {
         setPendingMultiplier(null);
 
         if (tickets.length > 1) {
-          const nextTickets = tickets.filter((_, i) => i !== activeTicketIndex);
-          setTickets(nextTickets);
-          setActiveTicketIndex(Math.max(0, activeTicketIndex - 1));
+          const remaining = tickets
+            .filter((_, idx) => idx !== safeTicketIndex)
+            .map((t) => ({
+              ...t,
+              items: t.items.map((item) => {
+                const soldQty = soldMap.get(item.productId) ?? 0;
+                const updatedStock = Math.max(0, item.stock - soldQty);
+                return {
+                  ...item,
+                  stock: updatedStock,
+                  quantity: Math.min(item.quantity, Math.max(1, updatedStock)),
+                };
+              }),
+            }));
+          setTickets(remaining);
+          setActiveTicketIndex(Math.max(0, safeTicketIndex - 1));
         } else {
           setTickets([createEmptyTicket(ticketCounter)]);
           setTicketCounter((c) => c + 1);
         }
-      } catch (err) {
-        console.error("Error en cobro POS:", err);
-        toast.error("Error al guardar la venta", { id: toastId });
+      } catch {
+        if (isMountedRef.current) {
+          toast.error("No se pudo registrar la venta. Verificá tu conexión.", {
+            id: toastId,
+          });
+        }
       } finally {
-        setIsSubmitting(false);
+        submittingLockRef.current = false;
+        if (isMountedRef.current) {
+          setIsSubmitting(false);
+        }
       }
     },
     [
       activeTicket,
-      activeTicketIndex,
+      cashTenderedNum,
       defaultClientId,
-      isSubmitting,
       potentialCardDiaperSurcharge,
+      products,
+      safeTicketIndex,
       subtotal,
       ticketCounter,
       tickets,
@@ -678,6 +859,11 @@ export default function CreateSalePage() {
 
   // --- TICKETS EN ESPERA (F6) ---
   const handleParkOrNewTicket = useCallback(() => {
+    if (submittingLockRef.current) return;
+    if (tickets.length >= MAX_OPEN_TICKETS) {
+      toast.error(`Máximo ${MAX_OPEN_TICKETS} tickets abiertos en simultáneo`);
+      return;
+    }
     const next = createEmptyTicket(ticketCounter);
     setTickets((prev) => [...prev, next]);
     setActiveTicketIndex(tickets.length);
@@ -685,8 +871,8 @@ export default function CreateSalePage() {
     toast(`Ticket ${next.label} listo`, { duration: 1200 });
   }, [ticketCounter, tickets.length]);
 
-  const closeTicketTab = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const closeTicketTab = (idx: number) => {
+    if (submittingLockRef.current) return;
     if (tickets.length <= 1) {
       setShowClearConfirm(true);
       return;
@@ -698,27 +884,30 @@ export default function CreateSalePage() {
     );
   };
 
-  // Alternar rápido Efectivo <-> Tarjeta (para consultar precio con tarjeta al instante)
+  // Alternar rápido Efectivo <-> Tarjeta
   const toggleCardMode = useCallback(() => {
+    if (submittingLockRef.current) return;
     updateActiveTicket((t) => ({
       ...t,
       paymentMethod: t.paymentMethod === "CARD" ? "CASH" : "CARD",
     }));
   }, [updateActiveTicket]);
 
-  // --- ATAJOS GLOBALES DE CAJERO ---
+  // --- ATAJOS GLOBALES PROTEGIDOS ---
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (submittingLockRef.current) return;
+
       if (e.key === "F2") {
         e.preventDefault();
         setShowSearchModal(false);
         setShowCheckoutModal(false);
-        setTimeout(() => commandInputRef.current?.focus(), 10);
+        focusScanner();
         return;
       }
       if (e.key === "F3") {
         e.preventDefault();
-        setSearchModalQuery(commandInput.trim());
+        setSearchModalQuery(sanitizeText(commandInput.trim(), MAX_COMMAND_LENGTH));
         setCommandInput("");
         setSearchSelectedIndex(0);
         setShowSearchModal(true);
@@ -740,14 +929,9 @@ export default function CreateSalePage() {
         toggleCardMode();
         return;
       }
-      if (e.key === "F8") {
-        e.preventDefault();
-        setShowClientModal(true);
-        return;
-      }
       if (e.key === "F12") {
         e.preventDefault();
-        if (activeTicket.items.length > 0 && !isSubmitting) {
+        if (activeTicket.items.length > 0) {
           processSale("CASH");
         }
         return;
@@ -758,7 +942,6 @@ export default function CreateSalePage() {
           e.preventDefault();
           setShowSearchModal(false);
           setShowCheckoutModal(false);
-          setShowClientModal(false);
           setShowQtyEditModal(false);
           setShowClearConfirm(false);
           setShowHelpModal(false);
@@ -801,9 +984,9 @@ export default function CreateSalePage() {
     activeTicket.items.length,
     adjustSelectedRowQty,
     commandInput,
+    focusScanner,
     handleParkOrNewTicket,
     isAnyModalOpen,
-    isSubmitting,
     moveSelection,
     openCheckout,
     pendingMultiplier,
@@ -842,7 +1025,7 @@ export default function CreateSalePage() {
         onClick={() => focusScanner()}
       >
         {/* =============================================================== */}
-        {/* 1. BARRA DE HERRAMIENTAS SUPERIOR     */}
+        {/* 1. BARRA DE HERRAMIENTAS SUPERIOR                               */}
         {/* =============================================================== */}
         <div
           className="shrink-0 flex items-center justify-between gap-2 bg-[#110E1C] border border-white/10 rounded-xl px-2.5 py-1.5 shadow-lg"
@@ -852,80 +1035,70 @@ export default function CreateSalePage() {
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={() => navigate("/management/sales")}
-              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition"
+              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white disabled:opacity-40 flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition"
               title="Salir al listado de ventas"
             >
               <LogOut size={15} className="rotate-180 text-slate-400" />
               <span className="hidden sm:inline">Salir</span>
             </button>
 
-            {/* Botón Cliente */}
-            <button
-              type="button"
-              onClick={() => setShowClientModal(true)}
-              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition ${activeTicket.customer.mode === "FINAL_CONSUMER"
-                ? "bg-white/5 hover:bg-white/10 border-white/10 text-slate-200"
-                : "bg-indigo-600/25 border-indigo-400/50 text-indigo-200"
-                }`}
-              title="Seleccionar o crear cliente (F8)"
-            >
-              <User size={15} className="text-indigo-400" />
-              <span className="max-w-[130px] truncate">
-                {activeTicket.customer.mode === "FINAL_CONSUMER"
-                  ? "Consumidor Final"
-                  : `${activeTicket.customer.name} ${activeTicket.customer.surname}`}
-              </span>
-              <kbd className="hidden xl:inline text-[10px] text-slate-400 bg-black/30 px-1 rounded">
-                F8
-              </kbd>
-            </button>
-
             <div className="h-6 w-px bg-white/10 mx-0.5 hidden sm:block" />
 
-            {/* Tickets / Ventas en espera */}
-            <div className="flex items-center gap-1">
+            {/* Tickets / Ventas en espera (HTML5 válido sin botones anidados) */}
+            <div className="flex items-center gap-1 flex-wrap">
               {tickets.map((t, idx) => {
-                const active = idx === activeTicketIndex;
+                const active = idx === safeTicketIndex;
                 const count = t.items.reduce((s, i) => s + i.quantity, 0);
                 return (
-                  <button
+                  <div
                     key={t.id}
-                    type="button"
-                    onClick={() => setActiveTicketIndex(idx)}
-                    className={`h-9 px-2.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 cursor-pointer transition ${active
+                    className={`h-9 rounded-lg border text-xs font-bold flex items-center overflow-hidden transition ${active
                       ? "bg-indigo-600 text-white border-indigo-400 shadow"
                       : "bg-white/5 text-slate-400 border-white/10 hover:text-white"
                       }`}
-                    title={`Cambiar a Ticket ${t.label}`}
                   >
-                    {active ? (
-                      <PlayCircle size={13} />
-                    ) : (
-                      <PauseCircle size={13} className="text-amber-400" />
-                    )}
-                    <span>{t.label}</span>
-                    {count > 0 && (
-                      <span className="px-1.5 rounded bg-black/30 text-[10px]">
-                        {count}
-                      </span>
-                    )}
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => setActiveTicketIndex(idx)}
+                      className="h-full px-2.5 flex items-center gap-1.5 cursor-pointer"
+                      title={`Cambiar a Ticket ${t.label}`}
+                    >
+                      {active ? (
+                        <PlayCircle size={13} />
+                      ) : (
+                        <PauseCircle size={13} className="text-amber-400" />
+                      )}
+                      <span>{t.label}</span>
+                      {count > 0 && (
+                        <span className="px-1.5 rounded bg-black/30 text-[10px]">
+                          {count}
+                        </span>
+                      )}
+                    </button>
+
                     {tickets.length > 1 && (
-                      <span
-                        onClick={(e) => closeTicketTab(idx, e)}
-                        className="ml-0.5 hover:text-rose-300"
+                      <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => closeTicketTab(idx)}
+                        className="h-full pr-2 pl-1 hover:text-rose-300 cursor-pointer flex items-center"
+                        title={`Cerrar Ticket ${t.label}`}
                       >
                         <X size={12} />
-                      </span>
+                      </button>
                     )}
-                  </button>
+                  </div>
                 );
               })}
 
               <button
                 type="button"
+                disabled={isSubmitting || tickets.length >= MAX_OPEN_TICKETS}
                 onClick={handleParkOrNewTicket}
-                className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 text-xs font-semibold flex items-center gap-1 cursor-pointer transition"
+                className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 disabled:opacity-40 text-xs font-semibold flex items-center gap-1 cursor-pointer transition"
                 title="Dejar ticket en espera y abrir otro (F6)"
               >
                 <Plus size={14} />
@@ -939,7 +1112,7 @@ export default function CreateSalePage() {
             {/* Vaciar Ticket */}
             <button
               type="button"
-              disabled={activeTicket.items.length === 0}
+              disabled={activeTicket.items.length === 0 || isSubmitting}
               onClick={() => setShowClearConfirm(true)}
               className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1 text-xs font-semibold cursor-pointer transition"
               title="Anular / Vaciar ticket completo"
@@ -949,13 +1122,13 @@ export default function CreateSalePage() {
             </button>
           </div>
 
-          {/* Botonera Derecha: Medio rápido (Efectivo / Tarjeta), Buscar, Ayuda y Reloj */}
+          {/* Botonera Derecha: Medio rápido (Efectivo / Tarjeta), Ayuda y Reloj */}
           <div className="flex items-center gap-1.5">
-            {/* Selector Rápido Efectivo vs Tarjeta (+5% pañales) */}
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={toggleCardMode}
-              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-bold cursor-pointer transition ${isCardActive
+              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-bold cursor-pointer transition disabled:opacity-40 ${isCardActive
                 ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
                 : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300"
                 }`}
@@ -988,7 +1161,7 @@ export default function CreateSalePage() {
         </div>
 
         {/* =============================================================== */}
-        {/* 2. ÁREA CENTRAL DE OPERACIÓN (ANCHO COMPLETO SIN NUMPAD)        */}
+        {/* 2. ÁREA CENTRAL DE OPERACIÓN (ANCHO COMPLETO)                   */}
         {/* =============================================================== */}
         <div className="flex-1 min-h-0 flex flex-col bg-[#0D0B16] border border-white/10 rounded-xl overflow-hidden shadow-xl">
           {/* Barra Superior de Tabla: Lector de Código + Íconos de Acción uno al lado del otro */}
@@ -1023,14 +1196,20 @@ export default function CreateSalePage() {
                 ref={commandInputRef}
                 type="text"
                 autoFocus
+                autoComplete="off"
+                maxLength={MAX_COMMAND_LENGTH}
                 value={commandInput}
-                onChange={(e) => setCommandInput(e.target.value)}
+                onChange={(e) =>
+                  setCommandInput(
+                    sanitizeText(e.target.value, MAX_COMMAND_LENGTH)
+                  )
+                }
                 placeholder={
                   isLoading
                     ? "Cargando artículos..."
                     : "Código de barras, cant*código (ej: 3*779...) o nombre + [Enter]"
                 }
-                className="flex-1 bg-transparent text-sm md:text-base font-mono font-semibold text-white placeholder:text-slate-500 outline-none"
+                className="flex-1 bg-transparent! border-0! ring-0! focus:ring-0! focus:border-0! shadow-none! px-1! py-0.5! text-sm md:text-base font-mono font-semibold text-white placeholder:text-slate-500 outline-none"
               />
 
               {commandInput && (
@@ -1045,7 +1224,8 @@ export default function CreateSalePage() {
 
               <button
                 type="submit"
-                className="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold tracking-wide cursor-pointer shrink-0 transition"
+                disabled={isLoading || isSubmitting}
+                className="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-[11px] font-bold tracking-wide cursor-pointer shrink-0 transition"
               >
                 ENTER
               </button>
@@ -1056,7 +1236,7 @@ export default function CreateSalePage() {
               <button
                 type="button"
                 onClick={() => moveSelection(-1)}
-                disabled={activeTicket.items.length === 0}
+                disabled={activeTicket.items.length === 0 || isSubmitting}
                 className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                 title="Subir línea (↑)"
               >
@@ -1066,7 +1246,7 @@ export default function CreateSalePage() {
               <button
                 type="button"
                 onClick={() => moveSelection(1)}
-                disabled={activeTicket.items.length === 0}
+                disabled={activeTicket.items.length === 0 || isSubmitting}
                 className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                 title="Bajar línea (↓)"
               >
@@ -1076,7 +1256,7 @@ export default function CreateSalePage() {
               <button
                 type="button"
                 onClick={() => adjustSelectedRowQty(-1)}
-                disabled={!selectedItem}
+                disabled={!selectedItem || isSubmitting}
                 className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-rose-500/25 border border-white/10 text-rose-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                 title="Restar 1 unidad (-)"
               >
@@ -1086,7 +1266,7 @@ export default function CreateSalePage() {
               <button
                 type="button"
                 onClick={() => adjustSelectedRowQty(1)}
-                disabled={!selectedItem}
+                disabled={!selectedItem || isSubmitting}
                 className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-emerald-500/25 border border-white/10 text-emerald-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                 title="Sumar 1 unidad (+)"
               >
@@ -1095,7 +1275,7 @@ export default function CreateSalePage() {
 
               <button
                 type="button"
-                disabled={!selectedItem}
+                disabled={!selectedItem || isSubmitting}
                 onClick={() => {
                   if (!selectedItem) return;
                   setQtyEditValue(String(selectedItem.quantity));
@@ -1110,7 +1290,7 @@ export default function CreateSalePage() {
               <button
                 type="button"
                 onClick={removeSelectedRow}
-                disabled={!selectedItem}
+                disabled={!selectedItem || isSubmitting}
                 className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-rose-500/25 border border-white/10 text-rose-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                 title="Quitar artículo seleccionado (Supr)"
               >
@@ -1119,13 +1299,14 @@ export default function CreateSalePage() {
 
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => {
                   setSearchModalQuery("");
                   setSearchSelectedIndex(0);
                   setShowSearchModal(true);
                   setTimeout(() => searchModalInputRef.current?.focus(), 20);
                 }}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-indigo-300 flex items-center justify-center cursor-pointer active:scale-95 transition"
+                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-indigo-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                 title="Buscar artículo por nombre (F3)"
               >
                 <Search size={17} />
@@ -1180,12 +1361,10 @@ export default function CreateSalePage() {
                 ) : (
                   activeTicket.items.map((item) => {
                     const isSelected = item.productId === selectedRowId;
-                    const lineBase = item.price * item.quantity;
+                    const lineBase = roundCurrency(item.price * item.quantity);
                     const lineCardExtra =
                       isCardActive && item.isDiaper
-                        ? Number(
-                            (lineBase * CARD_DIAPER_SURCHARGE_RATE).toFixed(2)
-                          )
+                        ? roundCurrency(lineBase * CARD_DIAPER_SURCHARGE_RATE)
                         : 0;
 
                     return (
@@ -1195,11 +1374,10 @@ export default function CreateSalePage() {
                           setSelectedRowId(item.productId);
                           focusScanner();
                         }}
-                        className={`cursor-pointer transition-colors ${
-                          isSelected
-                            ? "bg-indigo-600/25 text-white"
-                            : "hover:bg-white/[0.04] text-slate-200"
-                        }`}
+                        className={`cursor-pointer transition-colors ${isSelected
+                          ? "bg-indigo-600/25 text-white"
+                          : "hover:bg-white/[0.04] text-slate-200"
+                          }`}
                       >
                         <td className="py-2.5 px-4 font-mono text-xs text-slate-400 truncate max-w-[130px]">
                           {item.code}
@@ -1213,11 +1391,10 @@ export default function CreateSalePage() {
                             <span className="truncate">{item.name}</span>
                             {item.isDiaper && (
                               <span
-                                className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide ${
-                                  isCardActive
-                                    ? "bg-amber-500/20 text-amber-300 border border-amber-400/40"
-                                    : "bg-white/5 text-slate-400 border border-white/10"
-                                }`}
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide ${isCardActive
+                                  ? "bg-amber-500/20 text-amber-300 border border-amber-400/40"
+                                  : "bg-white/5 text-slate-400 border border-white/10"
+                                  }`}
                               >
                                 {isCardActive
                                   ? `+5% Tarj. (+${formatARS(lineCardExtra)})`
@@ -1235,6 +1412,7 @@ export default function CreateSalePage() {
                           <div className="inline-flex items-center gap-1 bg-black/30 border border-white/10 rounded-lg px-1 py-0.5">
                             <button
                               type="button"
+                              disabled={isSubmitting}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setLineQuantity(
@@ -1252,6 +1430,7 @@ export default function CreateSalePage() {
                             </span>
                             <button
                               type="button"
+                              disabled={isSubmitting}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setLineQuantity(
@@ -1308,20 +1487,18 @@ export default function CreateSalePage() {
 
               <div
                 onClick={() => toggleCardMode()}
-                className={`rounded-lg px-3 py-2 cursor-pointer transition border ${
-                  isCardActive && activeCardSurcharge > 0
-                    ? "bg-amber-950/30 border-amber-500/40"
-                    : "bg-[#0B0914] border-white/10 hover:border-amber-500/30"
-                }`}
+                className={`rounded-lg px-3 py-2 cursor-pointer transition border ${isCardActive && activeCardSurcharge > 0
+                  ? "bg-amber-950/30 border-amber-500/40"
+                  : "bg-[#0B0914] border-white/10 hover:border-amber-500/30"
+                  }`}
                 title="Clic para alternar Efectivo / Tarjeta (+5% en pañales)"
               >
                 <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold truncate">
                   {isCardActive ? "Tarj. +5% Pañales" : "Recargo Tarj."}
                 </span>
                 <span
-                  className={`text-base font-mono font-bold ${
-                    activeCardSurcharge > 0 ? "text-amber-400" : "text-slate-500"
-                  }`}
+                  className={`text-base font-mono font-bold ${activeCardSurcharge > 0 ? "text-amber-400" : "text-slate-500"
+                    }`}
                 >
                   + {formatARS(activeCardSurcharge)}
                 </span>
@@ -1339,27 +1516,13 @@ export default function CreateSalePage() {
 
             {/* Botones de Cobro Rápido */}
             <div className="flex items-stretch gap-2 shrink-0">
-              <button
-                type="button"
-                disabled={activeTicket.items.length === 0 || isSubmitting}
-                onClick={() => processSale("CASH")}
-                className="px-4 py-2.5 rounded-xl bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-400/40 text-indigo-200 disabled:opacity-30 disabled:pointer-events-none font-bold text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 transition"
-                title="Cerrar venta inmediata en efectivo exacto en 1 solo paso (F12)"
-              >
-                <div className="flex items-center gap-1">
-                  <Zap size={14} className="text-amber-400" />
-                  <span>Efvo. Exacto</span>
-                </div>
-                <span className="text-[10px] font-mono text-indigo-300/80">
-                  [F12]
-                </span>
-              </button>
+
 
               <button
                 type="button"
                 disabled={activeTicket.items.length === 0 || isSubmitting}
                 onClick={openCheckout}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:pointer-events-none font-black text-base flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.35)] cursor-pointer active:scale-95 transition"
+                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:pointer-events-none font-black text-base flex items-center justify-center gap-2  cursor-pointer active:scale-95 transition"
                 title="Abrir pantalla de cobro y vuelto (= o F4)"
               >
                 <span className="text-2xl leading-none font-mono">=</span>
@@ -1374,67 +1537,92 @@ export default function CreateSalePage() {
       </div>
 
       {/* =============================================================== */}
-      {/* MODAL BUSCADOR TABULAR RÁPIDO (F3 - CERO FOTOS, PURO TECLADO)   */}
+      {/* MODAL BUSCADOR TABULAR RÁPIDO (F3)                              */}
       {/* =============================================================== */}
       {showSearchModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-start justify-center pt-12 p-4"
+          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-start justify-center pt-10 md:pt-16 p-4"
           onClick={() => setShowSearchModal(false)}
         >
           <div
-            className="w-full max-w-2xl bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            className="w-full max-w-[780px] bg-[#0F0C1A] border border-white/15 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[78vh] ring-1 ring-white/5"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-3 bg-[#181529] border-b border-white/10 flex items-center gap-2">
-              <Search size={18} className="text-indigo-400 shrink-0" />
-              <input
-                ref={searchModalInputRef}
-                type="text"
-                autoFocus
-                value={searchModalQuery}
-                onChange={(e) => {
-                  setSearchModalQuery(e.target.value);
-                  setSearchSelectedIndex(0);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    setSearchSelectedIndex((i) =>
-                      Math.min(searchResults.length - 1, i + 1)
+            {/* Cabecera del buscador */}
+            <div className="px-4 py-3 bg-[#171327] border-b border-white/10 flex items-center gap-3 shrink-0">
+              <div className="flex-1 flex items-center gap-2.5 bg-[#090710] border border-indigo-500/40 focus-within:border-indigo-400 rounded-xl px-3 py-2">
+                <Search size={17} className="text-indigo-400 shrink-0" />
+                <input
+                  ref={searchModalInputRef}
+                  type="text"
+                  autoFocus
+                  autoComplete="off"
+                  maxLength={MAX_COMMAND_LENGTH}
+                  value={searchModalQuery}
+                  onChange={(e) => {
+                    setSearchModalQuery(
+                      sanitizeText(e.target.value, MAX_COMMAND_LENGTH)
                     );
-                  } else if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    setSearchSelectedIndex((i) => Math.max(0, i - 1));
-                  } else if (e.key === "Enter") {
-                    e.preventDefault();
-                    const chosen = searchResults[searchSelectedIndex];
-                    if (chosen) {
-                      if (addProduct(chosen)) {
+                    setSearchSelectedIndex(0);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setSearchSelectedIndex((i) =>
+                        Math.min(searchResults.length - 1, i + 1)
+                      );
+                    } else if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setSearchSelectedIndex((i) => Math.max(0, i - 1));
+                    } else if (e.key === "Enter") {
+                      e.preventDefault();
+                      const chosen = searchResults[searchSelectedIndex];
+                      if (chosen && addProduct(chosen)) {
                         setShowSearchModal(false);
                       }
                     }
-                  }
-                }}
-                placeholder="Escribí nombre o código... (↑/↓ para elegir, Enter para agregar)"
-                className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
-              />
+                  }}
+                  placeholder="Buscar artículo por nombre o código..."
+                  className="flex-1 min-w-0 bg-transparent! border-0! ring-0! focus:ring-0! focus:border-0! shadow-none! p-0! text-sm text-white placeholder:text-slate-500 outline-none"
+                />
+                {searchModalQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchModalQuery("");
+                      setSearchSelectedIndex(0);
+                      searchModalInputRef.current?.focus();
+                    }}
+                    className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={() => setShowSearchModal(false)}
-                className="text-slate-400 hover:text-white p-1"
+                className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 cursor-pointer transition"
+                title="Cerrar (Esc)"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="overflow-y-auto flex-1 custom-scrollbar">
-              <table className="w-full text-left text-xs">
-                <thead className="sticky top-0 bg-[#141122] text-slate-400 uppercase border-b border-white/10">
+            {/* Tabla de resultados */}
+            <div className="overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar">
+              <table className="w-full table-fixed text-left text-xs border-collapse">
+                <thead className="sticky top-0 z-10 bg-[#141122] text-slate-400 uppercase tracking-wider border-b border-white/10">
                   <tr>
-                    <th className="py-2 px-3 w-28">Código</th>
-                    <th className="py-2 px-3">Artículo</th>
-                    <th className="py-2 px-3 w-20 text-center">Stock</th>
-                    <th className="py-2 px-3 w-28 text-right">Precio</th>
+                    <th className="py-2.5 px-4 w-32 font-semibold">Código</th>
+                    <th className="py-2.5 px-4 font-semibold">Artículo</th>
+                    <th className="py-2.5 px-4 w-24 text-center font-semibold">
+                      Stock
+                    </th>
+                    <th className="py-2.5 px-4 w-32 text-right font-semibold">
+                      Precio
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -1442,15 +1630,17 @@ export default function CreateSalePage() {
                     <tr>
                       <td
                         colSpan={4}
-                        className="py-8 text-center text-slate-500"
+                        className="py-10 text-center text-slate-500 text-sm"
                       >
-                        Sin coincidencias
+                        No se encontraron artículos para "{searchModalQuery}"
                       </td>
                     </tr>
                   ) : (
                     searchResults.map((p, idx) => {
                       const active = idx === searchSelectedIndex;
-                      const noStock = (p.stock ?? 0) <= 0;
+                      const avail =
+                        toSafeStock(p.stock) - getReservedInOtherTickets(p.id);
+                      const noStock = avail <= 0;
                       return (
                         <tr
                           key={p.id}
@@ -1459,22 +1649,33 @@ export default function CreateSalePage() {
                               setShowSearchModal(false);
                             }
                           }}
-                          className={`cursor-pointer ${noStock
-                            ? "opacity-40 cursor-not-allowed"
-                            : active
-                              ? "bg-indigo-600 text-white"
-                              : "hover:bg-white/5 text-slate-200"
-                            }`}
+                          className={`transition-colors ${
+                            noStock
+                              ? "opacity-40 cursor-not-allowed"
+                              : active
+                              ? "bg-indigo-600/35 text-white cursor-pointer"
+                              : "hover:bg-white/5 text-slate-200 cursor-pointer"
+                          }`}
                         >
-                          <td className="py-2.5 px-3 font-mono">
+                          <td className="py-2.5 px-4 font-mono text-slate-400 truncate">
                             {p.barcode || p.id}
                           </td>
-                          <td className="py-2.5 px-3 font-semibold">{p.name}</td>
-                          <td className="py-2.5 px-3 text-center font-mono">
-                            {p.stock ?? 0}
+                          <td className="py-2.5 px-4 font-semibold truncate">
+                            {p.name}
                           </td>
-                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-300">
-                            {formatARS(p.price)}
+                          <td className="py-2.5 px-4 text-center font-mono">
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                                noStock
+                                  ? "bg-rose-500/20 text-rose-300"
+                                  : "bg-white/5 text-slate-200"
+                              }`}
+                            >
+                              {Math.max(0, avail)}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
+                            {formatARS(toSafePrice(p.price))}
                           </td>
                         </tr>
                       );
@@ -1483,16 +1684,44 @@ export default function CreateSalePage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pie informativo */}
+            <div className="px-4 py-2 bg-[#141122] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+              <span>
+                Mostrando {searchResults.length} resultado
+                {searchResults.length === 1 ? "" : "s"}
+              </span>
+              <div className="flex items-center gap-3">
+                <span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                    ↑↓
+                  </kbd>{" "}
+                  Mover
+                </span>
+                <span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                    Enter
+                  </kbd>{" "}
+                  Agregar
+                </span>
+                <span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                    Esc
+                  </kbd>{" "}
+                  Cerrar
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* =============================================================== */}
-      {/* MODAL DE COBRO EXPRESS (= / F4 -> ENTER CONFIRMA AL INSTANTE)   */}
+      {/* MODAL DE COBRO EXPRESS (= / F4)                                 */}
       {/* =============================================================== */}
       {showCheckoutModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-center justify-center p-4"
           onClick={() => !isSubmitting && setShowCheckoutModal(false)}
         >
           <form
@@ -1501,7 +1730,7 @@ export default function CreateSalePage() {
               processSale();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-[460px] bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="px-5 py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -1509,15 +1738,16 @@ export default function CreateSalePage() {
               </h3>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => setShowCheckoutModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-white disabled:opacity-40"
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Medios de Pago Rápidos */}
+              {/* Medios de Pago */}
               <div className="grid grid-cols-4 gap-1.5">
                 {(
                   [
@@ -1533,14 +1763,16 @@ export default function CreateSalePage() {
                     <button
                       key={pm.id}
                       type="button"
+                      disabled={isSubmitting}
                       onClick={() => {
-                        const nextTotal =
+                        const nextTotal = roundCurrency(
                           subtotal +
-                          (pm.id === "CARD" ? potentialCardDiaperSurcharge : 0);
+                          (pm.id === "CARD" ? potentialCardDiaperSurcharge : 0)
+                        );
                         updateActiveTicket((t) => ({
                           ...t,
                           paymentMethod: pm.id,
-                          cashTendered: String(Number(nextTotal.toFixed(2))),
+                          cashTendered: String(nextTotal),
                         }));
                       }}
                       className={`relative py-2.5 px-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition ${active
@@ -1560,7 +1792,7 @@ export default function CreateSalePage() {
                 })}
               </div>
 
-              {/* Desglose y Total Gigante */}
+              {/* Desglose y Total */}
               <div className="bg-[#090710] border border-emerald-500/40 rounded-xl p-3.5 space-y-2">
                 {activeCardSurcharge > 0 && (
                   <div className="space-y-1 pb-2 border-b border-white/10 text-xs">
@@ -1595,6 +1827,7 @@ export default function CreateSalePage() {
                       <button
                         key={b}
                         type="button"
+                        disabled={isSubmitting}
                         onClick={() => {
                           updateActiveTicket((t) => ({
                             ...t,
@@ -1617,16 +1850,22 @@ export default function CreateSalePage() {
                       <input
                         ref={cashInputRef}
                         type="number"
-                        step="any"
-                        min="0"
+                        step="0.01"
+                        min={finalTotal}
+                        max={MAX_CASH_TENDERED}
+                        autoComplete="off"
                         value={activeTicket.cashTendered}
                         onChange={(e) =>
                           updateActiveTicket((t) => ({
                             ...t,
-                            cashTendered: e.target.value,
+                            cashTendered: e.target.value.slice(0, 12),
                           }))
                         }
-                        className="w-full bg-[#090710] border border-indigo-400/50 rounded-xl px-3 py-2 text-lg font-mono font-bold text-white outline-none"
+                        className={`w-full bg-[#090710]! border rounded-xl! px-3! py-2! text-lg font-mono font-bold text-white outline-none focus:ring-0! ${
+                          cashTenderedNum < finalTotal
+                            ? "border-rose-500/70!"
+                            : "border-indigo-400/50!"
+                        }`}
                       />
                     </div>
 
@@ -1646,15 +1885,20 @@ export default function CreateSalePage() {
             <div className="px-5 py-3.5 bg-[#181529] border-t border-white/10 flex justify-end gap-2">
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => setShowCheckoutModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 disabled:opacity-40 cursor-pointer"
               >
                 Cancelar (Esc)
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                disabled={
+                  isSubmitting ||
+                  (activeTicket.paymentMethod === "CASH" &&
+                    cashTenderedNum < finalTotal)
+                }
+                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Check size={16} />
                 <span>{isSubmitting ? "Guardando..." : "CONFIRMAR (ENTER)"}</span>
@@ -1669,20 +1913,20 @@ export default function CreateSalePage() {
       {/* =============================================================== */}
       {showQtyEditModal && selectedItem && (
         <div
-          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-center justify-center p-4"
           onClick={() => setShowQtyEditModal(false)}
         >
           <form
             onSubmit={(e) => {
               e.preventDefault();
               const val = parseInt(qtyEditValue, 10);
-              if (!isNaN(val)) {
+              if (Number.isFinite(val) && val >= 0) {
                 setLineQuantity(selectedItem.productId, val);
               }
               setShowQtyEditModal(false);
             }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xs bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3"
+            className="w-full max-w-[340px] bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3 shadow-2xl"
           >
             <h3 className="text-xs font-bold uppercase text-slate-300 truncate">
               Cantidad: {selectedItem.name}
@@ -1690,15 +1934,25 @@ export default function CreateSalePage() {
             <input
               type="number"
               min="0"
-              max={selectedItem.stock}
+              max={Math.min(MAX_MULTIPLIER, selectedItem.stock)}
+              step="1"
               autoFocus
+              autoComplete="off"
               value={qtyEditValue}
-              onChange={(e) => setQtyEditValue(e.target.value)}
+              onChange={(e) =>
+                setQtyEditValue(sanitizeDigits(e.target.value, 4))
+              }
               onFocus={(e) => e.currentTarget.select()}
-              className="w-full bg-[#090710] border border-indigo-400 rounded-xl px-3 py-2.5 text-xl font-mono font-bold text-center text-white outline-none"
+              className="w-full bg-[#090710]! border border-indigo-400! rounded-xl! px-3! py-2.5! text-xl font-mono font-bold text-center text-white outline-none focus:ring-0!"
             />
             <p className="text-[11px] text-slate-400 text-center">
-              Stock disponible: {selectedItem.stock} u. (0 elimina la línea)
+              Stock disponible:{" "}
+              {Math.max(
+                0,
+                selectedItem.stock -
+                getReservedInOtherTickets(selectedItem.productId)
+              )}{" "}
+              u. (0 elimina la línea)
             </p>
             <div className="flex gap-2">
               <button
@@ -1720,197 +1974,16 @@ export default function CreateSalePage() {
       )}
 
       {/* =============================================================== */}
-      {/* MODAL CLIENTE SIMPLIFICADO (F8)                                 */}
-      {/* =============================================================== */}
-      {showClientModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
-          onClick={() => setShowClientModal(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-[#12101F] border border-white/15 rounded-2xl overflow-hidden shadow-2xl"
-          >
-            <div className="px-5 py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
-              <span className="text-xs font-bold uppercase text-white flex items-center gap-2">
-                <UserPlus size={16} className="text-indigo-400" />
-                Asignar Cliente al Ticket
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowClientModal(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              <div className="grid grid-cols-3 gap-2">
-                {(
-                  [
-                    ["FINAL_CONSUMER", "Consumidor Final"],
-                    ["EXISTING", "Registrado"],
-                    ["NEW", "Nuevo Rápido"],
-                  ] as const
-                ).map(([mode, label]) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => {
-                      if (mode === "FINAL_CONSUMER") {
-                        updateActiveTicket((t) => ({
-                          ...t,
-                          customer: { ...DEFAULT_CUSTOMER },
-                        }));
-                        setShowClientModal(false);
-                      } else if (mode === "NEW") {
-                        updateActiveTicket((t) => ({
-                          ...t,
-                          customer: {
-                            mode: "NEW",
-                            name: "",
-                            surname: "",
-                            dni: "",
-                            phoneNumber: "",
-                            email: "",
-                          },
-                        }));
-                      } else {
-                        updateActiveTicket((t) => ({
-                          ...t,
-                          customer: { ...t.customer, mode: "EXISTING" },
-                        }));
-                      }
-                    }}
-                    className={`py-2 px-2 rounded-xl text-xs font-bold border cursor-pointer ${activeTicket.customer.mode === mode
-                      ? "bg-indigo-600 text-white border-indigo-400"
-                      : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
-                      }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {activeTicket.customer.mode === "EXISTING" && (
-                <div className="max-h-52 overflow-y-auto divide-y divide-white/5 border border-white/10 rounded-xl bg-[#090710]">
-                  {clients.length === 0 ? (
-                    <p className="p-4 text-xs text-slate-500 text-center">
-                      Sin clientes cargados
-                    </p>
-                  ) : (
-                    clients.map((c) => (
-                      <button
-                        key={c.id ?? c.dni}
-                        type="button"
-                        onClick={() => {
-                          updateActiveTicket((t) => ({
-                            ...t,
-                            customer: {
-                              mode: "EXISTING",
-                              existingClientId: c.id,
-                              name: c.name,
-                              surname: c.surname,
-                              dni: c.dni,
-                              phoneNumber: c.phoneNumber || "",
-                              email: c.email,
-                            },
-                          }));
-                          setShowClientModal(false);
-                        }}
-                        className="w-full px-3 py-2 text-left hover:bg-indigo-600/20 flex justify-between items-center text-xs cursor-pointer"
-                      >
-                        <span className="font-semibold text-white">
-                          {c.surname}, {c.name}
-                        </span>
-                        <span className="font-mono text-slate-400">
-                          DNI {c.dni}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {activeTicket.customer.mode === "NEW" && (
-                <div className="grid grid-cols-2 gap-2.5">
-                  <input
-                    type="text"
-                    placeholder="Nombre *"
-                    value={activeTicket.customer.name}
-                    onChange={(e) =>
-                      updateActiveTicket((t) => ({
-                        ...t,
-                        customer: { ...t.customer, name: e.target.value },
-                      }))
-                    }
-                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Apellido *"
-                    value={activeTicket.customer.surname}
-                    onChange={(e) =>
-                      updateActiveTicket((t) => ({
-                        ...t,
-                        customer: { ...t.customer, surname: e.target.value },
-                      }))
-                    }
-                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="DNI (7-8 dígitos) *"
-                    value={activeTicket.customer.dni}
-                    onChange={(e) =>
-                      updateActiveTicket((t) => ({
-                        ...t,
-                        customer: { ...t.customer, dni: e.target.value },
-                      }))
-                    }
-                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-mono"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Teléfono (opcional)"
-                    value={activeTicket.customer.phoneNumber}
-                    onChange={(e) =>
-                      updateActiveTicket((t) => ({
-                        ...t,
-                        customer: { ...t.customer, phoneNumber: e.target.value },
-                      }))
-                    }
-                    className="bg-[#090710] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="px-5 py-3 bg-[#181529] border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowClientModal(false)}
-                className="px-5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
-              >
-                Listo
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =============================================================== */}
       {/* MODAL DE ATAJOS DE CAJA                                         */}
       {/* =============================================================== */}
       {showHelpModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-center justify-center p-4"
           onClick={() => setShowHelpModal(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3"
+            className="w-full max-w-[440px] bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3 shadow-2xl"
           >
             <div className="flex justify-between items-center border-b border-white/10 pb-2">
               <h3 className="text-xs font-bold uppercase text-white">
@@ -1933,7 +2006,7 @@ export default function CreateSalePage() {
                 ["F7", "Alternar Efectivo / Tarjeta (+5% pañales)"],
                 ["↑ / ↓", "Moverse entre líneas del ticket"],
                 ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
-                ["F6 / F8", "Ticket en espera / Cambiar cliente"],
+                ["F6", "Poner ticket en espera y abrir otro"],
               ].map(([k, d]) => (
                 <div
                   key={k}
