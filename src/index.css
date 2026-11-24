@@ -162,40 +162,6 @@
   --mgmt-table-zebra: rgba(15, 23, 42, 0.02);
   --mgmt-table-hover: rgba(79, 70, 229, 0.05);
   --mgmt-table-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.1);
-}
-
-/* Adaptación automática de utilidades dark hardcodeadas cuando Management está en Light */
-[data-theme="mgmt-light"] .management-table td {
-  color: var(--text-secondary);
-}
-
-[data-theme="mgmt-light"] .bg-\[\#151519\],
-[data-theme="mgmt-light"] .bg-\[\#151320\],
-[data-theme="mgmt-light"] .bg-\[\#0d0a18\],
-[data-theme="mgmt-light"] .bg-\[\#12101F\],
-[data-theme="mgmt-light"] .bg-\[\#1C1830\] {
-  background-color: var(--bg-surface) !important;
-  border-color: var(--border-subtle) !important;
-  color: var(--text-primary) !important;
-}
-
-[data-theme="mgmt-light"] input.bg-\[\#151519\],
-[data-theme="mgmt-light"] input.bg-\[\#151320\],
-[data-theme="mgmt-light"] textarea.bg-\[\#151320\] {
-  background-color: var(--bg-input) !important;
-  color: var(--text-primary) !important;
-}
-
-[data-theme="mgmt-light"] .text-slate-100,
-[data-theme="mgmt-light"] .text-slate-200,
-[data-theme="mgmt-light"] .text-gray-200 {
-  color: var(--text-primary) !important;
-}
-
-[data-theme="mgmt-light"] .text-slate-300,
-[data-theme="mgmt-light"] .text-gray-300 {
-  color: var(--text-secondary) !important;
-}
 
   /* Botones - Tema Management Light */
   --btn-primary-bg: #4f46e5;
@@ -237,6 +203,39 @@
   --btn-outline-text: #4f46e5;
   --btn-outline-hover-text: #3730a3;
   --btn-outline-border: #c7d2fe;
+}
+
+/* Adaptación automática de utilidades dark hardcodeadas cuando Management está en Light */
+[data-theme="mgmt-light"] .management-table td {
+  color: var(--text-secondary);
+}
+
+[data-theme="mgmt-light"] [class*="bg-[#151519]"],
+[data-theme="mgmt-light"] [class*="bg-[#151320]"],
+[data-theme="mgmt-light"] [class*="bg-[#0d0a18]"],
+[data-theme="mgmt-light"] [class*="bg-[#12101F]"],
+[data-theme="mgmt-light"] [class*="bg-[#1C1830]"] {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="mgmt-light"] input[class*="bg-[#151519]"],
+[data-theme="mgmt-light"] input[class*="bg-[#151320]"],
+[data-theme="mgmt-light"] textarea[class*="bg-[#151320]"] {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="mgmt-light"] .text-slate-100,
+[data-theme="mgmt-light"] .text-slate-200,
+[data-theme="mgmt-light"] .text-gray-200 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="mgmt-light"] .text-slate-300,
+[data-theme="mgmt-light"] .text-gray-300 {
+  color: var(--text-secondary) !important;
 }
 
 @layer base {
