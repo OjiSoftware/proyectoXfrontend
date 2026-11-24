@@ -123,7 +123,7 @@ export default function CatalogPage() {
 
             <div className="w-full max-[1187px]:px-4 max-w-[1187px] mx-auto md:py-6 py-5 flex-grow">
                 <div className="flex justify-between items-center mb-6">
-                    <div className="text-[#9E9494] md:text-sm text-[12px] flex items-center gap-1.5 flex-wrap">
+                    <div className="text-[#9E9494] md:text-sm text-[8px] flex items-center gap-0.5 flex-wrap">
                         <span className="hover:text-gray-600 cursor-pointer transition-colors" onClick={handleClearFilters}>Upa Lelé</span>
                         {selectedCatName && (
                             <>
