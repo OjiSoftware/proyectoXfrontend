@@ -147,9 +147,7 @@ export default function CatalogPage() {
                                 </>
                             )}
                         </div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-[#FFF000] drop-shadow-[0_2px_0_rgba(0,0,0,0.12)]">
-                            {selectedCatName || (search.trim() ? `Resultados para "${search.trim()}"` : "Nuestro Catálogo")}
-                        </h1>
+
                     </div>
 
                     <div className="relative flex items-center gap-3">

@@ -168,7 +168,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                                 onBlur={() => {
                                     if (productQuantity < minQuantity) setProductQuantity(minQuantity);
                                 }}
-                                className="min-w-0 flex-1 h-full text-center bg-transparent border-none font-bold text-[#1A2D2A] text-sm focus:ring-0 p-0 leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                className="w-9 sm:w-10 h-full text-center bg-transparent border-none font-bold text-[#1A2D2A] text-sm focus:ring-0 p-0 leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
 
                             <button

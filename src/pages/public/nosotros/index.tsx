@@ -30,9 +30,7 @@ export default function NosotrosPage() {
           <div className="pointer-events-none absolute left-10 -bottom-20 w-64 h-64 rounded-full bg-[#FFF6B8]/20" />
 
           <div className="relative z-10 max-w-xl text-center md:text-left">
-            <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4">
-              <Sparkles className="w-3.5 h-3.5 text-[#FFF000]" /> Nuestra Historia
-            </span>
+
             <h1 className="text-3xl md:text-5xl font-fredoka font-bold text-[#FFF000] leading-tight mb-4 drop-shadow-[0_3px_0_rgba(0,0,0,0.14)]">
               Cuidamos lo más importante con amor y confianza
             </h1>

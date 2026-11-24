@@ -79,9 +79,7 @@ export default function ContactoPage() {
           <div className="pointer-events-none absolute -right-12 -top-12 w-56 h-56 rounded-full bg-white/15" />
           <div className="pointer-events-none absolute left-24 -bottom-16 w-48 h-48 rounded-full bg-[#FFF6B8]/20" />
           <div className="relative">
-            <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-[#FFF000]" /> Encontranos
-            </span>
+
             <h1 className="text-2xl md:text-4xl font-bold font-fredoka text-[#FFF000] drop-shadow-[0_2px_0_rgba(0,0,0,0.14)]">
               Vení a visitarnos a nuestro local
             </h1>
