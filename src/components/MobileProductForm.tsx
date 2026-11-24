@@ -175,7 +175,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-indigo-300 flex items-center gap-1 transition active:scale-95 shrink-0"
+                    className="btn btn-xs btn-subtle rounded-xl"
                 >
                     ← Volver
                 </button>
@@ -679,10 +679,7 @@ export const MobileProductForm: React.FC<MobileProductFormProps> = ({
                         type="button"
                         onClick={handleActionClick}
                         disabled={isLoading}
-                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 ${isFormInvalid
-                            ? "bg-slate-800/80 text-slate-400 border border-white/5"
-                            : "bg-emerald-600/25 text-emerald-300 border border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-                            }`}
+                        className={`btn btn-md flex-1 text-xs ${isFormInvalid ? "btn-subtle opacity-60" : "btn-success"}`}
                     >
                         {isLoading ? (
                             <RefreshCw size={16} className="animate-spin" />

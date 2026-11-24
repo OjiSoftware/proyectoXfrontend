@@ -154,7 +154,7 @@ export default function CreateProviderPage() {
                                 <button
                                     type="button"
                                     onClick={() => navigate(ROUTES.providers.list)}
-                                    className="flex-1 md:flex-none md:min-w-32 px-5 py-2.5 text-xs font-semibold rounded-xl border border-white/10 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-white/5 hover:text-white active:scale-95"
+                                    className="btn btn-md btn-ghost flex-1 md:flex-none md:min-w-32"
                                 >
                                     Cancelar
                                 </button>

@@ -100,7 +100,7 @@ export default function CreateBrandPage() {
                             <button
                                 type="button"
                                 onClick={() => navigate("/management/brands")}
-                                className="flex-1 md:flex-none md:min-w-35 px-4 py-3 text-xs font-bold rounded-lg border border-slate-600 text-slate-300 bg-transparent transition-all duration-300 cursor-pointer hover:bg-slate-500/20 hover:text-white hover:border-slate-400"
+                                className="btn btn-md btn-ghost flex-1 md:flex-none md:min-w-32"
                             >
                                 Cancelar
                             </button>

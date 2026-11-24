@@ -210,20 +210,107 @@
   color: var(--text-secondary);
 }
 
-[data-theme="mgmt-light"] [class*="bg-[#151519]"],
-[data-theme="mgmt-light"] [class*="bg-[#151320]"],
-[data-theme="mgmt-light"] [class*="bg-[#0d0a18]"],
-[data-theme="mgmt-light"] [class*="bg-[#12101F]"],
-[data-theme="mgmt-light"] [class*="bg-[#1C1830]"] {
+/* Todas las superficies oscuras hex (#0... y #1...) y slate/gray oscuros pasan a superficie clara */
+[data-theme="mgmt-light"] [class*="bg-[#0"],
+[data-theme="mgmt-light"] [class*="bg-[#1"],
+[data-theme="mgmt-light"] [class*="bg-slate-900"],
+[data-theme="mgmt-light"] [class*="bg-slate-800"],
+[data-theme="mgmt-light"] [class*="bg-gray-900"] {
   background-color: var(--bg-surface) !important;
   border-color: var(--border-subtle) !important;
   color: var(--text-primary) !important;
 }
 
-[data-theme="mgmt-light"] input[class*="bg-[#151519]"],
-[data-theme="mgmt-light"] input[class*="bg-[#151320]"],
-[data-theme="mgmt-light"] textarea[class*="bg-[#151320]"] {
+/* Barras secundarias, cabeceras de tabla y paneles internos en modo claro */
+[data-theme="mgmt-light"] thead[class*="bg-[#"],
+[data-theme="mgmt-light"] [class*="bg-[#151224]"],
+[data-theme="mgmt-light"] [class*="bg-[#141122]"],
+[data-theme="mgmt-light"] [class*="bg-[#171327]"],
+[data-theme="mgmt-light"] [class*="bg-[#181529]"],
+[data-theme="mgmt-light"] [class*="bg-[#110e1f]"],
+[data-theme="mgmt-light"] [class*="bg-[#0e0b1c]"],
+[data-theme="mgmt-light"] [class*="bg-slate-700/30"],
+[data-theme="mgmt-light"] [class*="bg-slate-700/50"],
+[data-theme="mgmt-light"] [class*="bg-white/5"],
+[data-theme="mgmt-light"] [class*="bg-white/10"],
+[data-theme="mgmt-light"] [class*="bg-white/[0.02]"],
+[data-theme="mgmt-light"] [class*="bg-white/[0.03]"] {
+  background-color: var(--bg-elevated) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+/* Cajas tintadas (Total / Recargo en POS) */
+[data-theme="mgmt-light"] [class*="bg-emerald-950"] {
+  background-color: #ecfdf5 !important;
+  border-color: #6ee7b7 !important;
+}
+
+[data-theme="mgmt-light"] [class*="bg-amber-950"] {
+  background-color: #fffbeb !important;
+  border-color: #fcd34d !important;
+}
+
+/* Atajos kbd y contadores internos con bg-black/ */
+[data-theme="mgmt-light"] kbd[class*="bg-black/"],
+[data-theme="mgmt-light"] span[class*="bg-black/"],
+[data-theme="mgmt-light"] div[class*="bg-black/25"],
+[data-theme="mgmt-light"] div[class*="bg-black/30"] {
+  background-color: #e2e8f0 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Bordes y divisores pensados para fondo oscuro */
+[data-theme="mgmt-light"] [class*="border-white/"] {
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="mgmt-light"] [class*="border-gray-500"],
+[data-theme="mgmt-light"] [class*="border-slate-600"] {
+  border-color: var(--border-strong) !important;
+}
+
+[data-theme="mgmt-light"] [class*="divide-white/"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-subtle) !important;
+}
+
+/* Suavizado de sombras oscuras pesadas en tarjetas e inputs */
+[data-theme="mgmt-light"] [class*="shadow-[0_"]:not(.btn),
+[data-theme="mgmt-light"] .shadow-2xl:not(.btn),
+[data-theme="mgmt-light"] .shadow-xl:not(.btn) {
+  box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="mgmt-light"] .shadow-inner {
+  box-shadow: none !important;
+}
+
+/* Inputs, selects, textareas y options */
+[data-theme="mgmt-light"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="mgmt-light"] select,
+[data-theme="mgmt-light"] textarea {
   background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+
+[data-theme="mgmt-light"] input[class*="bg-transparent"] {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+[data-theme="mgmt-light"] select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="mgmt-light"] input[type="checkbox"] {
+  background-color: #ffffff !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Contrastes tipográficos en modo claro */
+[data-theme="mgmt-light"] .text-white:not(.btn-primary):not(.btn-success):not(.btn-danger):not([class*="bg-indigo-600"]):not([class*="bg-indigo-500"]):not([class*="bg-emerald-600"]):not([class*="bg-rose-600"]):not([class*="bg-brand-600"]):not([class*="bg-brand-500"]) {
   color: var(--text-primary) !important;
 }
 
@@ -236,6 +323,43 @@
 [data-theme="mgmt-light"] .text-slate-300,
 [data-theme="mgmt-light"] .text-gray-300 {
   color: var(--text-secondary) !important;
+}
+
+[data-theme="mgmt-light"] .text-slate-400,
+[data-theme="mgmt-light"] .text-gray-400,
+[data-theme="mgmt-light"] .text-slate-500 {
+  color: var(--text-muted) !important;
+}
+
+/* Colores de acento adaptados a alto contraste sobre fondo claro */
+[data-theme="mgmt-light"] .text-indigo-300,
+[data-theme="mgmt-light"] .text-indigo-400,
+[data-theme="mgmt-light"] .text-brand-300,
+[data-theme="mgmt-light"] .text-brand-400 {
+  color: #4f46e5 !important;
+}
+
+[data-theme="mgmt-light"] .text-emerald-300,
+[data-theme="mgmt-light"] [class*="text-emerald-300/"],
+[data-theme="mgmt-light"] .text-emerald-400,
+[data-theme="mgmt-light"] .text-green-400 {
+  color: #059669 !important;
+}
+
+[data-theme="mgmt-light"] .text-amber-200,
+[data-theme="mgmt-light"] .text-amber-300,
+[data-theme="mgmt-light"] .text-amber-400,
+[data-theme="mgmt-light"] [class*="text-amber-400/"] {
+  color: #b45309 !important;
+}
+
+[data-theme="mgmt-light"] .text-rose-300,
+[data-theme="mgmt-light"] .text-rose-400 {
+  color: #e11d48 !important;
+}
+
+[data-theme="mgmt-light"] .text-sky-400 {
+  color: #0284c7 !important;
 }
 
 @layer base {

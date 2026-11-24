@@ -995,7 +995,7 @@ export default function CreateSalePage() {
               type="button"
               disabled={isSubmitting}
               onClick={() => navigate("/management/sales")}
-              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white disabled:opacity-40 flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition"
+              className="btn btn-sm btn-subtle px-2.5 rounded-lg"
               title="Salir al listado de ventas"
             >
               <LogOut size={15} className="rotate-180 text-slate-400" />
@@ -1056,7 +1056,7 @@ export default function CreateSalePage() {
                 type="button"
                 disabled={isSubmitting || tickets.length >= MAX_OPEN_TICKETS}
                 onClick={handleParkOrNewTicket}
-                className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 disabled:opacity-40 text-xs font-semibold flex items-center gap-1 cursor-pointer transition"
+                className="btn btn-sm btn-subtle px-2.5 rounded-lg"
                 title="Dejar ticket en espera y abrir otro (F6)"
               >
                 <Plus size={14} />
@@ -1072,7 +1072,7 @@ export default function CreateSalePage() {
               type="button"
               disabled={activeTicket.items.length === 0 || isSubmitting}
               onClick={() => setShowClearConfirm(true)}
-              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1 text-xs font-semibold cursor-pointer transition"
+              className="btn btn-sm btn-danger px-2.5 rounded-lg"
               title="Anular / Vaciar ticket completo"
             >
               <Trash2 size={15} />
@@ -1086,10 +1086,7 @@ export default function CreateSalePage() {
               type="button"
               disabled={isSubmitting}
               onClick={toggleCardMode}
-              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-bold cursor-pointer transition disabled:opacity-40 ${isCardActive
-                ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
-                : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300"
-                }`}
+              className={`btn btn-sm px-3 rounded-lg ${isCardActive ? "btn-warning" : "btn-subtle"}`}
               title="Alternar simulación / cobro con Tarjeta (+5% en pañales) [F7]"
             >
               {isCardActive ? (
@@ -1106,7 +1103,7 @@ export default function CreateSalePage() {
             <button
               type="button"
               onClick={() => setShowHelpModal(true)}
-              className="h-9 w-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer transition"
+              className="btn btn-icon btn-subtle"
               title="Atajos de teclado"
             >
               <Keyboard size={16} />
@@ -1181,7 +1178,7 @@ export default function CreateSalePage() {
               <button
                 type="submit"
                 disabled={isLoading || isSubmitting}
-                className="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-[11px] font-bold tracking-wide cursor-pointer shrink-0 transition"
+                className="btn btn-xs btn-primary h-7 px-2.5 rounded-md tracking-wide shrink-0"
               >
                 ENTER
               </button>
@@ -1193,7 +1190,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => moveSelection(-1)}
                 disabled={activeTicket.items.length === 0 || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-sky-400"
                 title="Subir línea (↑)"
               >
                 <ArrowUp size={18} />
@@ -1203,7 +1200,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => moveSelection(1)}
                 disabled={activeTicket.items.length === 0 || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-sky-400"
                 title="Bajar línea (↓)"
               >
                 <ArrowDown size={18} />
@@ -1213,7 +1210,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => adjustSelectedRowQty(-1)}
                 disabled={!selectedItem || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-rose-500/25 border border-white/10 text-rose-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-rose-400"
                 title="Restar 1 unidad (-)"
               >
                 <Minus size={18} />
@@ -1223,7 +1220,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={() => adjustSelectedRowQty(1)}
                 disabled={!selectedItem || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-emerald-500/25 border border-white/10 text-emerald-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-emerald-400"
                 title="Sumar 1 unidad (+)"
               >
                 <Plus size={18} />
@@ -1237,7 +1234,7 @@ export default function CreateSalePage() {
                   setQtyEditValue(String(selectedItem.quantity));
                   setShowQtyEditModal(true);
                 }}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-amber-500/25 border border-white/10 text-amber-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-amber-400"
                 title="Editar cantidad exacta"
               >
                 <Pencil size={17} />
@@ -1247,7 +1244,7 @@ export default function CreateSalePage() {
                 type="button"
                 onClick={removeSelectedRow}
                 disabled={!selectedItem || isSubmitting}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-rose-500/25 border border-white/10 text-rose-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-rose-400"
                 title="Quitar artículo seleccionado (Supr)"
               >
                 <Trash2 size={17} />
@@ -1262,7 +1259,7 @@ export default function CreateSalePage() {
                   setShowSearchModal(true);
                   setTimeout(() => searchModalInputRef.current?.focus(), 20);
                 }}
-                className="w-9 h-9 rounded-lg bg-[#1C1830] hover:bg-indigo-600/30 border border-white/10 text-indigo-300 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                className="btn btn-icon btn-subtle text-indigo-400"
                 title="Buscar artículo por nombre (F3)"
               >
                 <Search size={17} />
@@ -1478,7 +1475,7 @@ export default function CreateSalePage() {
                 type="button"
                 disabled={activeTicket.items.length === 0 || isSubmitting}
                 onClick={openCheckout}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:pointer-events-none font-black text-base flex items-center justify-center gap-2  cursor-pointer active:scale-95 transition"
+                className="btn btn-lg btn-success font-black rounded-xl"
                 title="Abrir pantalla de cobro y vuelto (= o F4)"
               >
                 <span className="text-2xl leading-none font-mono">=</span>
@@ -1820,7 +1817,7 @@ export default function CreateSalePage() {
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setShowCheckoutModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+                  className="btn btn-md btn-ghost text-xs"
                 >
                   Cancelar (Esc)
                 </button>
@@ -1890,7 +1887,7 @@ export default function CreateSalePage() {
               <button
                 type="button"
                 onClick={() => setShowQtyEditModal(false)}
-                className="flex-1 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 cursor-pointer"
+                className="btn btn-sm btn-ghost flex-1"
               >
                 Cancelar
               </button>
