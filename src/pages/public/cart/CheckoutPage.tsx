@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CheckoutButton from '@/components/CheckoutButton';
 import { ChevronLeftIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
-import { ClockIcon } from 'lucide-react';
+import { ClockIcon, Sparkles } from 'lucide-react';
 
 export default function CheckoutPage() {
   const { cart, totalPrice, totalItems, clearCart } = useCart();
@@ -52,8 +52,7 @@ export default function CheckoutPage() {
     if (cart.length === 0) {
       if (!saleId) {
         navigate('/cart');
-      }
-      else {
+      } else {
         navigate('/catalogo');
       }
     }
@@ -74,8 +73,6 @@ export default function CheckoutPage() {
       const difference = expiresAt - now;
 
       if (difference <= 0) {
-        // clearCart();
-
         sessionStorage.removeItem('currentSaleId');
         sessionStorage.removeItem('saleExpiresAt');
 
@@ -116,20 +113,17 @@ export default function CheckoutPage() {
           const saleData = await res.json();
 
           if (saleData.status === 'CANCELLED') {
-            // 1. Obtenemos la hora de expiración para comparar
             const expiresAtStr = sessionStorage.getItem('saleExpiresAt');
             const now = Date.now();
             const isExpired =
               expiresAtStr && new Date(expiresAtStr).getTime() < now;
 
-            // 2. Limpieza total de sesión y estados
             sessionStorage.removeItem('currentSaleId');
             sessionStorage.removeItem('saleExpiresAt');
             setSaleId(null);
             setTimeLeft(null);
             setIsDataConfirmed(false);
 
-            // 3. UN SOLO NAVIGATE con el motivo correcto
             const reason = isExpired ? 'expired' : 'admin_cancel';
 
             navigate(
@@ -167,7 +161,6 @@ export default function CheckoutPage() {
     setIsDataConfirmed(true);
   };
 
-  // 3. Manejo de la creación de la orden y seteo del timer
   const handleOrderCreated = useCallback((id: number) => {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
     sessionStorage.setItem('currentSaleId', id.toString());
@@ -177,7 +170,6 @@ export default function CheckoutPage() {
     setTimeLeft(600);
   }, []);
 
-  // 4. Función para cancelar la reserva manualmente y liberar stock
   const handleCancelCheckout = useCallback(async () => {
     if (saleId) {
       try {
@@ -260,52 +252,59 @@ export default function CheckoutPage() {
 
     if (seconds > 300) {
       return {
-        bg: 'bg-yellow-50 border-yellow-200',
-        text: 'text-yellow-600',
-        bar: 'bg-yellow-400',
-        inner: 'border-yellow-100',
+        bg: 'bg-[#FFF9CE] border-amber-200',
+        text: 'text-[#2b99a6]',
+        bar: 'bg-[#33aab8]',
+        inner: 'border-amber-100',
       };
     } else if (seconds > 60) {
       return {
-        bg: 'bg-amber-50 border-amber-200',
-        text: 'text-amber-600',
+        bg: 'bg-[#FFF0DC] border-orange-200',
+        text: 'text-amber-700',
         bar: 'bg-amber-400',
-        inner: 'border-amber-100',
+        inner: 'border-orange-100',
       };
     } else {
       return {
-        bg: 'bg-rose-50 border-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.2)]',
-        text: 'text-rose-600',
-        bar: 'bg-rose-500 animate-pulse',
-        inner: 'border-rose-100',
+        bg: 'bg-red-50 border-red-300 shadow-[0_0_15px_rgba(239,68,68,0.2)]',
+        text: 'text-red-600',
+        bar: 'bg-red-500 animate-pulse',
+        inner: 'border-red-100',
       };
     }
   };
 
   const timerTheme = getTimerTheme(timeLeft);
+  const inputClass =
+    'border border-[#D5F3F4] rounded-2xl p-2.5 outline-none focus:border-[#33aab8] focus:ring-2 focus:ring-[#33aab8]/20 bg-[#F4FBFB] placeholder:text-gray-400 text-[#1A2D2A] transition-all';
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#f1f3f5] border-b border-gray-200 font-nunito text-[#1A2D2A]">
+    <div className="flex flex-col min-h-screen w-full bg-[linear-gradient(180deg,#d8f3f5_0%,#ffffff_420px,#ffffff_100%)] font-nunito text-[#1A2D2A]">
       <Navbar search={search} setSearch={setSearch} />
 
-      <div className="w-full max-w-[1187px] mx-auto py-6 flex-grow px-2 sm:px-4">
-        <div className="mb-2">
+      <div className="w-full max-w-[1187px] mx-auto py-6 md:py-8 flex-grow px-4">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#37b9c7] via-[#33aab8] to-[#2b99a6] p-6 md:p-8 mb-6 shadow-[0_12px_30px_-12px_rgba(43,170,176,0.45)] border border-white/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="pointer-events-none absolute -right-10 -top-10 w-44 h-44 rounded-full bg-white/15" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-1.5 text-white/90 text-xs font-bold uppercase tracking-widest mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-[#FFF000]" /> Paso final
+            </span>
+            <h1 className="text-2xl md:text-3xl font-bold font-fredoka text-[#FFF000] leading-tight drop-shadow-[0_2px_0_rgba(0,0,0,0.12)]">
+              Finalizar compra
+            </h1>
+          </div>
           <button
             onClick={() => navigate('/cart')}
-            className="text-sm px-2 py-1 -ml-2 mb-3 font-semibold text-[#37b9c7] hover:text-[#2BAAB0] flex items-center gap-1 cursor-pointer transition-colors"
+            className="relative w-fit bg-[#FFF6B8] hover:bg-white text-[#1A2D2A] text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
           >
-            <ChevronLeftIcon className="w-4 h-4" />
+            <ChevronLeftIcon className="w-4 h-4 text-[#2b99a6]" />
             Volver al carrito
           </button>
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-bold font-fredoka text-[#1A2D2A] text-left leading-tight pb-4 px-1">
-          Finalizar compra
-        </h1>
-
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* IZQUIERDA: Formulario */}
-          <div className="flex-[0_0_100%] lg:flex-[0_0_68%] bg-white rounded-2xl max-sm:rounded-none shadow-sm border border-gray-200 max-sm:border-x-0 p-6 w-full">
+          <div className="flex-[0_0_100%] lg:flex-[0_0_66%] bg-white rounded-3xl shadow-sm border border-[#D5F3F4] p-6 md:p-8 w-full">
             {!isDataConfirmed ? (
               <form
                 onSubmit={handleConfirmData}
@@ -313,12 +312,12 @@ export default function CheckoutPage() {
               >
                 {/* SECCIÓN 1: Datos Personales */}
                 <div>
-                  <h2 className="text-lg font-bold text-gray-800 mb-1 border-b border-gray-100 pb-2">
+                  <h2 className="text-lg font-bold text-[#2b99a6] mb-1 border-b border-[#D5F3F4] pb-2">
                     Datos personales
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Nombre *
                       </label>
                       <input
@@ -327,12 +326,12 @@ export default function CheckoutPage() {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Ej: Juan"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Apellido *
                       </label>
                       <input
@@ -341,12 +340,12 @@ export default function CheckoutPage() {
                         name="surname"
                         value={formData.surname}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Ej: Pérez"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Email *
                       </label>
                       <input
@@ -355,12 +354,12 @@ export default function CheckoutPage() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="juan@correo.com"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         DNI / CUIT *
                       </label>
                       <input
@@ -369,12 +368,12 @@ export default function CheckoutPage() {
                         name="dni"
                         value={formData.dni}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Sin puntos"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5 md:col-span-2">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Teléfono *
                       </label>
                       <input
@@ -383,7 +382,7 @@ export default function CheckoutPage() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Ej: 3512345678"
                       />
                     </div>
@@ -392,12 +391,12 @@ export default function CheckoutPage() {
 
                 {/* SECCIÓN 2: Dirección de Envío/Facturación */}
                 <div>
-                  <h2 className="text-lg font-bold text-gray-800 mb-1 border-b border-gray-100 pb-2">
+                  <h2 className="text-lg font-bold text-[#2b99a6] mb-1 border-b border-[#D5F3F4] pb-2">
                     Dirección de envío
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                     <div className="flex flex-col gap-1.5 md:col-span-2">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Calle *
                       </label>
                       <input
@@ -406,12 +405,12 @@ export default function CheckoutPage() {
                         name="street"
                         value={formData.street}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Ej: Av. Rivadavia"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Número *
                       </label>
                       <input
@@ -420,13 +419,13 @@ export default function CheckoutPage() {
                         name="number"
                         value={formData.number}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Altura"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-bold text-gray-700">
+                        <label className="text-sm font-bold text-[#3d635f]">
                           Piso
                         </label>
                         <input
@@ -434,12 +433,12 @@ export default function CheckoutPage() {
                           name="floor"
                           value={formData.floor}
                           onChange={handleChange}
-                          className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                          className={inputClass}
                           placeholder="Opc."
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-bold text-gray-700">
+                        <label className="text-sm font-bold text-[#3d635f]">
                           Depto.
                         </label>
                         <input
@@ -447,13 +446,13 @@ export default function CheckoutPage() {
                           name="apartment"
                           value={formData.apartment}
                           onChange={handleChange}
-                          className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                          className={inputClass}
                           placeholder="Opc."
                         />
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5 md:col-span-2">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Ciudad / Localidad *
                       </label>
                       <input
@@ -462,12 +461,12 @@ export default function CheckoutPage() {
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Ciudad"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5 md:col-span-2">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Provincia *
                       </label>
                       <input
@@ -476,13 +475,13 @@ export default function CheckoutPage() {
                         name="province"
                         value={formData.province}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Provincia"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4 md:col-span-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-bold text-gray-700">
+                        <label className="text-sm font-bold text-[#3d635f]">
                           Código Postal *
                         </label>
                         <input
@@ -491,12 +490,12 @@ export default function CheckoutPage() {
                           name="postalCode"
                           value={formData.postalCode}
                           onChange={handleChange}
-                          className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                          className={inputClass}
                           placeholder="Ej: 5000"
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-bold text-gray-700">
+                        <label className="text-sm font-bold text-[#3d635f]">
                           País *
                         </label>
                         <input
@@ -505,13 +504,13 @@ export default function CheckoutPage() {
                           name="country"
                           value={formData.country}
                           onChange={handleChange}
-                          className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                          className={inputClass}
                           placeholder="Ej: Argentina"
                         />
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5 md:col-span-4">
-                      <label className="text-sm font-bold text-gray-700">
+                      <label className="text-sm font-bold text-[#3d635f]">
                         Referencia
                       </label>
                       <input
@@ -519,7 +518,7 @@ export default function CheckoutPage() {
                         name="reference"
                         value={formData.reference}
                         onChange={handleChange}
-                        className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] bg-gray-50 placeholder:text-gray-400"
+                        className={inputClass}
                         placeholder="Ej: Casa con rejas negras..."
                       />
                     </div>
@@ -530,12 +529,11 @@ export default function CheckoutPage() {
                   <button
                     type="submit"
                     disabled={isFormInvalid}
-                    className={`w-full mt-4 py-3.5 text-[0.95rem] font-bold rounded-xl transition-all duration-300 flex justify-center items-center
-                                            ${
-                                              isFormInvalid
-                                                ? 'bg-[#16a34a]/50 text-white/80 cursor-not-allowed'
-                                                : 'bg-[#16a34a] text-white hover:bg-[#15803d] cursor-pointer shadow-[0_0_20px_rgba(22,163,74,0.3)] hover:shadow-[0_0_25px_rgba(22,163,74,0.4)] active:scale-[0.98]'
-                                            }`}
+                    className={`w-full mt-2 py-3.5 text-sm uppercase tracking-wider font-bold rounded-full transition-all duration-300 flex justify-center items-center ${
+                      isFormInvalid
+                        ? 'bg-[#33aab8]/40 text-white/80 cursor-not-allowed'
+                        : 'bg-[#33aab8] text-white hover:bg-[#2b99a6] cursor-pointer shadow-[0_5px_0_rgba(26,45,42,0.12)] hover:-translate-y-0.5 active:scale-[0.98]'
+                    }`}
                   >
                     Confirmar datos
                   </button>
@@ -550,18 +548,18 @@ export default function CheckoutPage() {
                 </div>
               </form>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 px-4 animate-in fade-in duration-500">
+              <div className="flex flex-col items-center justify-center py-8 px-4 animate-in fade-in duration-500">
                 <CheckCircleIcon
-                  className={`w-16 h-16 ${saleId ? 'text-[#16a34a]' : 'text-blue-500'} mb-4`}
+                  className={`w-16 h-16 ${saleId ? 'text-[#2b99a6]' : 'text-[#37b9c7]'} mb-4`}
                 />
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                <h2 className="text-2xl font-bold text-[#2b99a6] mb-2">
                   {saleId ? '¡Stock reservado!' : '¡Datos confirmados!'}
                 </h2>
-                <p className="text-gray-500 text-center mb-6 max-w-sm leading-relaxed">
+                <p className="text-[#3d635f] text-center mb-6 max-w-sm leading-relaxed">
                   {saleId ? (
                     <>
                       Tu pedido{' '}
-                      <span className="font-bold text-gray-700">#{saleId}</span>{' '}
+                      <span className="font-bold text-[#2b99a6]">#{saleId}</span>{' '}
                       ya está registrado y el stock reservado. Completá el pago
                       antes de que expire el tiempo.
                     </>
@@ -573,10 +571,10 @@ export default function CheckoutPage() {
                 {saleId && timeLeft !== null && timeLeft > 0 && (
                   <div className="mb-8 w-full max-w-xs transition-colors duration-500">
                     <div
-                      className={`${timerTheme.bg} rounded-2xl p-4 flex flex-col items-center shadow-sm relative overflow-hidden transition-all duration-500 border`}
+                      className={`${timerTheme.bg} rounded-3xl p-4 flex flex-col items-center shadow-sm relative overflow-hidden transition-all duration-500 border`}
                     >
                       <div
-                        className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ease-linear ${timerTheme.bar}`}
+                        className={`absolute bottom-0 left-0 h-1.5 transition-all duration-1000 ease-linear ${timerTheme.bar}`}
                         style={{
                           width: `${(timeLeft / 600) * 100}%`,
                         }}
@@ -593,7 +591,7 @@ export default function CheckoutPage() {
 
                       <div className="flex items-center justify-center gap-2">
                         <div
-                          className={`bg-white px-4 py-2 rounded-xl shadow-inner border font-mono text-3xl font-black tabular-nums tracking-tight transition-colors duration-500 ${timerTheme.text} ${timerTheme.inner}`}
+                          className={`bg-white px-4 py-2 rounded-2xl shadow-inner border font-mono text-3xl font-black tabular-nums tracking-tight transition-colors duration-500 ${timerTheme.text} ${timerTheme.inner}`}
                         >
                           {formatTime(timeLeft)}
                         </div>
@@ -615,47 +613,24 @@ export default function CheckoutPage() {
                   {!saleId ? (
                     <button
                       onClick={() => setIsDataConfirmed(false)}
-                      className="w-full mt-6 py-3 px-4 text-[0.95rem] font-bold text-gray-600 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300 transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer active:scale-[0.98]"
+                      className="w-full mt-5 py-3 px-4 text-sm font-bold text-[#3d635f] bg-[#F4FBFB] border border-[#D5F3F4] rounded-full shadow-xs hover:bg-[#D5F3F4]/50 hover:text-[#2b99a6] transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer active:scale-[0.98]"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="w-4 h-4 text-gray-400 group-hover:text-gray-500"
-                      >
-                        <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" />
-                      </svg>
                       Editar mis datos
                     </button>
                   ) : (
-                    <div className="w-full max-w-md mt-10">
+                    <div className="w-full max-w-md mt-8">
                       {!isCancelModalOpen ? (
                         <button
                           type="button"
                           onClick={() => setIsCancelModalOpen(true)}
-                          className="w-full mt-10 py-3 px-4 text-[0.95rem] font-bold text-rose-500 bg-white border border-rose-200 rounded-xl shadow-sm hover:bg-rose-50 hover:text-rose-600 hover:border-rose-300 transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer active:scale-[0.98]"
+                          className="w-full py-3 px-4 text-sm font-bold text-red-500 bg-white border border-red-200 rounded-full shadow-xs hover:bg-red-50 transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer active:scale-[0.98]"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2.5}
-                            stroke="currentColor"
-                            className="w-4 h-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
                           Cancelar reserva y modificar carrito
                         </button>
                       ) : (
-                        <div className="w-full mt-10 p-4 bg-white border border-rose-200 rounded-xl shadow-sm hover:bg-rose-50 hover:border-rose-300 transition-all duration-200 animate-in fade-in zoom-in">
+                        <div className="w-full p-4 bg-white border border-red-200 rounded-2xl shadow-sm">
                           <div className="flex flex-col gap-3">
-                            {/* El texto hereda el hover:text-rose-600 del padre para matchear al botón */}
-                            <span className="text-xs text-rose-600 text-center font-bold leading-tight">
+                            <span className="text-xs text-red-600 text-center font-bold leading-tight">
                               ¿Seguro que querés cancelar? Se liberará el stock
                               de la orden #{saleId}
                             </span>
@@ -663,14 +638,14 @@ export default function CheckoutPage() {
                               <button
                                 type="button"
                                 onClick={handleCancelCheckout}
-                                className="w-1/2 py-2.5 bg-rose-500 text-white text-sm font-bold rounded-lg hover:bg-rose-600 transition-colors cursor-pointer active:scale-[0.95]"
+                                className="w-1/2 py-2.5 bg-red-500 text-white text-xs font-bold rounded-full hover:bg-red-600 transition-colors cursor-pointer"
                               >
                                 Sí, cancelar
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setIsCancelModalOpen(false)}
-                                className="w-1/2 py-2.5 bg-white text-gray-700 text-sm font-bold rounded-lg border border-gray-200 hover:bg-gray-100 hover:border-gray-300 transition-all cursor-pointer active:scale-[0.95]"
+                                className="w-1/2 py-2.5 bg-gray-100 text-[#3d635f] text-xs font-bold rounded-full hover:bg-gray-200 transition-all cursor-pointer"
                               >
                                 No, volver
                               </button>
@@ -686,13 +661,13 @@ export default function CheckoutPage() {
           </div>
 
           {/* DERECHA: Resumen de orden estático */}
-          <div className="flex-[0_0_100%] lg:flex-[1_1_30%] bg-white rounded-2xl max-sm:rounded-none shadow-sm border border-gray-200 max-sm:border-x-0 p-5 sticky top-8 flex flex-col gap-3 font-nunito w-full">
-            <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-3 mb-1">
+          <div className="flex-[0_0_100%] lg:flex-[1_1_32%] bg-gradient-to-br from-[#FFF9CE] to-[#FFF29C] rounded-3xl shadow-md border border-amber-200/70 p-6 sticky top-8 flex flex-col gap-3 font-nunito w-full">
+            <h3 className="font-bold text-lg text-[#2b99a6] border-b border-amber-200/70 pb-3 mb-1">
               Resumen de tu pedido
             </h3>
 
-            <div className="flex flex-col gap-2 pb-3 border-b border-gray-100">
-              <div className="flex justify-between items-center text-sm text-gray-600">
+            <div className="flex flex-col gap-2 pb-3 border-b border-amber-200/70">
+              <div className="flex justify-between items-center text-sm font-semibold text-[#3d635f]">
                 <span>Subtotal ({totalItems} artículos):</span>
                 <span>
                   $
@@ -705,10 +680,10 @@ export default function CheckoutPage() {
 
             <div className="flex flex-col gap-1 mb-2 mt-1">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-gray-800 text-base">
+                <span className="font-bold text-[#3d635f] text-base">
                   Total Final:
                 </span>
-                <span className="font-black text-xl text-[#16a34a]">
+                <span className="font-black text-2xl text-[#2b99a6]">
                   $
                   {totalPrice.toLocaleString('es-AR', {
                     minimumFractionDigits: 2,
@@ -717,8 +692,8 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-3 mt-2 border border-gray-100">
-              <p className="text-[11px] text-gray-500 text-center leading-relaxed">
+            <div className="bg-white/75 rounded-2xl p-3.5 mt-1 border border-amber-200/60">
+              <p className="text-xs text-[#3d635f] text-center leading-relaxed font-semibold">
                 Al confirmar tus datos, se generará una orden de compra en
                 nuestro sistema. El pago se procesa de forma 100% segura a
                 través de Mercado Pago.

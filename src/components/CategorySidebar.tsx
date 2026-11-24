@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { categoryApi } from '@/services/CategoryService';
 import { Category } from '@/types/category.types';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
+import { Sparkles } from 'lucide-react';
 
 export type SortOption = "default" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
 
@@ -32,20 +33,20 @@ export function CategorySidebar({ onSelectCategory, onClearFilters, selectedCate
     return (
         <aside className="w-full md:w-64 flex-shrink-0">
             {/* Contenedor principal estilo Card con posicionamiento sticky en desktop */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6 md:sticky md:top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-sm border border-[#D5F3F4] p-5 md:p-6 md:sticky md:top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
 
                 {/* Encabezado Móvil (Sólo visible en pantallas pequeñas) */}
                 <div
                     className="md:hidden flex items-center justify-between cursor-pointer"
                     onClick={() => setIsMobileExpanded(!isMobileExpanded)}
                 >
-                    <h2 className="text-xs text-[#1A2D2A] font-bold font-fredoka uppercase tracking-wider">
-                        Filtrar Categorías
+                    <h2 className="text-xs text-[#2b99a6] font-bold font-fredoka uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5" /> Filtrar Categorías
                     </h2>
                     {isMobileExpanded ? (
-                        <ChevronUpIcon className="h-5 w-5 text-gray-500" />
+                        <ChevronUpIcon className="h-5 w-5 text-[#2b99a6]" />
                     ) : (
-                        <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                        <ChevronDownIcon className="h-5 w-5 text-[#2b99a6]" />
                     )}
                 </div>
 
@@ -54,21 +55,21 @@ export function CategorySidebar({ onSelectCategory, onClearFilters, selectedCate
                     {/* Botón "Ver Todo" integrado dentro de la card */}
                     <button
                         onClick={onClearFilters}
-                        className="w-full md:mt-0 mb-6 mt-4 py-2 px-4 bg-[#37b9c7] hover:bg-[#2BAAB0] text-white text-xs font-bold font-nunito uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95"
+                        className="w-full md:mt-0 mb-6 mt-4 py-2.5 px-4 bg-[#FFF6B8] hover:bg-[#FFF29C] text-[#1A2D2A] text-xs font-bold font-nunito uppercase tracking-wider rounded-full transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-xs border border-amber-200/70 active:scale-95"
                     >
-                        MOSTRAR TODO
+                        Mostrar todo
                     </button>
 
                     {/* SECCIÓN DE ORDENAMIENTO */}
                     <div className="mb-6">
-                        <h2 className="text-xs text-[#1A2D2A] font-bold font-fredoka uppercase tracking-wider mb-3">
+                        <h2 className="text-xs text-[#2b99a6] font-bold font-fredoka uppercase tracking-wider mb-2.5">
                             Ordenar por
                         </h2>
                         <select
                             value={sortBy}
                             onChange={(e) => onSortChange(e.target.value as SortOption)}
                             aria-label="Ordenar productos"
-                            className="w-full border border-gray-200 bg-white px-3 py-2 rounded-xl text-sm font-nunito text-[#1A2D2A] focus:outline-none focus:border-[#37b9c7] cursor-pointer"
+                            className="w-full border border-[#D5F3F4] bg-[#F4FBFB] px-3.5 py-2.5 rounded-2xl text-sm font-bold font-nunito text-[#3d635f] focus:outline-none focus:border-[#37b9c7] focus:ring-2 focus:ring-[#37b9c7]/20 cursor-pointer transition-all"
                         >
                             <option value="default">Más recientes</option>
                             <option value="price_asc">Menor precio</option>
@@ -80,7 +81,7 @@ export function CategorySidebar({ onSelectCategory, onClearFilters, selectedCate
 
                     {/* SECCIÓN DE CATEGORÍAS */}
                     <div>
-                        <h2 className="hidden md:block text-xs text-[#1A2D2A] font-bold font-fredoka uppercase tracking-wider mb-4">
+                        <h2 className="hidden md:block text-xs text-[#2b99a6] font-bold font-fredoka uppercase tracking-wider mb-3">
                             Categorías
                         </h2>
 
@@ -91,19 +92,20 @@ export function CategorySidebar({ onSelectCategory, onClearFilters, selectedCate
                                     <li
                                         key={cat.id}
                                         onClick={() => onSelectCategory(cat.id, cat.name)}
-                                        className={`px-3 py-2 text-sm font-nunito cursor-pointer transition-all duration-200 rounded-xl ${
+                                        className={`px-3.5 py-2.5 text-sm font-nunito cursor-pointer transition-all duration-200 rounded-2xl flex items-center justify-between ${
                                             isSelected
-                                                ? 'text-[#37b9c7] font-bold bg-[#D5F3F4]/40'
-                                                : 'text-gray-600 hover:text-[#37b9c7] hover:bg-gray-50'
+                                                ? 'text-[#2b99a6] font-extrabold bg-gradient-to-r from-[#E2F8F9] to-[#D5F3F4] shadow-xs border border-[#bce8ea]'
+                                                : 'text-[#3d635f] font-semibold hover:text-[#2b99a6] hover:bg-[#F4FBFB]'
                                         }`}
                                     >
-                                        {cat.name}
+                                        <span>{cat.name}</span>
+                                        {isSelected && <span className="w-2 h-2 rounded-full bg-[#2b99a6]" />}
                                     </li>
                                 );
                             })}
                         </ul>
                     </div>
-                </div> {/* Cierra el div condicional para móvil */}
+                </div>
             </div>
         </aside>
     );

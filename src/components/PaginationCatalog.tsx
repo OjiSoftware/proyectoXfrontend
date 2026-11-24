@@ -17,17 +17,12 @@ export default function Pagination({
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     const getPages = () => {
-
         const pages: (number | "...")[] = [];
 
         if (totalPages <= 7) {
-
             for (let i = 1; i <= totalPages; i++) pages.push(i);
-
         } else {
-
             pages.push(1);
-
             if (currentPage > 3) pages.push("...");
 
             const start = Math.max(2, currentPage - 1);
@@ -36,39 +31,34 @@ export default function Pagination({
             for (let i = start; i <= end; i++) pages.push(i);
 
             if (currentPage < totalPages - 2) pages.push("...");
-
             pages.push(totalPages);
-
         }
 
         return pages;
-
     };
 
     const pages = getPages();
 
     return (
-
-        <div className="flex items-center justify-between border-t border-[#9E9494]/30 px-4 pt-4 sm:px-6">
+        <div className="flex items-center justify-between bg-white rounded-3xl border border-[#D5F3F4] shadow-xs px-5 py-3.5">
 
             {/* MOBILE */}
             <div className="sm:hidden w-full flex items-center justify-center gap-4">
-
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-md text-gray-700 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                    className="p-2 rounded-full text-[#2b99a6] bg-[#F4FBFB] border border-[#D5F3F4] hover:bg-[#D5F3F4] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                 >
                     <ChevronLeftIcon className="size-4" />
                 </button>
 
-                <span className="text-[12px] text-[#1A2D2A] font-medium font-inter">
+                <span className="text-xs text-[#3d635f] font-semibold font-nunito">
                     Página{" "}
-                    <span className="font-bold">
+                    <span className="font-extrabold text-[#2b99a6]">
                         {currentPage}
                     </span>{" "}
                     de{" "}
-                    <span className="font-bold">
+                    <span className="font-extrabold text-[#2b99a6]">
                         {totalPages}
                     </span>
                 </span>
@@ -78,94 +68,69 @@ export default function Pagination({
                         onPageChange(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-md text-gray-700 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                    className="p-2 rounded-full text-[#2b99a6] bg-[#F4FBFB] border border-[#D5F3F4] hover:bg-[#D5F3F4] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                 >
                     <ChevronRightIcon className="size-4" />
                 </button>
-
             </div>
-
 
             {/* DESKTOP */}
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-
-                {/* TEXTO */}
                 <div>
-
-                    <p className="text-sm font-inter text-[#1A2D2A]">
-
+                    <p className="text-sm font-nunito text-[#3d635f]">
                         Mostrando{" "}
-
-                        <span className="font-bold">
+                        <span className="font-extrabold text-[#2b99a6]">
                             {(currentPage - 1) * itemsPerPage + 1}
                         </span>
-
                         {" "}a{" "}
-
-                        <span className="font-bold">
+                        <span className="font-extrabold text-[#2b99a6]">
                             {Math.min(currentPage * itemsPerPage, totalItems)}
                         </span>
-
                         {" "}de{" "}
-
-                        <span className="font-bold">
+                        <span className="font-extrabold text-[#2b99a6]">
                             {totalItems}
                         </span>
-
-                        {" "}resultados.
-
+                        {" "}resultados
                     </p>
-
                 </div>
 
-
-                {/* BOTONES */}
                 <div>
-
-                    <nav className="isolate inline-flex -space-x-px rounded-md">
-
+                    <nav className="isolate inline-flex items-center gap-1.5">
                         {/* PREV */}
                         <button
                             onClick={() =>
                                 onPageChange(Math.max(1, currentPage - 1))
                             }
                             disabled={currentPage === 1}
-                            className="relative inline-flex items-center rounded-l-md px-3 py-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                            className="relative inline-flex items-center rounded-full p-2 bg-[#F4FBFB] text-[#2b99a6] border border-[#D5F3F4] hover:bg-[#D5F3F4] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                         >
                             <ChevronLeftIcon className="size-5" />
                         </button>
 
-
                         {/* NUMEROS */}
                         {pages.map((page, i) =>
-
                             page === "..." ? (
-
                                 <span
                                     key={i}
-                                    className="px-4 py-2 bg-white text-gray-400 border border-gray-200 font-inter font-medium"
+                                    className="px-2 py-1 text-[#3d635f] font-nunito font-bold"
                                 >
                                     ...
                                 </span>
-
                             ) : (
-
                                 <button
                                     key={page}
                                     onClick={() => onPageChange(page)}
                                     className={`
-                                        px-4 py-2 font-inter font-bold cursor-pointer transition-all duration-200
+                                        w-9 h-9 rounded-full font-nunito text-sm font-extrabold cursor-pointer transition-all duration-200
                                         ${currentPage === page
-                                            ? "bg-[#33aab8] text-white border border-gray-500 z-10"
-                                            : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-100 hover:text-gray-700"
+                                            ? "bg-[#33aab8] text-white shadow-sm scale-105"
+                                            : "bg-[#F4FBFB] text-[#3d635f] border border-[#D5F3F4] hover:bg-[#D5F3F4]/60 hover:text-[#2b99a6]"
                                         }
                                     `}
                                 >
                                     {page}
                                 </button>
-
                             )
-
                         )}
 
                         {/* NEXT */}
@@ -176,19 +141,13 @@ export default function Pagination({
                                 )
                             }
                             disabled={currentPage === totalPages}
-                            className="relative inline-flex items-center rounded-r-md px-3 py-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                            className="relative inline-flex items-center rounded-full p-2 bg-[#F4FBFB] text-[#2b99a6] border border-[#D5F3F4] hover:bg-[#D5F3F4] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
                         >
                             <ChevronRightIcon className="size-5" />
                         </button>
-
                     </nav>
-
                 </div>
-
             </div>
-
         </div>
-
     );
-
 }

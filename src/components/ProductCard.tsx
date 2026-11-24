@@ -39,7 +39,6 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
             setProductQuantity(1);
         } catch (error: any) {
-            // Check if error comes from stock limits
             toast.error(error.message || "Error al agregar al carrito", {
                 style: { backgroundColor: "#dc2626", color: "white" },
                 duration: 3000,
@@ -63,23 +62,26 @@ const ProductCard: React.FC<Props> = ({ product }) => {
     }, [maxAvailable, minQuantity, productQuantity]);
 
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col hover:shadow-xl hover:-translate-y-1 hover:border-[#2BAAB0]/40 transition-all duration-300 w-full h-full max-w-full sm:max-w-60 group/card">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-3.5 sm:p-4 flex flex-col hover:shadow-xl hover:-translate-y-1 hover:border-[#D5F3F4] transition-all duration-300 w-full h-full max-w-full sm:max-w-60 group/card">
             {/* Imagen del Producto */}
-            <Link to={`/producto/${product.id}`} className="w-full aspect-square flex items-center justify-center md:mb-2 mb-0.5 cursor-pointer relative group bg-[#F4FBFB] rounded-xl overflow-hidden">
+            <Link
+                to={`/producto/${product.id}`}
+                className="w-full aspect-square flex items-center justify-center mb-2.5 cursor-pointer relative group bg-gradient-to-b from-[#F4FBFB] to-[#E8F7F8] rounded-2xl overflow-hidden border border-[#D5F3F4]/60"
+            >
                 <img
                     src={getDriveDirectLink(product.imageUrl) || "https://via.placeholder.com/150"}
                     alt={product.name || "Nombre del producto"}
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
+                    className="w-full h-full object-contain p-2.5 group-hover:scale-108 transition-transform duration-300 mix-blend-multiply drop-shadow-sm"
                 />
                 {product.isOffer && (
-                    <span className="absolute top-2 right-2 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
-                        OFERTA
+                    <span className="absolute top-2.5 right-2.5 rounded-full bg-gradient-to-r from-[#FF9F43] to-[#F368E0] bg-[#FF8A3D] px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-sm">
+                        Oferta
                     </span>
                 )}
                 {/* Badge de cantidad en carrito */}
                 {quantityInCart > 0 && (
-                    <div className="absolute top-2 left-2 bg-black text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md z-10 flex items-center gap-1 border border-white/30">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                    <div className="absolute top-2.5 left-2.5 bg-[#2b99a6] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md z-10 flex items-center gap-1 ring-2 ring-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-[#FFF000]">
                             <path d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" />
                         </svg>
                         <span>{quantityInCart}</span>
@@ -88,10 +90,10 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             </Link>
 
             {/* Información */}
-            <div className="grow flex flex-col justify-start mt-1">
+            <div className="grow flex flex-col justify-start">
                 {/* Marca (Confianza) */}
                 {product.brand && (
-                    <span className="hidden md:block md:text-[11px] mt-2 text-gray-400 font-nunito font-semibold uppercase tracking-wider mb-1">
+                    <span className="inline-block w-fit text-[10px] md:text-[11px] text-[#2b99a6] bg-[#D5F3F4]/50 px-2.5 py-0.5 rounded-full font-nunito font-bold uppercase tracking-wider mb-1.5">
                         {product.brand.name}
                     </span>
                 )}
@@ -99,31 +101,23 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                 <Link to={`/producto/${product.id}`}>
                     <h3
                         title={product.name}
-                        className="text-[#1A2D2A] font-nunito text-sm md:text-base font-bold leading-snug tracking-tight hover:text-[#37b9c7] transition-colors line-clamp-2"
+                        className="text-[#1A2D2A] font-nunito text-sm md:text-base font-bold leading-snug tracking-tight hover:text-[#2b99a6] transition-colors line-clamp-2 min-h-[2.5em]"
                     >
                         {product.name}
                     </h3>
                 </Link>
-
-
             </div>
 
-            {/* Precio - mobile */}
-            <div className="md:hidden mt-3 mb-2 flex flex-col">
-                <p className="text-[#37b9c7] font-n font-bold text-lg tracking-tight leading-none">
-                    {formatPrice(product.price)}
-                </p>
-            </div>
-            {/* Precio - desktop */}
-            <div className="hidden md:flex mt-4 mb-3 flex-col">
-                <p className="text-[#37b9c7] font-nunito font-bold text-xl tracking-tight leading-none">
+            {/* Precio */}
+            <div className="mt-2.5 pt-2 border-t border-gray-100 flex flex-col">
+                <p className="text-[#2b99a6] font-nunito font-extrabold text-lg md:text-xl tracking-tight leading-none">
                     {formatPrice(product.price)}
                 </p>
             </div>
 
             {/* Selector de Cantidad */}
-            <div className="flex flex-col items-center gap-1.5 mb-2 mt-2">
-                <div className="flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg md:h-8 h-6 shadow-sm transition-all focus-within:border-[#2BAAB0] focus-within:ring-1 focus-within:ring-[#2BAAB0]/20 overflow-hidden min-w-[116px]">
+            <div className="flex flex-col items-center gap-1.5 mb-1.5 mt-2.5">
+                <div className="flex items-center justify-center bg-[#F4FBFB] border border-[#D5F3F4] rounded-full md:h-8 h-7 shadow-xs transition-all focus-within:border-[#2BAAB0] focus-within:ring-2 focus-within:ring-[#2BAAB0]/20 overflow-hidden w-full">
                     {maxAvailable <= 0 ? (
                         <div className="text-center font-bold text-[11px] px-3 w-full">
                             {quantityInCart > 0 ? (
@@ -136,7 +130,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                         <>
                             <button
                                 type="button"
-                                className="w-10 h-full flex items-center justify-center text-gray-500 hover:bg-white hover:text-red-500 transition-colors cursor-pointer active:bg-gray-100"
+                                className="w-9 h-full flex items-center justify-center text-[#3d635f] hover:bg-white hover:text-red-500 transition-colors cursor-pointer active:bg-gray-100"
                                 onClick={() =>
                                     setProductQuantity(Math.max(minQuantity, productQuantity - 1))
                                 }
@@ -168,20 +162,19 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                                     }
                                     const val = parseInt(rawValue, 10);
                                     if (!isNaN(val)) {
-                                        // Clamp value up to max available
                                         setProductQuantity(Math.min(Math.max(0, val), maxAvailable));
                                     }
                                 }}
                                 onBlur={() => {
                                     if (productQuantity < minQuantity) setProductQuantity(minQuantity);
                                 }}
-                                className="w-9 h-full text-center bg-transparent border-none font-bold text-[#1A2D2A] text-sm focus:ring-0 p-0 leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                className="flex-1 h-full text-center bg-transparent border-none font-bold text-[#1A2D2A] text-sm focus:ring-0 p-0 leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
 
                             <button
                                 type="button"
                                 disabled={productQuantity >= maxAvailable}
-                                className={`w-10 h-full flex items-center justify-center transition-colors ${productQuantity >= maxAvailable ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-white hover:text-[#37b9c7] cursor-pointer active:bg-gray-100"}`}
+                                className={`w-9 h-full flex items-center justify-center transition-colors ${productQuantity >= maxAvailable ? "text-gray-300 cursor-not-allowed" : "text-[#3d635f] hover:bg-white hover:text-[#2b99a6] cursor-pointer active:bg-gray-100"}`}
                                 onClick={() => setProductQuantity(Math.min(maxAvailable, productQuantity + 1))}
                             >
                                 <svg
@@ -206,14 +199,13 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
             {/* Botón Añadir al carrito */}
             <button
-                className={`mt-2 relative ${isAdding
+                className={`mt-1 relative ${isAdding
                     ? "bg-[#37b9c7]"
                     : "bg-[#2BAAB0] hover:bg-[#37b9c7] active:scale-[0.98]"
-                    } text-white md:py-2 md:px-3 py-2 px-1 rounded-xl shadow-sm flex items-center justify-center text-xs font-bold transition-all duration-200 ${isAdding || maxAvailable <= 0 ? "cursor-not-allowed opacity-70" : "cursor-pointer"} overflow-hidden`}
+                    } text-white py-2.5 px-3 rounded-full shadow-sm hover:shadow-md flex items-center justify-center text-xs font-bold transition-all duration-200 ${isAdding || maxAvailable <= 0 ? "cursor-not-allowed opacity-70" : "cursor-pointer"} overflow-hidden`}
                 onClick={handleAddToCart}
                 disabled={isAdding || maxAvailable <= 0}
             >
-                {/* Spinner: Solo aparece si isAdding es true, posicionado absolutamente al centro */}
                 {isAdding && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <svg
@@ -239,9 +231,8 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                     </div>
                 )}
 
-                {/* Contenido original: Mantiene el ancho del botón incluso cargando */}
                 <div
-                    className={`flex items-center justify-center gap-2 ${isAdding ? "invisible" : "visible"}`}
+                    className={`flex items-center justify-center gap-1.5 ${isAdding ? "invisible" : "visible"}`}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

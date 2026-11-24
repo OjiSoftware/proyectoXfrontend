@@ -25,7 +25,11 @@ const Navbar: React.FC<NavbarProps> = ({
     searchParams.get('search') || '',
   );
   const search = externalSearch !== undefined ? externalSearch : localSearch;
-  const setSearch = externalSetSearch || setLocalSearch;
+  const setSearch = externalSetSearch || localSearchSetter;
+
+  function localSearchSetter(value: string) {
+    setLocalSearch(value);
+  }
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [catProducts, setCatProducts] = useState<Product[]>([]);
@@ -91,19 +95,23 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const navPillClass = (active: boolean) =>
+    `px-4 py-1.5 rounded-full transition-all duration-200 ${
+      active
+        ? 'bg-[#FFF6B8] text-[#2b99a6] font-bold shadow-xs border border-amber-200/70'
+        : 'text-[#3d635f] hover:text-[#2b99a6] hover:bg-[#F4FBFB]'
+    }`;
+
   return (
     <>
-      {/* Barra de anuncio */}
-      {/*       <div className="w-full bg-[#37b9c7] text-white text-center text-xs md:text-sm font-medium font-fredoka py-2 px-4 tracking-wide">
-        🚚 Envíos a todo el país <span className="text-[#FFE600] font-semibold">·</span> Todo para tu bebé en un solo lugar
-      </div> */}
-      <nav className="w-full bg-white relative z-30 border-b border-gray-200 font-fredoka ">
-        <div className="max-w-[1187px] mx-auto px-4 py-3 md:pt-2! md:pb-4!">
-          <div className="flex items-center md:items-start! justify-between gap-4 md:gap-8">
+      <nav className="w-full bg-white/95 backdrop-blur-md relative z-30 border-b border-[#D5F3F4] shadow-[0_6px_24px_-14px_rgba(43,170,176,0.25)] font-fredoka">
+        <div className="max-w-[1187px] mx-auto px-4 py-3 md:pt-3 md:pb-3.5">
+          <div className="flex items-center justify-between gap-4 md:gap-8">
             {/* Botón Menú Móvil */}
             <button
-              className="md:hidden text-[#37b9c7] p-1"
+              className="md:hidden text-[#2b99a6] bg-[#F4FBFB] border border-[#D5F3F4] rounded-xl p-2 hover:bg-[#D5F3F4]/50 transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Abrir menú"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -115,7 +123,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.2}
                   d={
                     isMenuOpen
                       ? 'M6 18L18 6M6 6l12 12'
@@ -126,18 +134,18 @@ const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* Logo */}
-            <div className="shrink-0 pt-1">
+            <div className="shrink-0">
               <img
                 src={logo}
                 alt="Logo"
-                className="h-12 md:hidden object-contain my-1 rounded-lg"
+                className="h-12 md:hidden object-contain my-0.5 rounded-xl drop-shadow-xs"
                 onClick={() => (window.location.href = '/')}
                 style={{ cursor: 'pointer' }}
               />
               <img
                 src={logo}
                 alt="Logo"
-                className="hidden md:block h-20 mt-2 object-contain rounded-xl"
+                className="hidden md:block h-20 object-contain rounded-2xl drop-shadow-xs hover:scale-[1.02] transition-transform"
                 onClick={() => (window.location.href = '/')}
                 style={{ cursor: 'pointer' }}
               />
@@ -145,33 +153,37 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Bloque Central */}
             <div
-              className="hidden md:flex flex-1 flex-col items-center max-w-[650px] mt-4 relative"
+              className="hidden md:flex flex-1 flex-col items-center max-w-[640px] relative"
               ref={wrapperRef}
             >
               <SearchBar
                 value={search}
                 onChange={handleSearchChange}
                 onSubmit={handleSearchSubmit}
-                placeholder="¿Qué estás buscando?"
-                containerClassName="w-full mb-1"
+                placeholder="¿Qué estás buscando para tu bebé?"
+                containerClassName="w-full"
                 inputClassName="
-                                bg-[#f5f6f8]
-                                text-[#1A2D2A]
-                                placeholder:text-[#1A2D2A]/60
-                                border-none
-                                py-2
-                                h-auto
-                                font-sans
-                            "
-                iconClassName="text-[#1A2D2A]/80"
+                  bg-[#F4FBFB]
+                  text-[#1A2D2A]
+                  placeholder:text-[#3d635f]/65
+                  border-2 border-[#D5F3F4]
+                  focus:border-[#37b9c7]
+                  focus:bg-white
+                  focus:shadow-[0_0_0_4px_rgba(213,243,244,0.55)]
+                  py-2.5
+                  h-auto
+                  font-nunito
+                  text-sm
+                "
+                iconClassName="text-[#2b99a6]"
               />
 
               {isDropdownOpen && (
-                <div className="absolute top-[55px] center w-[650px] bg-white shadow-xl rounded-xl mt-1 max-h-80 overflow-y-auto z-20 border border-gray-100 divide-y divide-gray-50">
+                <div className="absolute top-[50px] w-full bg-white shadow-xl rounded-2xl mt-1 max-h-80 overflow-y-auto z-20 border border-[#D5F3F4] divide-y divide-gray-50">
                   {suggestions.map((p) => (
                     <div
                       key={p.id}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between transition-colors group"
+                      className="px-4 py-3 hover:bg-[#F4FBFB] cursor-pointer flex items-center justify-between transition-colors group"
                       onMouseDown={(e) => {
                         e.preventDefault();
                         setSearch(p.name);
@@ -179,32 +191,31 @@ const Navbar: React.FC<NavbarProps> = ({
                         window.location.href = `/catalogo?search=${encodeURIComponent(p.name)}`;
                       }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="bg-gray-100 p-2 rounded-full text-gray-500 group-hover:bg-[#33aab8] group-hover:text-[#1A2D2A] transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="bg-[#F4FBFB] border border-[#D5F3F4] p-2 rounded-full text-[#2b99a6] group-hover:bg-[#37b9c7] group-hover:text-white transition-colors shrink-0">
                           <MagnifyingGlassIcon className="w-4 h-4" />
                         </div>
-                        <span className="font-semibold text-gray-700 font-nunito text-sm truncate max-w-[450px]">
+                        <span className="font-bold text-[#1A2D2A] font-nunito text-sm truncate max-w-[430px] group-hover:text-[#2b99a6] transition-colors">
                           {p.name}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
-                        {/* Imagen del producto chiquita */}
                         <img
-                          src={p.imageUrl || '/assets/placeholder-product.png'} // Ajustá la ruta a tu placeholder
+                          src={p.imageUrl || '/assets/placeholder-product.png'}
                           alt={p.name}
-                          className="w-10 h-10 object-cover rounded-lg border border-gray-200"
+                          className="w-10 h-10 object-contain bg-[#F4FBFB] p-1 rounded-xl border border-[#D5F3F4]"
                         />
-                        <span className="text-xs font-bold text-[#33aab8] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs font-bold text-[#2b99a6] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
                           Ver
                         </span>
                       </div>
                     </div>
                   ))}
                   {suggestions.length === 0 && (
-                    <div className="px-6 py-8 text-center text-gray-500 flex flex-col items-center">
+                    <div className="px-6 py-8 text-center text-[#3d635f] flex flex-col items-center font-nunito">
                       <svg
-                        className="w-12 h-12 text-gray-300 mb-3"
+                        className="w-12 h-12 text-[#37b9c7]/40 mb-3"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -216,14 +227,14 @@ const Navbar: React.FC<NavbarProps> = ({
                           d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <p className="font-semibold text-gray-700 mb-1 font-sans">
+                      <p className="font-bold text-[#1A2D2A] mb-1">
                         No encontramos lo que buscás
                       </p>
-                      <p className="text-sm text-gray-500 font-sans">
+                      <p className="text-sm text-[#3d635f]">
                         Intentá con otras palabras o{' '}
                         <NavLink
                           to="/contacto"
-                          className="text-[#37b9c7] hover:text-[#33aab8] font-semibold underline transition-colors"
+                          className="text-[#2b99a6] hover:text-[#33aab8] font-bold underline transition-colors"
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           contactanos
@@ -234,32 +245,28 @@ const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
 
-              <div className="flex w-full justify-between text-[13px]  subpixel-antialiased font-medium font-sans uppercase tracking-[0.2rem] mt-3">
+              <div className="flex w-full justify-center items-center gap-4 lg:gap-8 text-[12px] subpixel-antialiased font-semibold font-nunito uppercase tracking-[0.16rem] mt-2.5">
                 <a
                   href="/"
-                  className={`transition-colors ${location.pathname === '/' ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`}
+                  className={navPillClass(location.pathname === '/')}
                 >
                   Inicio
                 </a>
                 <NavLink
                   to="/nosotros"
-                  className={({ isActive }) =>
-                    `transition-colors ${isActive ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`
-                  }
+                  className={({ isActive }) => navPillClass(isActive)}
                 >
                   Nosotros
                 </NavLink>
                 <NavLink
                   to="/contacto"
-                  className={({ isActive }) =>
-                    `transition-colors ${isActive ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`
-                  }
+                  className={({ isActive }) => navPillClass(isActive)}
                 >
                   Contacto
                 </NavLink>
                 <a
                   href="/catalogo"
-                  className={`transition-colors ${location.pathname.startsWith('/catalogo') ? 'text-[#37b9c7] font-bold border-b-2 border-[#FFE600]' : 'text-gray-700 hover:text-[#37b9c7]'}`}
+                  className={navPillClass(location.pathname.startsWith('/catalogo'))}
                 >
                   Tienda
                 </a>
@@ -268,7 +275,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Carrito */}
             <div
-              className="relative cursor-pointer shrink-0 md:pt-3"
+              className="relative cursor-pointer shrink-0 group"
               ref={cartRef}
               onClick={() => {
                 if (totalItems === 0) {
@@ -279,97 +286,74 @@ const Navbar: React.FC<NavbarProps> = ({
                 navigate('/cart');
               }}
             >
-              {/* Carrito mobile */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="md:hidden h-5 w-5 text-[#37b9c7]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              {/* Carrito desktop */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="hidden md:block h-7 w-7 text-[#37b9c7]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
+              <div className="bg-[#F4FBFB] group-hover:bg-[#D5F3F4]/60 border-2 border-[#D5F3F4] group-hover:border-[#37b9c7] p-2 md:p-3 rounded-2xl shadow-xs transition-all duration-200 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 md:h-6 md:w-6 text-[#2b99a6] group-hover:scale-105 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.8}
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
 
               {/* TOAST POSICIONADO RESPECTO AL ICONO */}
               {showEmptyToast && (
                 <div
-                  className="absolute -bottom-12 right-0 flex items-center gap-2 whitespace-nowrap z-[100] animate-in fade-in slide-in-from-top-2 duration-300"
-                  style={{
-                    background: 'rgba(169, 68, 66, 0.95)', // El color #A94442 que ya usás
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    padding: '8px 12px',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                  }}
+                  className="absolute -bottom-13 right-0 flex items-center gap-2 whitespace-nowrap z-[100] animate-in fade-in slide-in-from-top-2 duration-300 bg-[#2b99a6] text-white px-3.5 py-2 rounded-xl shadow-lg border border-white/30"
                 >
-                  {/* Triangulito (flecha) apuntando hacia arriba */}
-                  <div className="absolute -top-1.5 right-3 w-3 h-3 rotate-45 bg-[#A94442] border-l border-t border-white/20"></div>
-
+                  <div className="absolute -top-1.5 right-4 w-3 h-3 rotate-45 bg-[#2b99a6] border-l border-t border-white/30" />
                   <ExclamationCircleIcon
-                    className="w-5 h-5 text-red-200"
-                    strokeWidth={2}
+                    className="w-4 h-4 text-[#FFF6B8]"
+                    strokeWidth={2.2}
                   />
-                  <span className="text-xs font-bold font-sans uppercase tracking-tight">
+                  <span className="text-xs font-bold font-nunito uppercase tracking-wider">
                     El carrito está vacío
                   </span>
                 </div>
               )}
 
               {/* Badge de cantidad (totalItems) */}
-              <span className="md:mt-3 absolute -top-2 -right-2.5 bg-[#FFE600] text-[#1A2D2A] font-sans text-[10px] font-bold h-4 w-4 md:h-5 md:w-5 flex items-center justify-center rounded-full ">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#FFF6B8] text-[#1A2D2A] border-2 border-white shadow-sm font-nunito text-[11px] font-extrabold h-5 w-5 md:h-6 md:w-6 flex items-center justify-center rounded-full">
                 {totalItems}
               </span>
             </div>
           </div>
 
           {/* SearchBar Mobile */}
-          <div className="mt-3 md:hidden relative" ref={wrapperRef}>
+          <div className="mt-2.5 md:hidden relative" ref={wrapperRef}>
             <SearchBar
               value={search}
               onChange={handleSearchChange}
               onSubmit={handleSearchSubmit}
               placeholder="Buscá pañales, toallitas..."
               inputClassName="
-                            bg-[#f1f5f5]
-                            text-[#1A2D2A]
-                            placeholder:text-gray-500
-                            border-none
-                            py-2
-                            h-auto
-                            text-xs
-                            font-sans
-                        "
-              iconClassName="text-[#37b9c7]"
+                bg-[#F4FBFB]
+                text-[#1A2D2A]
+                placeholder:text-[#3d635f]/65
+                border-2 border-[#D5F3F4]
+                focus:border-[#37b9c7]
+                focus:bg-white
+                py-2
+                h-auto
+                text-xs
+                font-nunito
+              "
+              iconClassName="text-[#2b99a6]"
             />
 
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-xl mt-1 max-h-64 overflow-y-auto z-20 border border-gray-100 divide-y divide-gray-50">
+              <div className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-1 max-h-64 overflow-y-auto z-20 border border-[#D5F3F4] divide-y divide-gray-50">
                 {suggestions.slice(0, 3).map((p) => (
                   <div
                     key={p.id}
-                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between transition-colors group"
+                    className="px-4 py-3 hover:bg-[#F4FBFB] cursor-pointer flex items-center justify-between transition-colors group"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       setSearch(p.name);
@@ -377,11 +361,11 @@ const Navbar: React.FC<NavbarProps> = ({
                       window.location.href = `/catalogo?search=${encodeURIComponent(p.name)}`;
                     }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gray-100 p-2 rounded-full text-gray-500 group-hover:bg-green-50 group-hover:text-[#4caf50] transition-colors">
-                        <MagnifyingGlassIcon className="w-3 h-3" />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="bg-[#F4FBFB] border border-[#D5F3F4] p-2 rounded-full text-[#2b99a6] group-hover:bg-[#37b9c7] group-hover:text-white transition-colors shrink-0">
+                        <MagnifyingGlassIcon className="w-3.5 h-3.5" />
                       </div>
-                      <span className="font-medium text-gray-700 font-sans text-[12px] truncate max-w-[200px]">
+                      <span className="font-bold text-[#1A2D2A] font-nunito text-xs truncate max-w-[200px]">
                         {p.name}
                       </span>
                     </div>
@@ -390,18 +374,18 @@ const Navbar: React.FC<NavbarProps> = ({
                       <img
                         src={p.imageUrl || '/assets/placeholder-product.png'}
                         alt={p.name}
-                        className="w-8 h-8 object-cover rounded-md border border-gray-200"
+                        className="w-8 h-8 object-contain bg-[#F4FBFB] p-0.5 rounded-lg border border-[#D5F3F4]"
                       />
-                      <span className="text-xs font-bold text-[#4caf50] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-xs font-bold text-[#2b99a6] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
                         Ver
                       </span>
                     </div>
                   </div>
                 ))}
                 {suggestions.length === 0 && (
-                  <div className="px-6 py-6 text-center text-gray-500 flex flex-col items-center">
+                  <div className="px-6 py-6 text-center text-[#3d635f] flex flex-col items-center font-nunito">
                     <svg
-                      className="w-10 h-10 text-gray-300 mb-2"
+                      className="w-10 h-10 text-[#37b9c7]/40 mb-2"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -413,14 +397,14 @@ const Navbar: React.FC<NavbarProps> = ({
                         d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <p className="font-semibold text-gray-700 mb-1 font-sans text-sm">
+                    <p className="font-bold text-[#1A2D2A] mb-1 text-sm">
                       No encontramos lo que buscás
                     </p>
-                    <p className="text-xs text-gray-500 font-sans">
+                    <p className="text-xs text-[#3d635f]">
                       Intentá con otras palabras o{' '}
                       <NavLink
                         to="/contacto"
-                        className="text-[#4caf50] hover:text-[#f9c72a] font-semibold underline transition-colors"
+                        className="text-[#2b99a6] hover:text-[#33aab8] font-bold underline transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         contactanos
@@ -435,11 +419,15 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Menú Mobile */}
         {isMenuOpen && (
-          <div className="md:hidden bg-[#37b9c7] border-t border-white/20">
-            <div className="font-fredoka flex flex-col p-4 space-y-4 text-[12px] font-bold font-sans uppercase tracking-widest">
+          <div className="md:hidden bg-gradient-to-b from-[#37b9c7] to-[#2e9ca9] border-t border-white/20 shadow-inner">
+            <div className="font-nunito flex flex-col p-4 space-y-2 text-xs font-bold uppercase tracking-widest">
               <a
                 href="/"
-                className={`transition-colors ${location.pathname === '/' ? 'text-[#f9c72a]' : 'text-white hover:text-[#f9c72a]'}`}
+                className={`px-4 py-2.5 rounded-xl transition-colors ${
+                  location.pathname === '/'
+                    ? 'bg-[#FFF6B8] text-[#1A2D2A]'
+                    : 'text-white hover:bg-white/15'
+                }`}
               >
                 Inicio
               </a>
@@ -447,7 +435,11 @@ const Navbar: React.FC<NavbarProps> = ({
                 to="/nosotros"
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
-                  `transition-colors ${isActive ? 'text-[#f9c72a]' : 'text-white hover:text-[#f9c72a]'}`
+                  `px-4 py-2.5 rounded-xl transition-colors ${
+                    isActive
+                      ? 'bg-[#FFF6B8] text-[#1A2D2A]'
+                      : 'text-white hover:bg-white/15'
+                  }`
                 }
               >
                 Nosotros
@@ -456,14 +448,22 @@ const Navbar: React.FC<NavbarProps> = ({
                 to="/contacto"
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
-                  `transition-colors ${isActive ? 'text-[#f9c72a]' : 'text-white hover:text-[#f9c72a]'}`
+                  `px-4 py-2.5 rounded-xl transition-colors ${
+                    isActive
+                      ? 'bg-[#FFF6B8] text-[#1A2D2A]'
+                      : 'text-white hover:bg-white/15'
+                  }`
                 }
               >
                 Contacto
               </NavLink>
               <a
                 href="/catalogo"
-                className={`transition-colors ${location.pathname.startsWith('/catalogo') ? 'text-[#f9c72a]' : 'text-white hover:text-[#f9c72a]'}`}
+                className={`px-4 py-2.5 rounded-xl transition-colors ${
+                  location.pathname.startsWith('/catalogo')
+                    ? 'bg-[#FFF6B8] text-[#1A2D2A]'
+                    : 'text-white hover:bg-white/15'
+                }`}
               >
                 Tienda
               </a>
@@ -475,7 +475,7 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* FAB carrito - solo mobile */}
       <button
         onClick={() => navigate('/cart')}
-        className="md:hidden fixed bottom-6 right-5 z-50 w-14 h-14 bg-[#1A2D2A] hover:bg-[#1A2D2A]/90 text-white rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95"
+        className="md:hidden fixed bottom-6 right-5 z-50 w-14 h-14 bg-gradient-to-br from-[#37b9c7] to-[#28929f] text-white rounded-full ring-4 ring-white shadow-xl flex items-center justify-center transition-all active:scale-95"
         aria-label="Ir al carrito"
       >
         <svg
@@ -493,7 +493,7 @@ const Navbar: React.FC<NavbarProps> = ({
           />
         </svg>
         {totalItems > 0 && (
-          <span className="absolute -top-1 -right-1 bg-[#f9c72a] text-[#2f3027] text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">
+          <span className="absolute -top-1 -right-1 bg-[#FFF6B8] text-[#1A2D2A] border-2 border-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">
             {totalItems > 9 ? '9+' : totalItems}
           </span>
         )}
