@@ -9,7 +9,6 @@ import {
   Tooltip,
 } from 'flowbite-react';
 import {
-  PencilIcon,
   TrashIcon,
   ArrowUpIcon,
   EyeIcon,
@@ -18,8 +17,6 @@ import {
 } from '@heroicons/react/20/solid';
 import { Store, Globe, CreditCard, Banknote, Package } from 'lucide-react';
 import { Sale } from '@/types/sale.types';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/constants/routes';
 import { SaleDetailsModal } from '@/components/SaleDetailsModal';
 import { SaleNotesModal } from '@/components/SaleNotesModal';
 import {
@@ -277,16 +274,6 @@ export function SalesTable({
                       <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
                     </button>
 
-                    {sale.status !== 'COMPLETED' && sale.status !== 'CANCELLED' && (
-                      <Link
-                        to={ROUTES.sales.edit(sale.id)}
-                        className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition active:scale-95"
-                        title="Editar venta"
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                      </Link>
-                    )}
-
                     <button
                       type="button"
                       onClick={() => sale.status !== 'CANCELLED' && onDelete(sale)}
@@ -398,6 +385,8 @@ export function SalesTable({
                 </TableHeadCell>
               )}
 
+              <TableHeadCell className="w-10 px-2 select-none text-center" />
+
               {isVisible('total') && (
                 <TableHeadCell
                   className={`${hideOnMobile} cursor-pointer select-none text-center`}
@@ -420,7 +409,7 @@ export function SalesTable({
             {sales.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={9}
+                  colSpan={10}
                   className="text-center py-8 text-slate-400 text-sm"
                 >
                   No se encontraron ventas registradas.
@@ -557,37 +546,39 @@ export function SalesTable({
                       </TableCell>
                     )}
 
-                    {/* Estado + Indicador de Nota */}
+                    {/* Estado */}
                     {isVisible('status') && (
                       <TableCell className="text-center py-3">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-xs font-bold border inline-block uppercase tracking-wider ${statusInfo.style}`}
-                          >
-                            {statusInfo.label}
-                          </span>
-                          {hasNotes && (
-                            <Tooltip
-                              content={sale.notes}
-                              placement="top"
-                              className="max-w-xs text-center"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => handleOpenNotes(sale)}
-                                className="inline-flex items-center justify-center cursor-pointer"
-                              >
-                                {isCriticalNote(sale.notes) ? (
-                                  <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 animate-pulse" />
-                                ) : (
-                                  <ChatBubbleBottomCenterTextIcon className="w-4 h-4 text-amber-400" />
-                                )}
-                              </button>
-                            </Tooltip>
-                          )}
-                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-xs font-bold border inline-block uppercase tracking-wider ${statusInfo.style}`}
+                        >
+                          {statusInfo.label}
+                        </span>
                       </TableCell>
                     )}
+
+                    {/* Columna sin nombre para indicador de comentario */}
+                    <TableCell className="w-10 px-2 text-center py-3">
+                      {hasNotes && (
+                        <Tooltip
+                          content={sale.notes}
+                          placement="top"
+                          className="max-w-xs text-center"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleOpenNotes(sale)}
+                            className="inline-flex items-center justify-center cursor-pointer"
+                          >
+                            {isCriticalNote(sale.notes) ? (
+                              <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 animate-pulse" />
+                            ) : (
+                              <ChatBubbleBottomCenterTextIcon className="w-4 h-4 text-amber-400" />
+                            )}
+                          </button>
+                        </Tooltip>
+                      )}
+                    </TableCell>
 
                     {/* Monto Total */}
                     {isVisible('total') && (
@@ -629,31 +620,6 @@ export function SalesTable({
                             <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-[#0d0a18]" />
                           )}
                         </button>
-
-                        {sale.status !== 'COMPLETED' && (
-                          <Link
-                            to={
-                              sale.status === 'CANCELLED'
-                                ? '#'
-                                : ROUTES.sales.edit(sale.id)
-                            }
-                            title={
-                              sale.status === 'CANCELLED'
-                                ? 'Venta cancelada'
-                                : 'Editar venta'
-                            }
-                            className={
-                              sale.status === 'CANCELLED'
-                                ? 'text-slate-500 pointer-events-none opacity-40'
-                                : 'text-slate-400 hover:text-amber-400 transition-colors active:scale-95'
-                            }
-                            onClick={(e) =>
-                              sale.status === 'CANCELLED' && e.preventDefault()
-                            }
-                          >
-                            <PencilIcon className="w-5 h-5" />
-                          </Link>
-                        )}
 
                         <button
                           type="button"

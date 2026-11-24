@@ -19,9 +19,6 @@ import {
   Receipt,
   Barcode,
 } from 'lucide-react';
-import { PencilIcon } from '@heroicons/react/20/solid';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/constants/routes';
 import {
   isPosGenericClient,
   getSaleChannelLabel,
@@ -560,17 +557,6 @@ export function SaleDetailsModal({
               <MessageSquareText className="w-4 h-4 text-amber-400" />
               {notes ? 'Editar comentario' : 'Agregar comentario'}
             </button>
-          )}
-
-          {currentStatus !== 'CANCELLED' && currentStatus !== 'COMPLETED' && (
-            <Link
-              title="Editar venta"
-              to={ROUTES.sales.edit(Number(sale.id))}
-              className="btn btn-md btn-primary rounded-xl flex-1 sm:flex-none"
-            >
-              <PencilIcon className="w-4 h-4" />
-              Editar venta
-            </Link>
           )}
         </div>
       </div>

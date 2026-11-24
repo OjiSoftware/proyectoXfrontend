@@ -1328,8 +1328,8 @@ export default function CreateSalePage() {
                           focusScanner();
                         }}
                         className={`cursor-pointer transition-colors ${isSelected
-                          ? "bg-indigo-600/25 text-white"
-                          : "hover:bg-white/[0.04] text-slate-200"
+                          ? "bg-indigo-600/25 text-[var(--text-primary)]"
+                          : "hover:bg-white/[0.04] text-[var(--text-secondary)]"
                           }`}
                       >
                         <td className="py-2.5 px-4 font-mono text-xs text-slate-400 truncate max-w-[130px]">
@@ -1378,7 +1378,7 @@ export default function CreateSalePage() {
                             >
                               <Minus size={12} />
                             </button>
-                            <span className="min-w-[28px] text-center font-mono font-bold text-sm text-white">
+                            <span className="min-w-[28px] text-center font-mono font-bold text-sm text-[var(--text-primary)]">
                               {item.quantity}
                             </span>
                             <button
@@ -1416,7 +1416,7 @@ export default function CreateSalePage() {
             className="shrink-0 bg-[#141122] border-t border-white/10 p-3 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3"
           >
             {/* Totales */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 flex-1">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 flex-1">
               <div className="hidden sm:block bg-[#0B0914] border border-white/10 rounded-lg px-3 py-2">
                 <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
                   Unidades
@@ -1791,7 +1791,7 @@ export default function CreateSalePage() {
                               cashTendered: e.target.value.slice(0, 12),
                             }))
                           }
-                          className={`w-full bg-[#090710]! border rounded-xl! px-3! py-2! text-lg font-mono font-bold text-white placeholder:text-slate-600 outline-none focus:ring-0! ${
+                          className={`w-full mgmt-input border rounded-xl! px-3! py-2! text-lg font-mono font-bold placeholder:text-slate-400 outline-none focus:ring-0! ${
                             hasUnderpaidCash
                               ? "border-rose-500/70!"
                               : "border-indigo-400/50!"
@@ -1872,7 +1872,7 @@ export default function CreateSalePage() {
                 setQtyEditValue(sanitizeDigits(e.target.value, 4))
               }
               onFocus={(e) => e.currentTarget.select()}
-              className="w-full bg-[#090710]! border border-indigo-400! rounded-xl! px-3! py-2.5! text-xl font-mono font-bold text-center text-white outline-none focus:ring-0!"
+              className="w-full mgmt-input border border-indigo-400! rounded-xl! px-3! py-2.5! text-xl font-mono font-bold text-center outline-none focus:ring-0!"
             />
             <p className="text-[11px] text-slate-400 text-center">
               Stock disponible:{" "}
