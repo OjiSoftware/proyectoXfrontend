@@ -274,7 +274,7 @@ export default function EditProductPage() {
                         </h1>
                     </div>
                     <p className="text-slate-300 text-sm hidden md:block">
-                        Modifique la información necesaria del producto.
+                        Modifique la informaciOn necesaria del producto.
                     </p>
                 </div>
 
