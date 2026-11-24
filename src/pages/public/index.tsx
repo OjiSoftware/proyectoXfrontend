@@ -238,7 +238,7 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    <div ref={carouselRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pt-2 pb-4 px-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+                    <div ref={carouselRef} className="flex gap-2.5 sm:gap-4 overflow-x-auto snap-x snap-mandatory pt-2 pb-4 px-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
                         {products.map((p) => (
                             <article
                                 key={p.id}
@@ -246,9 +246,9 @@ export default function HomePage() {
                                 className="group snap-start shrink-0 w-[46%] sm:w-[31%] md:w-[23.5%] cursor-pointer bg-white rounded-3xl p-3.5 border border-gray-100 shadow-sm hover:shadow-xl hover:border-[#D5F3F4] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                             >
                                 <div>
-                                    <div className="relative aspect-square rounded-2xl bg-white overflow-hidden flex items-center justify-center mb-3 border border-[#D5F3F4]/60">
+                                    <div className="relative aspect-square rounded-2xl bg-white overflow-hidden flex items-center justify-center mb-3">
                                         {p.imageUrl ? (
-                                            <img src={p.imageUrl} alt={p.name} loading="lazy" className="w-full h-full object-contain p-3 group-hover:scale-108 transition-transform duration-300 " />
+                                            <img src={p.imageUrl} alt={p.name} loading="lazy" className="w-full h-full object-contain p-0 sm:p-2 bg-white group-hover:scale-108 transition-transform duration-300" />
                                         ) : (
                                             <Baby className="w-12 h-12 text-[#2BAAB0]/50" />
                                         )}

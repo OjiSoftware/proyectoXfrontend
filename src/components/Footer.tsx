@@ -14,13 +14,13 @@ const Footer: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
             {/* Columna 1: Marca */}
             <div className="flex flex-col items-start gap-3">
-              <div className="bg-white/15 backdrop-blur-xs p-2.5 rounded-2xl border border-white/25 shadow-sm">
-                <img
-                  src={logo}
-                  alt="Upa Lelé Pañalera"
-                  className="h-20 object-contain rounded-xl"
-                />
-              </div>
+
+              <img
+                src={logo}
+                alt="Upa Lelé Pañalera"
+                className="h-20 object-contain rounded-xl"
+              />
+
 
               <p className="text-sm text-white/95 font-medium max-w-xs mt-1 leading-relaxed">
                 Todo para tu bebé, en un solo lugar. Acompañándote con amor, suavidad y los mejores precios.

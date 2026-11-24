@@ -166,12 +166,11 @@ export default function ProductDetailPage() {
         <div className="bg-white rounded-3xl shadow-md border border-[#D5F3F4] p-5 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
 
           {/* LEFT COLUMN: Image */}
-          <div className="w-full md:w-1/2 aspect-square flex items-center justify-center rounded-3xl overflow-hidden p-6 bg-gradient-to-b from-[#F4FBFB] to-[#E8F7F8] border border-[#D5F3F4]/70 relative">
-            <div className="pointer-events-none absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-white/50" />
+          <div className="w-full md:w-1/2 aspect-square flex items-center justify-center rounded-3xl overflow-hidden p-0 sm:p-4 md:p-6 bg-white border border-[#D5F3F4]/70 relative">
             <img
               src={getDriveDirectLink(product.imageUrl) || "https://via.placeholder.com/400"}
               alt={product.name}
-              className="relative w-full h-full object-contain mix-blend-multiply drop-shadow-md transition-transform duration-300 hover:scale-105"
+              className="relative w-full h-full object-contain bg-white transition-transform duration-300 hover:scale-105"
             />
             {product.isOffer && (
               <span className="absolute top-4 right-4 rounded-full bg-[#FF8A3D] px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-sm">

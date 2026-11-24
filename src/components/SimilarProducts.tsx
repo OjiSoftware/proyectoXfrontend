@@ -48,7 +48,7 @@ const SimilarProducts: React.FC<Props> = ({ currentProductId, categoryId }) => {
         </h2>
       </div>
 
-      <div className="grid grid-flow-col auto-cols-[190px] md:auto-cols-[240px] gap-4 md:gap-5 overflow-x-auto pb-6 snap-x snap-mandatory pt-2 px-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+      <div className="grid grid-flow-col auto-cols-[190px] md:auto-cols-[240px] gap-2.5 sm:gap-4 md:gap-5 overflow-x-auto pb-6 snap-x snap-mandatory pt-2 px-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
         {similarProducts.map((p) => (
           <div key={p.id} className="snap-start flex h-full">
             <ProductCard product={p} />

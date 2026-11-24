@@ -213,7 +213,7 @@ export default function CatalogPage() {
                                 {/* Contenedor de Productos */}
                                 <div className="w-full h-fit">
                                     {/* GRID */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
                                         {currentProducts.map((product) => (
                                             <ProductCard
                                                 key={product.id}

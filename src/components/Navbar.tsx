@@ -138,7 +138,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <img
                 src={logo}
                 alt="Logo"
-                className="h-12 md:hidden object-contain my-0.5 rounded-xl drop-shadow-xs"
+                className="h-12 md:hidden object-contain my-0.5 drop-shadow-xs"
                 onClick={() => (window.location.href = '/')}
                 style={{ cursor: 'pointer' }}
               />
