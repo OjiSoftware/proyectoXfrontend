@@ -24,6 +24,8 @@ import {
   Pencil,
   Check,
   Keyboard,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { productApi } from "@/services/ProductService";
@@ -125,6 +127,7 @@ export default function CreateSalePage() {
   const [qtyEditValue, setQtyEditValue] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   // --- REFS PARA FOCO PERMANENTE (CERO CLICS) ---
   const commandInputRef = useRef<HTMLInputElement>(null);
@@ -147,12 +150,12 @@ export default function CreateSalePage() {
       const now = new Date();
       setClockText(
         now.toLocaleDateString("es-AR") +
-          " " +
-          now.toLocaleTimeString("es-AR", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          })
+        " " +
+        now.toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
       );
     };
     updateClock();
@@ -560,7 +563,7 @@ export default function CreateSalePage() {
     updateActiveTicket,
   ]);
 
-  // --- PROCESAR VENTA EN SERVIDOR (ULTRA RÁPIDO) ---
+  // --- PROCESAR VENTA EN SERVIDOR ---
   const processSale = useCallback(
     async (overrideMethod?: PaymentMethodType) => {
       if (activeTicket.items.length === 0 || isSubmitting) return;
@@ -602,11 +605,11 @@ export default function CreateSalePage() {
               phoneNumber: "1100000000",
               email: "consumidorfinal@oji.local",
               addresses: {
-                street: "Mostrador POS",
+                street: "Mostrador",
                 streetNum: 1,
                 locality: "Local",
-                province: "Buenos Aires",
-                postalCode: "1000",
+                province: "Entre Ríos",
+                postalCode: "3228",
                 country: "Argentina",
               },
             });
@@ -625,8 +628,8 @@ export default function CreateSalePage() {
               street: "Mostrador",
               streetNum: 1,
               locality: "Local",
-              province: "Buenos Aires",
-              postalCode: "1000",
+              province: "Entre Ríos",
+              postalCode: "3228",
               country: "Argentina",
             },
           });
@@ -656,7 +659,7 @@ export default function CreateSalePage() {
               )}) • Total cobrado: ${formatARS(computedTotal)}`,
               details: saleDetails,
             })
-            .catch(() => {});
+            .catch(() => { });
         }
 
         // Descontar stock local al instante sin recargar
@@ -788,6 +791,11 @@ export default function CreateSalePage() {
         setShowClientModal(true);
         return;
       }
+      if (e.key === "F9") {
+        e.preventDefault();
+        setIsMaximized((prev) => !prev);
+        return;
+      }
       if (e.key === "F12") {
         e.preventDefault();
         if (activeTicket.items.length > 0 && !isSubmitting) {
@@ -879,56 +887,60 @@ export default function CreateSalePage() {
 
   return (
     <DashboardLayout>
-      {/* Contenedor bloqueado a pantalla completa sin scroll externo */}
+      {/* Contenedor adaptable a zoom y baja resolución (con modo pantalla completa opcional F9) */}
       <div
-        className="w-full -mt-2 md:-mt-5 -mb-14 flex flex-col h-[calc(100vh-8.5rem)] md:h-[calc(100vh-2.5rem)] select-none gap-2"
+        className={
+          isMaximized
+            ? "fixed inset-0 z-40 bg-[#07050C] p-1.5 sm:p-2 flex flex-col h-dvh w-screen select-none gap-1.5 overflow-hidden"
+            : "w-full -mt-2 -mb-24 md:-mt-6 md:-mb-16 flex flex-col h-[calc(100dvh-7.75rem)] md:h-[calc(100dvh-1.75rem)] select-none gap-1.5 xl:gap-2 overflow-hidden"
+        }
         onClick={() => focusScanner()}
       >
         {/* =============================================================== */}
-        {/* 1. BARRA DE HERRAMIENTAS SUPERIOR (ESTILO UNICENTA COMPACTO)    */}
+        {/* 1. BARRA SUPERIOR COMPACTA (SIN SALTOS DE LÍNEA EN ZOOM)        */}
         {/* =============================================================== */}
         <div
-          className="shrink-0 flex items-center justify-between gap-2 bg-[#110E1C] border border-white/10 rounded-xl px-2.5 py-1.5 shadow-lg"
+          className="shrink-0 flex items-center justify-between gap-1.5 bg-[#110E1C] border border-white/10 rounded-xl px-2 py-1 xl:px-2.5 xl:py-1.5 shadow-lg overflow-x-auto no-scrollbar"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Botonera Operativa Izquierda */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 xl:gap-1.5 shrink-0">
             <button
               type="button"
               onClick={() => navigate("/management/sales")}
-              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition"
+              className="h-7 sm:h-8 xl:h-9 px-2 xl:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1 text-[11px] xl:text-xs font-semibold cursor-pointer transition shrink-0"
               title="Salir al listado de ventas"
             >
-              <LogOut size={15} className="rotate-180 text-slate-400" />
-              <span className="hidden sm:inline">Salir</span>
+              <LogOut className="w-3.5 h-3.5 xl:w-4 xl:h-4 rotate-180 text-slate-400" />
+              <span className="hidden lg:inline">Salir</span>
             </button>
 
             {/* Botón Cliente */}
             <button
               type="button"
               onClick={() => setShowClientModal(true)}
-              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition ${
+              className={`h-7 sm:h-8 xl:h-9 px-2 xl:px-3 rounded-lg border flex items-center gap-1 text-[11px] xl:text-xs font-semibold cursor-pointer transition shrink-0 ${
                 activeTicket.customer.mode === "FINAL_CONSUMER"
                   ? "bg-white/5 hover:bg-white/10 border-white/10 text-slate-200"
                   : "bg-indigo-600/25 border-indigo-400/50 text-indigo-200"
               }`}
               title="Seleccionar o crear cliente (F8)"
             >
-              <User size={15} className="text-indigo-400" />
-              <span className="max-w-[130px] truncate">
+              <User className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-indigo-400 shrink-0" />
+              <span className="max-w-[95px] xl:max-w-[135px] truncate">
                 {activeTicket.customer.mode === "FINAL_CONSUMER"
-                  ? "Consumidor Final"
+                  ? "Cons. Final"
                   : `${activeTicket.customer.name} ${activeTicket.customer.surname}`}
               </span>
-              <kbd className="hidden xl:inline text-[10px] text-slate-400 bg-black/30 px-1 rounded">
+              <kbd className="hidden 2xl:inline text-[10px] text-slate-400 bg-black/30 px-1 rounded">
                 F8
               </kbd>
             </button>
 
-            <div className="h-6 w-px bg-white/10 mx-0.5 hidden sm:block" />
+            <div className="h-5 w-px bg-white/10 mx-0.5 hidden sm:block" />
 
             {/* Tickets / Ventas en espera */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               {tickets.map((t, idx) => {
                 const active = idx === activeTicketIndex;
                 const count = t.items.reduce((s, i) => s + i.quantity, 0);
@@ -937,7 +949,7 @@ export default function CreateSalePage() {
                     key={t.id}
                     type="button"
                     onClick={() => setActiveTicketIndex(idx)}
-                    className={`h-9 px-2.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 cursor-pointer transition ${
+                    className={`h-7 sm:h-8 xl:h-9 px-2 xl:px-2.5 rounded-lg border text-[11px] xl:text-xs font-bold flex items-center gap-1 cursor-pointer transition shrink-0 ${
                       active
                         ? "bg-indigo-600 text-white border-indigo-400 shadow"
                         : "bg-white/5 text-slate-400 border-white/10 hover:text-white"
@@ -945,13 +957,13 @@ export default function CreateSalePage() {
                     title={`Cambiar a Ticket ${t.label}`}
                   >
                     {active ? (
-                      <PlayCircle size={13} />
+                      <PlayCircle size={12} />
                     ) : (
-                      <PauseCircle size={13} className="text-amber-400" />
+                      <PauseCircle size={12} className="text-amber-400" />
                     )}
                     <span>{t.label}</span>
                     {count > 0 && (
-                      <span className="px-1.5 rounded bg-black/30 text-[10px]">
+                      <span className="px-1 rounded bg-black/30 text-[10px]">
                         {count}
                       </span>
                     )}
@@ -960,7 +972,7 @@ export default function CreateSalePage() {
                         onClick={(e) => closeTicketTab(idx, e)}
                         className="ml-0.5 hover:text-rose-300"
                       >
-                        <X size={12} />
+                        <X size={11} />
                       </span>
                     )}
                   </button>
@@ -970,12 +982,12 @@ export default function CreateSalePage() {
               <button
                 type="button"
                 onClick={handleParkOrNewTicket}
-                className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 text-xs font-semibold flex items-center gap-1 cursor-pointer transition"
+                className="h-7 sm:h-8 xl:h-9 px-2 xl:px-2.5 rounded-lg bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 text-[11px] xl:text-xs font-semibold flex items-center gap-1 cursor-pointer transition shrink-0"
                 title="Dejar ticket en espera y abrir otro (F6)"
               >
-                <Plus size={14} />
-                <span className="hidden md:inline">Espera</span>
-                <kbd className="hidden xl:inline text-[10px] text-slate-400 bg-black/30 px-1 rounded">
+                <Plus size={13} />
+                <span className="hidden xl:inline">Espera</span>
+                <kbd className="hidden 2xl:inline text-[10px] text-slate-400 bg-black/30 px-1 rounded">
                   F6
                 </kbd>
               </button>
@@ -986,21 +998,20 @@ export default function CreateSalePage() {
               type="button"
               disabled={activeTicket.items.length === 0}
               onClick={() => setShowClearConfirm(true)}
-              className="h-9 px-2.5 rounded-lg bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1 text-xs font-semibold cursor-pointer transition"
+              className="h-7 sm:h-8 xl:h-9 px-2 xl:px-2.5 rounded-lg bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1 text-[11px] xl:text-xs font-semibold cursor-pointer transition shrink-0"
               title="Anular / Vaciar ticket completo"
             >
-              <Trash2 size={15} />
-              <span className="hidden lg:inline">Vaciar</span>
+              <Trash2 className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+              <span className="hidden 2xl:inline">Vaciar</span>
             </button>
           </div>
 
-          {/* Botonera Derecha: Medio rápido (Efectivo / Tarjeta), Buscar, Ayuda y Reloj */}
-          <div className="flex items-center gap-1.5">
-            {/* Selector Rápido Efectivo vs Tarjeta (+5% pañales) */}
+          {/* Botonera Derecha: Medio rápido, Buscar, Maximizar, Ayuda y Reloj */}
+          <div className="flex items-center gap-1 xl:gap-1.5 shrink-0">
             <button
               type="button"
               onClick={toggleCardMode}
-              className={`h-9 px-3 rounded-lg border flex items-center gap-1.5 text-xs font-bold cursor-pointer transition ${
+              className={`h-7 sm:h-8 xl:h-9 px-2 xl:px-3 rounded-lg border flex items-center gap-1 text-[11px] xl:text-xs font-bold cursor-pointer transition shrink-0 ${
                 isCardActive
                   ? "bg-amber-500/20 border-amber-400/50 text-amber-200"
                   : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300"
@@ -1008,12 +1019,12 @@ export default function CreateSalePage() {
               title="Alternar simulación / cobro con Tarjeta (+5% en pañales) [F7]"
             >
               {isCardActive ? (
-                <CreditCard size={15} className="text-amber-400" />
+                <CreditCard className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-amber-400" />
               ) : (
-                <Banknote size={15} className="text-emerald-400" />
+                <Banknote className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-emerald-400" />
               )}
               <span>{isCardActive ? "Tarjeta" : "Efectivo"}</span>
-              <kbd className="hidden xl:inline text-[10px] bg-black/30 px-1 rounded text-slate-400">
+              <kbd className="hidden 2xl:inline text-[10px] bg-black/30 px-1 rounded text-slate-400">
                 F7
               </kbd>
             </button>
@@ -1026,39 +1037,57 @@ export default function CreateSalePage() {
                 setShowSearchModal(true);
                 setTimeout(() => searchModalInputRef.current?.focus(), 20);
               }}
-              className="h-9 px-3 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 flex items-center gap-1.5 text-xs font-bold cursor-pointer transition"
+              className="h-7 sm:h-8 xl:h-9 px-2 xl:px-3 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 flex items-center gap-1 text-[11px] xl:text-xs font-bold cursor-pointer transition shrink-0"
               title="Buscar artículo sin código (F3)"
             >
-              <Search size={15} />
-              <span className="hidden sm:inline">Buscar</span>
-              <kbd className="hidden md:inline text-[10px] bg-black/30 px-1 rounded">
+              <Search className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+              <span className="hidden md:inline">Buscar</span>
+              <kbd className="hidden xl:inline text-[10px] bg-black/30 px-1 rounded">
                 F3
               </kbd>
+            </button>
+
+            {/* Botón Maximizar Caja (ideal para zoom alto o monitores chicos) */}
+            <button
+              type="button"
+              onClick={() => setIsMaximized((prev) => !prev)}
+              className={`h-7 w-7 sm:h-8 sm:w-8 xl:h-9 xl:w-9 rounded-lg border flex items-center justify-center cursor-pointer transition shrink-0 ${
+                isMaximized
+                  ? "bg-indigo-600/30 border-indigo-400/50 text-indigo-200"
+                  : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-400 hover:text-white"
+              }`}
+              title={
+                isMaximized
+                  ? "Salir de pantalla completa (F9)"
+                  : "Ampliar caja a pantalla completa (F9)"
+              }
+            >
+              {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             </button>
 
             <button
               type="button"
               onClick={() => setShowHelpModal(true)}
-              className="h-9 w-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer transition"
+              className="h-7 w-7 sm:h-8 sm:w-8 xl:h-9 xl:w-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer transition shrink-0"
               title="Atajos de teclado"
             >
-              <Keyboard size={16} />
+              <Keyboard size={15} />
             </button>
 
-            <div className="hidden xl:flex items-center pl-2 ml-1 border-l border-white/10 text-[11px] font-mono text-slate-400">
+            <div className="hidden 2xl:flex items-center pl-2 ml-1 border-l border-white/10 text-[11px] font-mono text-slate-400 shrink-0">
               {clockText}
             </div>
           </div>
         </div>
 
         {/* =============================================================== */}
-        {/* 2. ÁREA CENTRAL DE OPERACIÓN (TABLA DE LÍNEAS + TECLADO CAJA)   */}
+        {/* 2. ÁREA CENTRAL ELÁSTICA (MANTIENE 2 COLUMNAS AÚN CON ZOOM)     */}
         {/* =============================================================== */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-2.5 overflow-hidden">
+        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_205px] lg:grid-cols-[minmax(0,1fr)_255px] xl:grid-cols-[minmax(0,1fr)_315px] 2xl:grid-cols-[minmax(0,1fr)_360px] gap-1.5 xl:gap-2.5 overflow-hidden">
           {/* ------------------------------------------------------------- */}
-          {/* IZQUIERDA (8 COLS): INPUT ESCÁNER + TABLA TICKET + TOTALES    */}
+          {/* IZQUIERDA: INPUT ESCÁNER + TABLA TICKET + TOTALES             */}
           {/* ------------------------------------------------------------- */}
-          <div className="lg:col-span-8 flex flex-col min-h-0 bg-[#0D0B16] border border-white/10 rounded-xl overflow-hidden shadow-xl">
+          <div className="flex flex-col min-h-0 bg-[#0D0B16] border border-white/10 rounded-xl overflow-hidden shadow-xl">
             {/* Barra de Lectura Inmediata (Siempre con foco) */}
             <form
               onSubmit={(e) => {
@@ -1066,21 +1095,21 @@ export default function CreateSalePage() {
                 executeCommand(commandInput);
               }}
               onClick={(e) => e.stopPropagation()}
-              className="shrink-0 p-2 bg-[#151224] border-b border-white/10 flex items-center gap-2"
+              className="shrink-0 py-1.5 px-2 xl:p-2 bg-[#151224] border-b border-white/10 flex items-center gap-1.5 xl:gap-2"
             >
-              <div className="flex items-center gap-1.5 text-emerald-400 pl-1.5 shrink-0">
-                <Barcode size={20} />
+              <div className="flex items-center text-emerald-400 pl-1 shrink-0">
+                <Barcode className="w-4 h-4 xl:w-5 xl:h-5" />
               </div>
 
               {pendingMultiplier !== null && (
-                <span className="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-xs font-black font-mono flex items-center gap-1">
+                <span className="shrink-0 px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 text-[11px] xl:text-xs font-black font-mono flex items-center gap-1">
                   {pendingMultiplier} ×
                   <button
                     type="button"
                     onClick={() => setPendingMultiplier(null)}
                     className="hover:opacity-70 cursor-pointer"
                   >
-                    <X size={12} />
+                    <X size={11} />
                   </button>
                 </span>
               )}
@@ -1093,25 +1122,25 @@ export default function CreateSalePage() {
                 onChange={(e) => setCommandInput(e.target.value)}
                 placeholder={
                   isLoading
-                    ? "Cargando base de artículos..."
-                    : "Escanear código de barras, cant*código (ej: 3*779...) o nombre + [Enter]"
+                    ? "Cargando artículos..."
+                    : "Escanear código, cant*código (3*779...) o nombre + [Enter]"
                 }
-                className="flex-1 bg-transparent text-sm md:text-base font-mono font-semibold text-white placeholder:text-slate-500 outline-none"
+                className="flex-1 min-w-0 bg-transparent text-xs sm:text-sm xl:text-base font-mono font-semibold text-white placeholder:text-slate-500 outline-none"
               />
 
               {commandInput && (
                 <button
                   type="button"
                   onClick={() => setCommandInput("")}
-                  className="text-slate-400 hover:text-white p-1 cursor-pointer"
+                  className="text-slate-400 hover:text-white p-0.5 cursor-pointer"
                 >
-                  <X size={16} />
+                  <X size={14} />
                 </button>
               )}
 
               <button
                 type="submit"
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold tracking-wide cursor-pointer shrink-0 transition"
+                className="px-2.5 py-1 xl:px-3 xl:py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] xl:text-xs font-bold tracking-wide cursor-pointer shrink-0 transition"
               >
                 ENTER
               </button>
@@ -1119,41 +1148,45 @@ export default function CreateSalePage() {
 
             {/* Tabla de Líneas de Venta */}
             <div
-              className="flex-1 overflow-y-auto custom-scrollbar"
+              className="flex-1 min-h-0 overflow-y-auto custom-scrollbar"
               onClick={(e) => {
                 e.stopPropagation();
                 focusScanner();
               }}
             >
-              <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 z-10 bg-[#181528] border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400 select-none">
+              <table className="w-full text-left border-collapse table-fixed">
+                <thead className="sticky top-0 z-10 bg-[#181528] border-b border-white/10 text-[10px] xl:text-[11px] uppercase tracking-wider text-slate-400 select-none">
                   <tr>
-                    <th className="py-2.5 px-3 w-28 font-semibold">Código</th>
-                    <th className="py-2.5 px-3 font-semibold">Artículo</th>
-                    <th className="py-2.5 px-3 w-28 text-right font-semibold">
+                    <th className="py-1.5 xl:py-2.5 px-2 xl:px-3 w-20 xl:w-28 font-semibold">
+                      Código
+                    </th>
+                    <th className="py-1.5 xl:py-2.5 px-2 xl:px-3 font-semibold">
+                      Artículo
+                    </th>
+                    <th className="py-1.5 xl:py-2.5 px-2 xl:px-3 w-20 xl:w-28 text-right font-semibold hidden md:table-cell">
                       P. Unit.
                     </th>
-                    <th className="py-2.5 px-3 w-28 text-center font-semibold">
+                    <th className="py-1.5 xl:py-2.5 px-1.5 xl:px-3 w-22 xl:w-28 text-center font-semibold">
                       Cant.
                     </th>
-                    <th className="py-2.5 px-3 w-32 text-right font-semibold">
+                    <th className="py-1.5 xl:py-2.5 px-2 xl:px-3 w-24 xl:w-32 text-right font-semibold">
                       Importe
                     </th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-white/5 text-sm">
+                <tbody className="divide-y divide-white/5 text-xs xl:text-sm">
                   {activeTicket.items.length === 0 ? (
                     <tr>
                       <td
                         colSpan={5}
-                        className="py-20 text-center text-slate-500"
+                        className="py-8 xl:py-16 text-center text-slate-500"
                       >
-                        <p className="text-sm font-semibold text-slate-400">
+                        <p className="text-xs xl:text-sm font-semibold text-slate-400">
                           Caja lista para escanear
                         </p>
-                        <p className="text-xs text-slate-600 mt-1">
-                          Pasá el lector de código de barras o presioná{" "}
+                        <p className="text-[11px] xl:text-xs text-slate-600 mt-1">
+                          Pasá el lector o presioná{" "}
                           <kbd className="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 font-mono">
                             F3
                           </kbd>{" "}
@@ -1185,38 +1218,38 @@ export default function CreateSalePage() {
                               : "hover:bg-white/[0.04] text-slate-200"
                           }`}
                         >
-                          <td className="py-2.5 px-3 font-mono text-xs text-slate-400 truncate max-w-[110px]">
+                          <td className="py-1.5 xl:py-2.5 px-2 xl:px-3 font-mono text-[11px] xl:text-xs text-slate-400 truncate">
                             {item.code}
                           </td>
 
-                          <td className="py-2.5 px-3 font-semibold">
-                            <div className="flex items-center gap-2 flex-wrap">
+                          <td className="py-1.5 xl:py-2.5 px-2 xl:px-3 font-semibold min-w-0">
+                            <div className="flex items-center gap-1.5 min-w-0">
                               {isSelected && (
-                                <span className="w-1.5 h-4 rounded-full bg-indigo-400 shrink-0" />
+                                <span className="w-1 h-3.5 rounded-full bg-indigo-400 shrink-0" />
                               )}
                               <span className="truncate">{item.name}</span>
                               {item.isDiaper && (
                                 <span
-                                  className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide ${
+                                  className={`shrink-0 text-[9px] xl:text-[10px] px-1 xl:px-1.5 py-0.2 rounded font-bold uppercase tracking-wide ${
                                     isCardActive
                                       ? "bg-amber-500/20 text-amber-300 border border-amber-400/40"
                                       : "bg-white/5 text-slate-400 border border-white/10"
                                   }`}
                                 >
                                   {isCardActive
-                                    ? `+5% Tarj. (+${formatARS(lineCardExtra)})`
-                                    : "Pañales"}
+                                    ? `+5% (+${formatARS(lineCardExtra)})`
+                                    : "Pañal"}
                                 </span>
                               )}
                             </div>
                           </td>
 
-                          <td className="py-2.5 px-3 text-right font-mono text-xs text-slate-300">
+                          <td className="py-1.5 xl:py-2.5 px-2 xl:px-3 text-right font-mono text-[11px] xl:text-xs text-slate-300 hidden md:table-cell truncate">
                             {formatARS(item.price)}
                           </td>
 
-                          <td className="py-2 px-3 text-center">
-                            <div className="inline-flex items-center gap-1 bg-black/30 border border-white/10 rounded-lg px-1 py-0.5">
+                          <td className="py-1 xl:py-2 px-1.5 xl:px-3 text-center">
+                            <div className="inline-flex items-center gap-0.5 xl:gap-1 bg-black/30 border border-white/10 rounded-lg px-0.5 xl:px-1 py-0.5">
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -1227,11 +1260,11 @@ export default function CreateSalePage() {
                                   );
                                   focusScanner();
                                 }}
-                                className="w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 text-slate-300 hover:text-rose-400 cursor-pointer"
+                                className="w-5 h-5 xl:w-6 xl:h-6 flex items-center justify-center rounded hover:bg-white/10 text-slate-300 hover:text-rose-400 cursor-pointer"
                               >
-                                <Minus size={12} />
+                                <Minus size={11} />
                               </button>
-                              <span className="min-w-[28px] text-center font-mono font-bold text-sm text-white">
+                              <span className="min-w-[20px] xl:min-w-[26px] text-center font-mono font-bold text-xs xl:text-sm text-white">
                                 {item.quantity}
                               </span>
                               <button
@@ -1244,14 +1277,14 @@ export default function CreateSalePage() {
                                   );
                                   focusScanner();
                                 }}
-                                className="w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 text-slate-300 hover:text-emerald-400 cursor-pointer"
+                                className="w-5 h-5 xl:w-6 xl:h-6 flex items-center justify-center rounded hover:bg-white/10 text-slate-300 hover:text-emerald-400 cursor-pointer"
                               >
-                                <Plus size={12} />
+                                <Plus size={11} />
                               </button>
                             </div>
                           </td>
 
-                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-400">
+                          <td className="py-1.5 xl:py-2.5 px-2 xl:px-3 text-right font-mono font-bold text-emerald-400 truncate">
                             {formatARS(lineBase)}
                           </td>
                         </tr>
@@ -1262,25 +1295,25 @@ export default function CreateSalePage() {
               </table>
             </div>
 
-            {/* Franja Inferior de Totales: Unidades | Subtotal | Recargo Tarj. Pañales | TOTAL */}
-            <div className="shrink-0 bg-[#141122] border-t border-white/10 p-3 grid grid-cols-3 sm:grid-cols-4 gap-2.5 items-center">
-              <div className="hidden sm:block bg-[#0B0914] border border-white/10 rounded-lg px-3 py-2">
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+            {/* Franja Inferior de Totales Compactable */}
+            <div className="shrink-0 bg-[#141122] border-t border-white/10 p-1.5 xl:p-2.5 grid grid-cols-3 lg:grid-cols-4 gap-1.5 xl:gap-2.5 items-center">
+              <div className="hidden lg:block bg-[#0B0914] border border-white/10 rounded-lg px-2.5 py-1.5 xl:px-3 xl:py-2 min-w-0">
+                <span className="block text-[9px] xl:text-[10px] uppercase tracking-wider text-slate-400 font-semibold truncate">
                   Unidades
                 </span>
-                <span className="text-base font-mono font-bold text-slate-200">
+                <span className="text-xs lg:text-sm xl:text-base font-mono font-bold text-slate-200 truncate block">
                   {totalUnits}{" "}
-                  <span className="text-xs font-normal text-slate-500">
-                    ({activeTicket.items.length} ítems)
+                  <span className="text-[10px] xl:text-xs font-normal text-slate-500">
+                    ({activeTicket.items.length})
                   </span>
                 </span>
               </div>
 
-              <div className="bg-[#0B0914] border border-white/10 rounded-lg px-3 py-2">
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+              <div className="bg-[#0B0914] border border-white/10 rounded-lg px-2 py-1 xl:px-3 xl:py-2 min-w-0">
+                <span className="block text-[9px] xl:text-[10px] uppercase tracking-wider text-slate-400 font-semibold truncate">
                   Subtotal
                 </span>
-                <span className="text-base font-mono font-bold text-slate-200">
+                <span className="text-xs lg:text-sm xl:text-base font-mono font-bold text-slate-200 truncate block">
                   {formatARS(subtotal)}
                 </span>
               </div>
@@ -1290,18 +1323,18 @@ export default function CreateSalePage() {
                   e.stopPropagation();
                   toggleCardMode();
                 }}
-                className={`rounded-lg px-3 py-2 cursor-pointer transition border ${
+                className={`rounded-lg px-2 py-1 xl:px-3 xl:py-2 cursor-pointer transition border min-w-0 ${
                   isCardActive && activeCardSurcharge > 0
                     ? "bg-amber-950/30 border-amber-500/40"
                     : "bg-[#0B0914] border-white/10 hover:border-amber-500/30"
                 }`}
                 title="Clic para alternar Efectivo / Tarjeta (+5% en pañales)"
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold truncate">
-                  {isCardActive ? "Tarj. +5% Pañales" : "Recargo Tarj."}
+                <span className="block text-[9px] xl:text-[10px] uppercase tracking-wider text-slate-400 font-semibold truncate">
+                  {isCardActive ? "Tarj. +5% Pañal" : "Recargo Tarj."}
                 </span>
                 <span
-                  className={`text-base font-mono font-bold ${
+                  className={`text-xs lg:text-sm xl:text-base font-mono font-bold truncate block ${
                     activeCardSurcharge > 0 ? "text-amber-400" : "text-slate-500"
                   }`}
                 >
@@ -1309,70 +1342,95 @@ export default function CreateSalePage() {
                 </span>
               </div>
 
-              <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-lg px-3 py-2 text-right">
-                <span className="block text-[10px] uppercase tracking-wider text-emerald-300/80 font-bold">
-                  Total {isCardActive ? "(Tarjeta)" : ""}
+              <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-lg px-2 py-1 xl:px-3 xl:py-2 text-right min-w-0">
+                <span className="block text-[9px] xl:text-[10px] uppercase tracking-wider text-emerald-300/80 font-bold truncate">
+                  Total {isCardActive ? "(Tarj.)" : ""}
                 </span>
-                <span className="text-xl xl:text-2xl font-mono font-black text-emerald-400 leading-tight block truncate">
+                <span className="text-sm sm:text-base lg:text-lg xl:text-2xl font-mono font-black text-emerald-400 leading-tight block truncate">
                   {formatARS(finalTotal)}
                 </span>
               </div>
             </div>
+
+            {/* Botones de Cobro visibles en pantallas muy angostas (< sm) donde se oculta el numpad */}
+            <div
+              className="sm:hidden shrink-0 grid grid-cols-12 gap-1.5 p-1.5 bg-[#110E1C] border-t border-white/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                disabled={activeTicket.items.length === 0 || isSubmitting}
+                onClick={() => processSale("CASH")}
+                className="col-span-5 py-2 px-2 rounded-lg bg-indigo-600/25 border border-indigo-400/40 text-indigo-200 disabled:opacity-30 font-bold text-xs flex items-center justify-center gap-1"
+              >
+                <Zap size={13} className="text-amber-400" />
+                <span>Exacto</span>
+              </button>
+              <button
+                type="button"
+                disabled={activeTicket.items.length === 0 || isSubmitting}
+                onClick={openCheckout}
+                className="col-span-7 py-2 px-3 rounded-lg bg-emerald-600 text-white disabled:bg-slate-800 disabled:text-slate-500 font-black text-sm flex items-center justify-center gap-1.5"
+              >
+                <span className="font-mono">=</span>
+                <span>COBRAR</span>
+              </button>
+            </div>
           </div>
 
           {/* ------------------------------------------------------------- */}
-          {/* DERECHA (4 COLS): CONTROLES DE LÍNEA + TECLADO NUMÉRICO + '=' */}
+          {/* DERECHA: CONTROLES DE LÍNEA + TECLADO AUTO-AJUSTABLE + '='    */}
           {/* ------------------------------------------------------------- */}
           <div
-            className="lg:col-span-4 flex flex-col min-h-0 bg-[#110E1C] border border-white/10 rounded-xl p-2.5 gap-2.5 shadow-xl"
+            className="hidden sm:flex flex-col min-h-0 bg-[#110E1C] border border-white/10 rounded-xl p-1.5 lg:p-2 xl:p-2.5 gap-1.5 xl:gap-2 shadow-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Visor Digital de Entrada */}
-            <div className="shrink-0 bg-[#08060E] border border-white/10 rounded-lg px-3 py-2 flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <div className="shrink-0 bg-[#08060E] border border-white/10 rounded-lg px-2.5 py-1 xl:px-3 xl:py-2 flex items-center justify-between gap-2 min-w-0">
+              <span className="text-[9px] xl:text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
                 {pendingMultiplier
-                  ? `Multiplicador activo`
+                  ? "Mult."
                   : selectedItem
-                  ? `Sel: ${selectedItem.name}`
+                  ? selectedItem.name
                   : "Entrada"}
               </span>
-              <span className="font-mono text-base font-bold text-indigo-300 truncate max-w-[160px]">
+              <span className="font-mono text-xs lg:text-sm xl:text-base font-bold text-indigo-300 truncate shrink-0 max-w-[110px] xl:max-w-[150px]">
                 {pendingMultiplier ? `${pendingMultiplier} × ` : ""}
                 {commandInput || "0"}
               </span>
             </div>
 
-            {/* Bloque Central: Columna de Acción de Fila (izq) + Numpad (der) */}
-            <div className="flex-1 min-h-0 grid grid-cols-4 gap-2">
-              <div className="col-span-1 flex flex-col gap-1.5">
+            {/* Bloque Central Elástico: min-h-0 permite achicar las teclas con zoom sin cortar abajo */}
+            <div className="flex-1 min-h-0 grid grid-cols-4 gap-1 lg:gap-1.5 xl:gap-2">
+              <div className="col-span-1 flex flex-col min-h-0 gap-1 xl:gap-1.5">
                 <button
                   type="button"
                   onClick={() => moveSelection(-1)}
                   disabled={activeTicket.items.length === 0}
-                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  className="flex-1 min-h-0 rounded-lg xl:rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                   title="Subir línea (Flecha Arriba)"
                 >
-                  <ArrowUp size={20} />
+                  <ArrowUp className="w-4 h-4 xl:w-5 xl:h-5" />
                 </button>
 
                 <button
                   type="button"
                   onClick={() => moveSelection(1)}
                   disabled={activeTicket.items.length === 0}
-                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  className="flex-1 min-h-0 rounded-lg xl:rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                   title="Bajar línea (Flecha Abajo)"
                 >
-                  <ArrowDown size={20} />
+                  <ArrowDown className="w-4 h-4 xl:w-5 xl:h-5" />
                 </button>
 
                 <button
                   type="button"
                   onClick={removeSelectedRow}
                   disabled={!selectedItem}
-                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-rose-500/25 border border-white/10 text-rose-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  className="flex-1 min-h-0 rounded-lg xl:rounded-xl bg-[#1A162B] hover:bg-rose-500/25 border border-white/10 text-rose-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                   title="Quitar artículo seleccionado (Supr)"
                 >
-                  <Trash2 size={19} />
+                  <Trash2 className="w-4 h-4 xl:w-5 xl:h-5" />
                 </button>
 
                 <button
@@ -1383,10 +1441,10 @@ export default function CreateSalePage() {
                     setShowSearchModal(true);
                     setTimeout(() => searchModalInputRef.current?.focus(), 20);
                   }}
-                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center cursor-pointer active:scale-95 transition"
+                  className="flex-1 min-h-0 rounded-lg xl:rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-sky-400 flex items-center justify-center cursor-pointer active:scale-95 transition"
                   title="Buscar producto por nombre (F3)"
                 >
-                  <Search size={19} />
+                  <Search className="w-4 h-4 xl:w-5 xl:h-5" />
                 </button>
 
                 <button
@@ -1397,26 +1455,26 @@ export default function CreateSalePage() {
                     setQtyEditValue(String(selectedItem.quantity));
                     setShowQtyEditModal(true);
                   }}
-                  className="flex-1 rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-amber-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
+                  className="flex-1 min-h-0 rounded-lg xl:rounded-xl bg-[#1A162B] hover:bg-indigo-600/25 border border-white/10 text-amber-400 flex items-center justify-center disabled:opacity-30 cursor-pointer active:scale-95 transition"
                   title="Editar cantidad exacta de la línea"
                 >
-                  <Pencil size={18} />
+                  <Pencil className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                 </button>
               </div>
 
-              {/* Numpad Principal (3 cols) */}
-              <div className="col-span-3 grid grid-cols-3 grid-rows-5 gap-1.5">
+              {/* Numpad Principal (3 cols x 5 filas elásticas) */}
+              <div className="col-span-3 min-h-0 grid grid-cols-3 grid-rows-5 gap-1 lg:gap-1.5">
                 <button
                   type="button"
                   onClick={handleKeypadClear}
-                  className="rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-sm font-black text-rose-300 cursor-pointer active:scale-95 transition"
+                  className="min-h-0 rounded-lg xl:rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-xs lg:text-sm font-black text-rose-300 cursor-pointer active:scale-95 transition leading-none"
                 >
                   CE
                 </button>
                 <button
                   type="button"
                   onClick={handleKeypadMultiply}
-                  className="rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-xl font-black text-amber-300 cursor-pointer active:scale-95 transition"
+                  className="min-h-0 rounded-lg xl:rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-base lg:text-lg xl:text-xl font-black text-amber-300 cursor-pointer active:scale-95 transition leading-none"
                   title="Multiplicar cantidad (*)"
                 >
                   *
@@ -1424,7 +1482,7 @@ export default function CreateSalePage() {
                 <button
                   type="button"
                   onClick={handleKeypadMinus}
-                  className="rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xl font-black text-rose-300 cursor-pointer active:scale-95 transition"
+                  className="min-h-0 rounded-lg xl:rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-base lg:text-lg xl:text-xl font-black text-rose-300 cursor-pointer active:scale-95 transition leading-none"
                   title="Restar cantidad (-)"
                 >
                   −
@@ -1435,7 +1493,7 @@ export default function CreateSalePage() {
                     key={n}
                     type="button"
                     onClick={() => handleKeypadDigit(n)}
-                    className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                    className="min-h-0 rounded-lg xl:rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-sm lg:text-base xl:text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition leading-none"
                   >
                     {n}
                   </button>
@@ -1446,7 +1504,7 @@ export default function CreateSalePage() {
                     key={n}
                     type="button"
                     onClick={() => handleKeypadDigit(n)}
-                    className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                    className="min-h-0 rounded-lg xl:rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-sm lg:text-base xl:text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition leading-none"
                   >
                     {n}
                   </button>
@@ -1457,7 +1515,7 @@ export default function CreateSalePage() {
                     key={n}
                     type="button"
                     onClick={() => handleKeypadDigit(n)}
-                    className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                    className="min-h-0 rounded-lg xl:rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-sm lg:text-base xl:text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition leading-none"
                   >
                     {n}
                   </button>
@@ -1466,21 +1524,21 @@ export default function CreateSalePage() {
                 <button
                   type="button"
                   onClick={() => handleKeypadDigit("0")}
-                  className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition"
+                  className="min-h-0 rounded-lg xl:rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-sm lg:text-base xl:text-xl font-bold font-mono text-white cursor-pointer active:scale-95 transition leading-none"
                 >
                   0
                 </button>
                 <button
                   type="button"
                   onClick={() => handleKeypadDigit("00")}
-                  className="rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-base font-bold font-mono text-slate-300 cursor-pointer active:scale-95 transition"
+                  className="min-h-0 rounded-lg xl:rounded-xl bg-[#191628] hover:bg-[#242038] border border-white/10 text-xs lg:text-sm xl:text-base font-bold font-mono text-slate-300 cursor-pointer active:scale-95 transition leading-none"
                 >
                   00
                 </button>
                 <button
                   type="button"
                   onClick={handleKeypadPlus}
-                  className="rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-2xl font-black text-sky-300 cursor-pointer active:scale-95 transition"
+                  className="min-h-0 rounded-lg xl:rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-base lg:text-xl xl:text-2xl font-black text-sky-300 cursor-pointer active:scale-95 transition leading-none"
                   title="Sumar cantidad (+)"
                 >
                   +
@@ -1489,20 +1547,20 @@ export default function CreateSalePage() {
             </div>
 
             {/* Botones de Cierre Ultra Rápido (= COBRAR y EFECTIVO EXACTO 1-CLIC) */}
-            <div className="shrink-0 grid grid-cols-12 gap-2 pt-1">
+            <div className="shrink-0 grid grid-cols-12 gap-1.5 xl:gap-2">
               <button
                 type="button"
                 disabled={activeTicket.items.length === 0 || isSubmitting}
                 onClick={() => processSale("CASH")}
-                className="col-span-5 py-3 px-2 rounded-xl bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-400/40 text-indigo-200 disabled:opacity-30 disabled:pointer-events-none font-bold text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 transition"
+                className="col-span-5 py-1.5 lg:py-2 xl:py-3 px-1.5 rounded-lg xl:rounded-xl bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-400/40 text-indigo-200 disabled:opacity-30 disabled:pointer-events-none font-bold text-[10px] lg:text-xs flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 transition"
                 title="Cerrar venta inmediata en efectivo exacto en 1 solo paso (F12)"
               >
                 <div className="flex items-center gap-1">
-                  <Zap size={14} className="text-amber-400" />
-                  <span>Efvo. Exacto</span>
+                  <Zap size={12} className="text-amber-400 shrink-0" />
+                  <span className="truncate">Exacto</span>
                 </div>
-                <span className="text-[10px] font-mono text-indigo-300/80">
-                  [F12] 1-Clic
+                <span className="text-[9px] xl:text-[10px] font-mono text-indigo-300/80 hidden lg:inline">
+                  [F12]
                 </span>
               </button>
 
@@ -1510,12 +1568,12 @@ export default function CreateSalePage() {
                 type="button"
                 disabled={activeTicket.items.length === 0 || isSubmitting}
                 onClick={openCheckout}
-                className="col-span-7 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:pointer-events-none font-black text-base flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.35)] cursor-pointer active:scale-95 transition"
+                className="col-span-7 py-1.5 lg:py-2 xl:py-3 px-2 xl:px-4 rounded-lg xl:rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:pointer-events-none font-black text-xs lg:text-sm xl:text-base flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(16,185,129,0.35)] cursor-pointer active:scale-95 transition"
                 title="Abrir pantalla de cobro y vuelto (= o F4)"
               >
-                <span className="text-2xl leading-none font-mono">=</span>
+                <span className="text-lg xl:text-2xl leading-none font-mono">=</span>
                 <span>COBRAR</span>
-                <kbd className="text-[11px] font-mono bg-black/25 px-1.5 py-0.5 rounded">
+                <kbd className="hidden xl:inline text-[10px] font-mono bg-black/25 px-1.5 py-0.5 rounded">
                   F4
                 </kbd>
               </button>
@@ -1610,13 +1668,12 @@ export default function CreateSalePage() {
                               setShowSearchModal(false);
                             }
                           }}
-                          className={`cursor-pointer ${
-                            noStock
-                              ? "opacity-40 cursor-not-allowed"
-                              : active
+                          className={`cursor-pointer ${noStock
+                            ? "opacity-40 cursor-not-allowed"
+                            : active
                               ? "bg-indigo-600 text-white"
                               : "hover:bg-white/5 text-slate-200"
-                          }`}
+                            }`}
                         >
                           <td className="py-2.5 px-3 font-mono">
                             {p.barcode || p.id}
@@ -1644,7 +1701,7 @@ export default function CreateSalePage() {
       {/* =============================================================== */}
       {showCheckoutModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4"
           onClick={() => !isSubmitting && setShowCheckoutModal(false)}
         >
           <form
@@ -1653,10 +1710,10 @@ export default function CreateSalePage() {
               processSale();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-md max-h-[94dvh] flex flex-col bg-[#12101F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
           >
-            <div className="px-5 py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+            <div className="shrink-0 px-4 py-2.5 sm:px-5 sm:py-3.5 bg-[#181529] border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
                 Cobro de Venta
               </h3>
               <button
@@ -1668,7 +1725,7 @@ export default function CreateSalePage() {
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 space-y-3 sm:space-y-4 custom-scrollbar">
               {/* Medios de Pago Rápidos */}
               <div className="grid grid-cols-4 gap-1.5">
                 {(
@@ -1695,11 +1752,10 @@ export default function CreateSalePage() {
                           cashTendered: String(Number(nextTotal.toFixed(2))),
                         }));
                       }}
-                      className={`relative py-2.5 px-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition ${
-                        active
-                          ? "bg-indigo-600 text-white border-indigo-400"
-                          : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
-                      }`}
+                      className={`relative py-2.5 px-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition ${active
+                        ? "bg-indigo-600 text-white border-indigo-400"
+                        : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
+                        }`}
                     >
                       <Icon size={17} />
                       <span>{pm.label}</span>
@@ -1796,18 +1852,18 @@ export default function CreateSalePage() {
               )}
             </div>
 
-            <div className="px-5 py-3.5 bg-[#181529] border-t border-white/10 flex justify-end gap-2">
+            <div className="shrink-0 px-4 py-2.5 sm:px-5 sm:py-3.5 bg-[#181529] border-t border-white/10 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowCheckoutModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 cursor-pointer"
+                className="px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 cursor-pointer"
               >
                 Cancelar (Esc)
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Check size={16} />
                 <span>{isSubmitting ? "Guardando..." : "CONFIRMAR (ENTER)"}</span>
@@ -1936,11 +1992,10 @@ export default function CreateSalePage() {
                         }));
                       }
                     }}
-                    className={`py-2 px-2 rounded-xl text-xs font-bold border cursor-pointer ${
-                      activeTicket.customer.mode === mode
-                        ? "bg-indigo-600 text-white border-indigo-400"
-                        : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
-                    }`}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold border cursor-pointer ${activeTicket.customer.mode === mode
+                      ? "bg-indigo-600 text-white border-indigo-400"
+                      : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
+                      }`}
                   >
                     {label}
                   </button>
@@ -2085,6 +2140,7 @@ export default function CreateSalePage() {
                 ["=  ó  F4", "Abrir ventana de Cobro y Vuelto"],
                 ["F12", "Cobro Exacto Efectivo en 1 sola tecla"],
                 ["F7", "Alternar Efectivo / Tarjeta (+5% pañales)"],
+                ["F9", "Ampliar / reducir caja a pantalla completa"],
                 ["↑ / ↓", "Moverse entre líneas del ticket"],
                 ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
                 ["F6 / F8", "Ticket en espera / Cambiar cliente"],
