@@ -249,7 +249,7 @@ export default function CreateProductPage() {
                                 autoComplete="off" // Evita sugerencias de nombres de personas
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Ej: Teclado Mecánico"
+                                placeholder="Ej: Pañal..."
                                 className="w-full bg-[#151320] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                                 required
                             />

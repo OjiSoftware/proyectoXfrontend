@@ -19,11 +19,8 @@ export default function CatalogPage() {
     const [showFilters, setShowFilters] = useState(false); // Estado para mostrar/ocultar filtros
     const itemsPerPage = 12;
 
-    const [selectedSubCategory, setSelectedSubCategory] = useState<number | null>(null);
-    const [selectedBrand, setSelectedBrand] = useState<number | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [selectedCatName, setSelectedCatName] = useState<string | null>(null);
-    const [selectedSubCatName, setSelectedSubCatName] = useState<string | null>(null);
-    const [selectedBrandName, setSelectedBrandName] = useState<string | null>(null);
 
     // ---------------- FETCH ----------------
     useEffect(() => {
@@ -63,35 +60,24 @@ export default function CatalogPage() {
             });
         }
 
-        /*         if (selectedSubCategory !== null) {
-                    filtered = filtered.filter((p) => Number(p.subCategoryId) === selectedSubCategory);
-                }
-        
-                if (selectedBrand !== null) {
-                    filtered = filtered.filter((p) => Number(p.brandId) === selectedBrand);
-                } */
+        if (selectedCategory !== null) {
+            filtered = filtered.filter(
+                (p) => Number(p.categoryId) === selectedCategory || Number(p.category?.id) === selectedCategory
+            );
+        }
 
         return filtered;
-    }, [search, selectedSubCategory, selectedBrand, catProducts]);
+    }, [search, selectedCategory, catProducts]);
 
     // ---------------- HANDLERS DE FILTROS ----------------
-    const handleSelectSubCategory = (subId: number, subName: string, catName: string) => {
-        setSelectedSubCategory(subId);
-        setSelectedSubCatName(subName);
+    const handleSelectCategory = (catId: number, catName: string) => {
+        setSelectedCategory(catId);
         setSelectedCatName(catName);
     };
 
-    const handleSelectBrand = (brandId: number, brandName: string) => {
-        setSelectedBrand(brandId);
-        setSelectedBrandName(brandName);
-    };
-
     const handleClearFilters = () => {
-        setSelectedSubCategory(null);
-        setSelectedSubCatName(null);
+        setSelectedCategory(null);
         setSelectedCatName(null);
-        setSelectedBrand(null);
-        setSelectedBrandName(null);
         setSearch("");
         if (searchParams.has("search")) {
             searchParams.delete("search");
@@ -106,7 +92,7 @@ export default function CatalogPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, selectedSubCategory, selectedBrand]);
+    }, [search, selectedCategory]);
 
     // ---------------- UI ----------------
     return (
@@ -118,17 +104,11 @@ export default function CatalogPage() {
                 <div className="flex justify-between items-center mb-6">
                     <div className="text-[#9E9494] md:text-sm text-[12px] flex items-center gap-1.5 flex-wrap">
                         <span className="hover:text-gray-600 cursor-pointer transition-colors" onClick={handleClearFilters}>Upa Lelé</span>
-                        {(selectedCatName || selectedBrandName) && <span>/</span>}
                         {selectedCatName && (
                             <>
-                                <span className="cursor-default">{selectedCatName}</span>
                                 <span>/</span>
-                                <span className="cursor-default font-semibold text-gray-500">{selectedSubCatName}</span>
+                                <span className="cursor-default font-semibold text-gray-500">{selectedCatName}</span>
                             </>
-                        )}
-                        {selectedCatName && selectedBrandName && <span>/</span>}
-                        {selectedBrandName && (
-                            <span className="cursor-default font-semibold text-gray-500">{selectedBrandName}</span>
                         )}
                     </div>
 
@@ -148,11 +128,9 @@ export default function CatalogPage() {
                     {/* FILTROS (Fijo / lateral a la izquierda en desktop, desplegable en mobile) */}
                     <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 shrink-0`}>
                         <CategorySidebar
-                            onSelectSubCategory={handleSelectSubCategory}
-                            onSelectBrand={handleSelectBrand}
+                            onSelectCategory={handleSelectCategory}
                             onClearFilters={handleClearFilters}
-                            selectedSubCategory={selectedSubCategory}
-                            selectedBrand={selectedBrand}
+                            selectedCategory={selectedCategory}
                         />
                     </div>
 

@@ -8,18 +8,20 @@ import { catalogApi } from "@/services/CatalogService";
 import { Product } from "@/types/product.types";
 
 import {
-    Baby, Droplets, Bath, Heart, Utensils, Tag, ShieldCheck, Truck,
+    Baby, Droplets, Heart, Tag, ShieldCheck, Truck,
     ChevronLeft, ChevronRight, ArrowRight, BadgeCheck, Sparkles,
-    DollarSign,
+    DollarSign, Shirt, ToyBrick, Car,
 } from 'lucide-react';
 
 const categories = [
     { name: "Pañales", icon: Baby, bg: "bg-[#FFF6B8]" },
     { name: "Toallitas", icon: Droplets, bg: "bg-[#D5F3F4]" },
-    { name: "Baño e Higiene", icon: Bath, bg: "bg-[#FFE0E6]" },
-    { name: "Cuidado del Bebé", icon: Heart, bg: "bg-[#FFF6B8]" },
-    { name: "Alimentación", icon: Utensils, bg: "bg-[#D5F3F4]" },
-    { name: "Ofertas", icon: Tag, bg: "bg-[#FFE0E6]" },
+    { name: "Perfumería", icon: Sparkles, bg: "bg-[#FFE0E6]" },
+    { name: "Indumentaria", icon: Shirt, bg: "bg-[#FFF6B8]" },
+    { name: "Juguetes", icon: ToyBrick, bg: "bg-[#D5F3F4]" },
+    { name: "Accesorios", icon: Heart, bg: "bg-[#FFE0E6]" },
+    { name: "Adultos", icon: ShieldCheck, bg: "bg-[#FFF6B8]" },
+    { name: "Rodados y Mobiliario", icon: Car, bg: "bg-[#D5F3F4]" },
 ];
 
 const formatPrice = (n: number) =>
