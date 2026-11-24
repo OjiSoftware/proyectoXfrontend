@@ -46,7 +46,7 @@ export default function CreateBrandPage() {
                         </h1>
                     </div>
                     <p className="text-slate-400 text-xs hidden md:block">
-                        Complete la información para crear una nueva marca.
+                        Complete la informaciï¿½n para crear una nueva marca.
                     </p>
                 </div>
 
@@ -74,7 +74,7 @@ export default function CreateBrandPage() {
                 >
                     <div className="space-y-4">
                         <h3 className="text-brand-400 text-xs font-semibold border-b border-white/10 pb-1.5 uppercase">
-                            Información básica
+                            Informaciï¿½n bï¿½sica
                         </h3>
 
                         <div>
@@ -108,12 +108,7 @@ export default function CreateBrandPage() {
                             <button
                                 type="submit"
                                 disabled={isFormInvalid}
-                                className={`flex-1 md:flex-none md:min-w-35 px-4 py-3 text-xs font-bold rounded-lg transition-all duration-300
-                                      ${
-                                          isFormInvalid
-                                              ? "bg-emerald-600 text-white cursor-not-allowed opacity-50"
-                                              : "bg-emerald-600 text-white cursor-pointer hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                                      }`}
+                                className="btn btn-md btn-success flex-1 md:flex-none md:min-w-32"
                             >
                                 Crear marca
                             </button>
@@ -137,7 +132,7 @@ export default function CreateBrandPage() {
                     variant="success"
                     message={
                         <>
-                            ¿Seguro que querés crear la marca{" "}
+                            ï¿½Seguro que querï¿½s crear la marca{" "}
                             <b>{formData.name}</b>?
                         </>
                     }

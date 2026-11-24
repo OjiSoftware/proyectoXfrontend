@@ -152,13 +152,7 @@ function CheckoutButton({
           // --- USAMOS EL DISABLED DE LAS PROPS ---
           disabled={loading || disabled}
           type="button"
-          className={`w-full flex items-center justify-center gap-2 font-semibold py-3.5 px-6 rounded-xl shadow-sm transition-all
-                        ${
-                          loading || disabled
-                            ? 'bg-gray-400 text-white opacity-70 cursor-not-allowed'
-                            : 'bg-[#16a34a] hover:bg-[#15803d] text-white cursor-pointer shadow-[0_0_20px_rgba(22,163,74,0.3)] hover:shadow-[0_0_25px_rgba(22,163,74,0.4)] active:scale-[0.98]'
-                        }
-                    `}
+          className="btn btn-lg btn-success w-full"
         >
           {loading ? (
             <>

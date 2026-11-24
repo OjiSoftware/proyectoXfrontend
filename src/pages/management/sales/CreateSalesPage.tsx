@@ -1827,7 +1827,7 @@ export default function CreateSalePage() {
                 <button
                   type="submit"
                   disabled={isSubmitting || hasUnderpaidCash}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn btn-md btn-success text-xs font-black"
                 >
                   <Check size={16} />
                   <span>{isSubmitting ? "Guardando..." : "CONFIRMAR (ENTER)"}</span>
@@ -1896,7 +1896,7 @@ export default function CreateSalePage() {
               </button>
               <button
                 type="submit"
-                className="flex-1 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
+                className="btn btn-sm btn-primary flex-1"
               >
                 Aplicar
               </button>

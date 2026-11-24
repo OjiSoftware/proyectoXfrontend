@@ -734,7 +734,7 @@ export default function ProductsPage() {
                             {hasActiveFilters && (
                                 <button
                                     onClick={resetFilters}
-                                    className="h-11 flex items-center gap-2 px-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 text-xs font-medium transition-all hover:bg-rose-500/20 hover:border-rose-500/40 active:scale-95 cursor-pointer"
+                                    className="btn btn-md btn-danger text-xs font-medium"
                                     title="Limpiar todos los filtros"
                                 >
                                     <X className="w-4 h-4" />
@@ -942,13 +942,13 @@ export default function ProductsPage() {
                                             resetFilters();
                                             setMobileFilterOpen(false);
                                         }}
-                                        className="flex-1 py-2.5 rounded-xl bg-white/5 text-slate-300 text-xs font-semibold hover:bg-white/10 transition"
+                                        className="btn btn-sm btn-subtle flex-1"
                                     >
                                         Limpiar
                                     </button>
                                     <button
                                         onClick={() => setMobileFilterOpen(false)}
-                                        className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/30"
+                                        className="btn btn-sm btn-primary flex-1"
                                     >
                                         Aplicar Filtros
                                     </button>
