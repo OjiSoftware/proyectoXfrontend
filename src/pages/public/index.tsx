@@ -99,7 +99,7 @@ const categories = [
     { name: "Juguetes", icon: RattleToyIcon, bg: "bg-[#D5F3F4]", ring: "group-hover:shadow-[#D5F3F4]/90" },
     { name: "Accesorios", icon: BabyBottleIcon, bg: "bg-[#FFE0E6]", ring: "group-hover:shadow-[#FFE0E6]/90" },
     { name: "Adultos", icon: ElderlyIcon, bg: "bg-[#FFF6B8]", ring: "group-hover:shadow-[#FFF6B8]/80" },
-    { name: "Cochecitos", icon: StrollerIcon, bg: "bg-[#D5F3F4]", ring: "group-hover:shadow-[#D5F3F4]/90" },
+    { name: "Rodados", icon: StrollerIcon, bg: "bg-[#D5F3F4]", ring: "group-hover:shadow-[#D5F3F4]/90" },
 ];
 
 const formatPrice = (n: number) =>
@@ -163,16 +163,9 @@ export default function HomePage() {
                             onClick={() => goSearch("Pañales")}
                             className="group relative overflow-hidden text-left rounded-3xl bg-gradient-to-br from-[#FFF9CE] to-[#FFF29C] p-6 md:p-7 min-h-[190px] flex flex-col justify-between border border-amber-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                         >
-                            <div className="pointer-events-none absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-white/45" />
-                            <DiaperIcon className="pointer-events-none absolute right-4 bottom-3 w-24 h-24 text-[#37b9c7]/15 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.3} />
-                            <div className="relative flex items-center justify-between w-full">
-                                <div className="bg-white rounded-2xl p-3 shadow-sm ring-4 ring-white/60 group-hover:scale-105 transition-transform">
-                                    <DiaperIcon className="w-7 h-7 text-[#37b9c7]" strokeWidth={1.8} />
-                                </div>
-                                <span className="bg-white/75 text-[#1A2D2A] text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                                    RN a XXG
-                                </span>
-                            </div>
+                            <div className="pointer-events-none absolute -right-8 -top-8 w-36 h-36 rounded-full bg-white/45" />
+                            <DiaperIcon className="pointer-events-none absolute right-4 top-3 w-24 h-24 text-[#37b9c7]/15 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.3} />
+
                             <div className="relative mt-4">
                                 <h2 className="text-2xl font-bold text-[#1A2D2A] leading-tight">Pañales para cada etapa</h2>
                                 <span className="inline-flex items-center gap-1.5 mt-2 text-sm font-bold text-[#2b99a6] group-hover:gap-2.5 transition-all">
@@ -184,16 +177,9 @@ export default function HomePage() {
                             onClick={() => goSearch("Ofertas")}
                             className="group relative overflow-hidden text-left rounded-3xl bg-gradient-to-br from-[#FFE8ED] to-[#FFD4DE] p-6 md:p-7 min-h-[190px] flex flex-col justify-between border border-pink-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                         >
-                            <div className="pointer-events-none absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-white/45" />
-                            <Tag className="pointer-events-none absolute right-4 bottom-3 w-24 h-24 text-[#37b9c7]/15 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.3} />
-                            <div className="relative flex items-center justify-between w-full">
-                                <div className="bg-white rounded-2xl p-3 shadow-sm ring-4 ring-white/60 group-hover:scale-105 transition-transform">
-                                    <Tag className="w-7 h-7 text-[#37b9c7]" strokeWidth={1.8} />
-                                </div>
-                                <span className="bg-white/75 text-[#1A2D2A] text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                                    Ahorro
-                                </span>
-                            </div>
+                            <div className="pointer-events-none absolute -right-8 -top-8 w-36 h-36 rounded-full bg-white/45" />
+                            <Tag className="pointer-events-none absolute right-4 top-3 w-24 h-24 text-[#37b9c7]/15 -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" strokeWidth={1.3} />
+
                             <div className="relative mt-4">
                                 <h2 className="text-2xl font-bold text-[#1A2D2A] leading-tight">Ofertas de la semana</h2>
                                 <span className="inline-flex items-center gap-1.5 mt-2 text-sm font-bold text-[#2b99a6] group-hover:gap-2.5 transition-all">
@@ -218,10 +204,10 @@ export default function HomePage() {
                         <button
                             key={name}
                             onClick={() => goSearch(name)}
-                            className="group flex flex-col items-center gap-3 shrink-0 w-28 md:w-32"
+                            className="group flex flex-col items-center gap-2.5 shrink-0 w-28 md:w-32"
                         >
                             <div className={`relative ${bg} w-24 h-24 md:w-28 md:h-28 rounded-[2rem] flex items-center justify-center ring-4 ring-white shadow-md ${ring} group-hover:shadow-xl group-hover:-translate-y-1.5 group-hover:rotate-2 transition-all duration-300 border-2 border-black/5 group-hover:border-[#2BAAB0]`}>
-                                <div className="absolute inset-2.5 rounded-[1.4rem] bg-white/45 pointer-events-none transition-transform duration-300 group-hover:scale-95" />
+
                                 <Icon className="relative w-10 h-10 md:w-12 md:h-12 text-[#2b99a6] drop-shadow-[0_2px_0_rgba(255,255,255,0.8)] group-hover:scale-110 transition-transform duration-300" strokeWidth={1.7} />
                             </div>
                             <span className="text-sm md:text-base font-bold text-center text-[#1A2D2A] group-hover:text-[#37b9c7] transition-colors">
