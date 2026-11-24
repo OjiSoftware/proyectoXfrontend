@@ -122,13 +122,13 @@ export default function CatalogPage() {
             {/* Navbar con búsqueda */}
             <Navbar search={search} setSearch={setSearch} />
 
-            <div className="w-full max-[1187px]:px-4 max-w-[1187px] mx-auto md:py-8 py-5 flex-grow">
+            <div className="w-full max-[1187px]:px-4 max-w-[1187px] mx-auto py-3 md:py-5 flex-grow">
                 {/* Encabezado del Catálogo */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#37b9c7] via-[#33aab8] to-[#2b99a6] p-6 md:p-8 mb-6 shadow-[0_12px_30px_-12px_rgba(43,170,176,0.45)] border border-white/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="pointer-events-none absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/15" />
-                    <div className="pointer-events-none absolute right-24 -bottom-16 w-40 h-40 rounded-full bg-[#FFF6B8]/20" />
-                    <div className="relative">
-                        <div className="text-white/85 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1.5 flex-wrap">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#37b9c7] via-[#33aab8] to-[#2b99a6] px-4 py-2.5 md:px-6 md:py-3.5 mb-4 md:mb-5 shadow-[0_12px_30px_-12px_rgba(43,170,176,0.45)] border border-white/30 flex flex-row items-center justify-between gap-2 md:gap-4">
+                    <div className="hidden md:block pointer-events-none absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/15" />
+                    <div className="hidden md:block pointer-events-none absolute right-24 -bottom-16 w-40 h-40 rounded-full bg-[#FFF6B8]/20" />
+                    <div className="relative min-w-0 flex-1">
+                        <div className="text-white/90 text-[11px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest flex items-center gap-1.5 flex-wrap leading-snug">
                             <span className="hover:text-[#FFF000] cursor-pointer transition-colors" onClick={handleClearFilters}>
                                 Upa Lelé
                             </span>
@@ -147,20 +147,19 @@ export default function CatalogPage() {
                                 </>
                             )}
                         </div>
-
                     </div>
 
-                    <div className="relative flex items-center gap-3">
-                        <span className="bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold px-3.5 py-1.5 rounded-full">
+                    <div className="relative flex items-center gap-3 shrink-0">
+                        <span className="hidden md:inline-flex bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold px-3.5 py-1.5 rounded-full">
                             {filteredProducts.length} {filteredProducts.length === 1 ? "producto" : "productos"}
                         </span>
 
                         {/* Botón Filtros (solo visible en mobile) */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="md:hidden flex items-center gap-2 bg-[#FFF6B8] hover:bg-white shadow-sm px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider text-[#1A2D2A] transition-all cursor-pointer"
+                            className="md:hidden flex items-center gap-1.5 bg-[#FFF6B8] hover:bg-white shadow-sm px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-[#1A2D2A] transition-all cursor-pointer"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#2b99a6]">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-[#2b99a6]">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                             </svg>
                             <span>Filtros</span>
