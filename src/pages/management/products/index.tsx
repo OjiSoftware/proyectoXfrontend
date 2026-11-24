@@ -284,24 +284,24 @@ export default function ProductsPage() {
         <>
             {/* TOAST DE BIENVENIDA */}
             <div
-                className={`fixed top-6 right-6 z-[100] transition-all duration-500 transform ${showWelcome
+                className={`fixed bottom-6 right-6 z-[100] transition-all duration-500 transform ${showWelcome
                     ? "translate-x-0 opacity-100"
                     : "translate-x-[120%] opacity-0"
                     }`}
             >
-                <div className="bg-slate-800/90 backdrop-blur-md border border-white/10 shadow-2xl rounded-xl p-4 flex items-start gap-3 min-w-[300px]">
-                    <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                <div className="mgmt-modal backdrop-blur-md shadow-2xl rounded-xl p-4 flex items-start gap-3 min-w-[300px]">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                        <h3 className="text-xs font-poppins text-white">
+                        <h3 className="text-xs font-semibold font-poppins text-[var(--text-primary)]">
                             ¡Hola, {userName}!
                         </h3>
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p className="text-xs text-[var(--text-muted)] mt-1">
                             Sesión iniciada correctamente.
                         </p>
                     </div>
                     <button
                         onClick={() => setShowWelcome(false)}
-                        className="text-slate-500 hover:text-white transition-colors cursor-pointer"
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                     >
                         <X className="h-4 w-4" />
                     </button>
