@@ -37,7 +37,7 @@ const MAX_COMMAND_LENGTH = 100;
 const MAX_CASH_TENDERED = 999_999_999;
 
 // TODO (Backend): eliminar este bloque temporal cuando clientId sea opcional en POST /sales
-const GENERIC_CLIENT_PAYLOAD = {
+/* const GENERIC_CLIENT_PAYLOAD = {
   name: "Consumidor",
   surname: "Final",
   dni: "99999999",
@@ -51,7 +51,7 @@ const GENERIC_CLIENT_PAYLOAD = {
     postalCode: "3228",
     country: "Argentina",
   },
-} as const;
+} as const; */
 
 // --- HELPERS PUROS DE SANITIZACIÓN Y ARITMÉTICA SEGURA ---
 const roundCurrency = (value: number): number => {
@@ -1498,172 +1498,172 @@ export default function CreateSalePage() {
             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-start justify-center pt-10 md:pt-16 p-4 font-poppins"
             onClick={() => setShowSearchModal(false)}
           >
-          <div
-            className="w-full max-w-[780px] bg-[#0F0C1A] border border-white/15 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[78vh] ring-1 ring-white/5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Cabecera del buscador */}
-            <div className="px-4 py-3 bg-[#171327] border-b border-white/10 flex items-center gap-3 shrink-0">
-              <div className="flex-1 flex items-center gap-2.5 bg-[#090710] border border-indigo-500/40 focus-within:border-indigo-400 rounded-xl px-3 py-2">
-                <Search size={17} className="text-indigo-400 shrink-0" />
-                <input
-                  ref={searchModalInputRef}
-                  type="text"
-                  autoFocus
-                  autoComplete="off"
-                  maxLength={MAX_COMMAND_LENGTH}
-                  value={searchModalQuery}
-                  onChange={(e) => {
-                    setSearchModalQuery(
-                      sanitizeText(e.target.value, MAX_COMMAND_LENGTH)
-                    );
-                    setSearchSelectedIndex(0);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowDown") {
-                      e.preventDefault();
-                      setSearchSelectedIndex((i) =>
-                        Math.min(searchResults.length - 1, i + 1)
+            <div
+              className="w-full max-w-[780px] bg-[#0F0C1A] border border-white/15 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[78vh] ring-1 ring-white/5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Cabecera del buscador */}
+              <div className="px-4 py-3 bg-[#171327] border-b border-white/10 flex items-center gap-3 shrink-0">
+                <div className="flex-1 flex items-center gap-2.5 bg-[#090710] border border-indigo-500/40 focus-within:border-indigo-400 rounded-xl px-3 py-2">
+                  <Search size={17} className="text-indigo-400 shrink-0" />
+                  <input
+                    ref={searchModalInputRef}
+                    type="text"
+                    autoFocus
+                    autoComplete="off"
+                    maxLength={MAX_COMMAND_LENGTH}
+                    value={searchModalQuery}
+                    onChange={(e) => {
+                      setSearchModalQuery(
+                        sanitizeText(e.target.value, MAX_COMMAND_LENGTH)
                       );
-                    } else if (e.key === "ArrowUp") {
-                      e.preventDefault();
-                      setSearchSelectedIndex((i) => Math.max(0, i - 1));
-                    } else if (e.key === "Enter") {
-                      e.preventDefault();
-                      const chosen = searchResults[searchSelectedIndex];
-                      if (chosen && addProduct(chosen)) {
-                        setShowSearchModal(false);
-                      }
-                    }
-                  }}
-                  placeholder="Buscar artículo por nombre o código..."
-                  className="flex-1 min-w-0 bg-transparent! border-0! ring-0! focus:ring-0! focus:border-0! shadow-none! p-0! text-sm text-white placeholder:text-slate-500 outline-none"
-                />
-                {searchModalQuery && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchModalQuery("");
                       setSearchSelectedIndex(0);
-                      searchModalInputRef.current?.focus();
                     }}
-                    className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
-                  >
-                    <X size={15} />
-                  </button>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowSearchModal(false)}
-                className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 cursor-pointer transition"
-                title="Cerrar (Esc)"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Tabla de resultados */}
-            <div className="overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar">
-              <table className="w-full table-fixed text-left text-xs border-collapse">
-                <thead className="sticky top-0 z-10 bg-[#141122] text-slate-400 uppercase tracking-wider border-b border-white/10">
-                  <tr>
-                    <th className="py-2.5 px-4 w-32 font-semibold">Código</th>
-                    <th className="py-2.5 px-4 font-semibold">Artículo</th>
-                    <th className="py-2.5 px-4 w-24 text-center font-semibold">
-                      Stock
-                    </th>
-                    <th className="py-2.5 px-4 w-32 text-right font-semibold">
-                      Precio
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {searchResults.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="py-10 text-center text-slate-500 text-sm"
-                      >
-                        No se encontraron artículos para "{searchModalQuery}"
-                      </td>
-                    </tr>
-                  ) : (
-                    searchResults.map((p, idx) => {
-                      const active = idx === searchSelectedIndex;
-                      const avail =
-                        toSafeStock(p.stock) - getReservedInOtherTickets(p.id);
-                      const noStock = avail <= 0;
-                      return (
-                        <tr
-                          key={p.id}
-                          onClick={() => {
-                            if (!noStock && addProduct(p)) {
-                              setShowSearchModal(false);
-                            }
-                          }}
-                          className={`transition-colors ${noStock
-                            ? "opacity-40 text-gray cursor-not-allowed"
-                            : active
-                              ? "bg-indigo-600/35 text-white cursor-pointer"
-                              : "hover:bg-white/5 text-slate-200 cursor-pointer"
-                            }`}
-                        >
-                          <td className="py-2.5 px-4 font-mono text-slate-400 truncate">
-                            {p.barcode || p.id}
-                          </td>
-                          <td className="py-2.5 px-4 font-semibold truncate">
-                            {p.name}
-                          </td>
-                          <td className="py-2.5 px-4 text-center font-mono">
-                            <span
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${noStock
-                                ? "bg-rose-500/20 text-rose-300"
-                                : "bg-white/5 text-slate-200"
-                                }`}
-                            >
-                              {Math.max(0, avail)}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
-                            {formatARS(toSafePrice(p.price))}
-                          </td>
-                        </tr>
-                      );
-                    })
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSearchSelectedIndex((i) =>
+                          Math.min(searchResults.length - 1, i + 1)
+                        );
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        setSearchSelectedIndex((i) => Math.max(0, i - 1));
+                      } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        const chosen = searchResults[searchSelectedIndex];
+                        if (chosen && addProduct(chosen)) {
+                          setShowSearchModal(false);
+                        }
+                      }
+                    }}
+                    placeholder="Buscar artículo por nombre o código..."
+                    className="flex-1 min-w-0 bg-transparent! border-0! ring-0! focus:ring-0! focus:border-0! shadow-none! p-0! text-sm text-white placeholder:text-slate-500 outline-none"
+                  />
+                  {searchModalQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchModalQuery("");
+                        setSearchSelectedIndex(0);
+                        searchModalInputRef.current?.focus();
+                      }}
+                      className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
+                    >
+                      <X size={15} />
+                    </button>
                   )}
-                </tbody>
-              </table>
-            </div>
+                </div>
 
-            {/* Pie informativo */}
-            <div className="px-4 py-2 bg-[#141122] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-              <span>
-                Mostrando {searchResults.length} resultado
-                {searchResults.length === 1 ? "" : "s"}
-              </span>
-              <div className="flex items-center gap-3">
-                <span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
-                    ↑↓
-                  </kbd>{" "}
-                  Mover
-                </span>
-                <span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
-                    Enter
-                  </kbd>{" "}
-                  Agregar
-                </span>
-                <span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
-                    Esc
-                  </kbd>{" "}
-                  Cerrar
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowSearchModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 cursor-pointer transition"
+                  title="Cerrar (Esc)"
+                >
+                  <X size={18} />
+                </button>
               </div>
-            </div>
+
+              {/* Tabla de resultados */}
+              <div className="overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar">
+                <table className="w-full table-fixed text-left text-xs border-collapse">
+                  <thead className="sticky top-0 z-10 bg-[#141122] text-slate-400 uppercase tracking-wider border-b border-white/10">
+                    <tr>
+                      <th className="py-2.5 px-4 w-32 font-semibold">Código</th>
+                      <th className="py-2.5 px-4 font-semibold">Artículo</th>
+                      <th className="py-2.5 px-4 w-24 text-center font-semibold">
+                        Stock
+                      </th>
+                      <th className="py-2.5 px-4 w-32 text-right font-semibold">
+                        Precio
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {searchResults.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="py-10 text-center text-slate-500 text-sm"
+                        >
+                          No se encontraron artículos para "{searchModalQuery}"
+                        </td>
+                      </tr>
+                    ) : (
+                      searchResults.map((p, idx) => {
+                        const active = idx === searchSelectedIndex;
+                        const avail =
+                          toSafeStock(p.stock) - getReservedInOtherTickets(p.id);
+                        const noStock = avail <= 0;
+                        return (
+                          <tr
+                            key={p.id}
+                            onClick={() => {
+                              if (!noStock && addProduct(p)) {
+                                setShowSearchModal(false);
+                              }
+                            }}
+                            className={`transition-colors ${noStock
+                              ? "opacity-40 text-gray cursor-not-allowed"
+                              : active
+                                ? "bg-indigo-600/35 text-white cursor-pointer"
+                                : "hover:bg-white/5 text-slate-200 cursor-pointer"
+                              }`}
+                          >
+                            <td className="py-2.5 px-4 font-mono text-slate-400 truncate">
+                              {p.barcode || p.id}
+                            </td>
+                            <td className="py-2.5 px-4 font-semibold truncate">
+                              {p.name}
+                            </td>
+                            <td className="py-2.5 px-4 text-center font-mono">
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${noStock
+                                  ? "bg-rose-500/20 text-rose-300"
+                                  : "bg-white/5 text-slate-200"
+                                  }`}
+                              >
+                                {Math.max(0, avail)}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
+                              {formatARS(toSafePrice(p.price))}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pie informativo */}
+              <div className="px-4 py-2 bg-[#141122] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+                <span>
+                  Mostrando {searchResults.length} resultado
+                  {searchResults.length === 1 ? "" : "s"}
+                </span>
+                <div className="flex items-center gap-3">
+                  <span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                      ↑↓
+                    </kbd>{" "}
+                    Mover
+                  </span>
+                  <span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                      Enter
+                    </kbd>{" "}
+                    Agregar
+                  </span>
+                  <span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-200 font-mono">
+                      Esc
+                    </kbd>{" "}
+                    Cerrar
+                  </span>
+                </div>
+              </div>
             </div>
           </div>,
           document.body
@@ -1723,11 +1723,10 @@ export default function CreateSalePage() {
                             cashTendered: "",
                           }));
                         }}
-                        className={`relative py-3 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
-                          active
-                            ? "bg-indigo-600 text-white border-indigo-400"
-                            : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
-                        }`}
+                        className={`relative py-3 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${active
+                          ? "bg-indigo-600 text-white border-indigo-400"
+                          : "bg-[#181528] text-slate-400 border-white/10 hover:text-white"
+                          }`}
                       >
                         <Icon size={18} />
                         <span>{pm.label}</span>
@@ -1791,11 +1790,10 @@ export default function CreateSalePage() {
                               cashTendered: e.target.value.slice(0, 12),
                             }))
                           }
-                          className={`w-full mgmt-input border rounded-xl! px-3! py-2! text-lg font-mono font-bold placeholder:text-slate-400 outline-none focus:ring-0! ${
-                            hasUnderpaidCash
-                              ? "border-rose-500/70!"
-                              : "border-indigo-400/50!"
-                          }`}
+                          className={`w-full mgmt-input border rounded-xl! px-3! py-2! text-lg font-mono font-bold placeholder:text-slate-400 outline-none focus:ring-0! ${hasUnderpaidCash
+                            ? "border-rose-500/70!"
+                            : "border-indigo-400/50!"
+                            }`}
                         />
                       </div>
 
@@ -1845,63 +1843,63 @@ export default function CreateSalePage() {
             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-poppins"
             onClick={() => setShowQtyEditModal(false)}
           >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const val = parseInt(qtyEditValue, 10);
-              if (Number.isFinite(val) && val >= 0) {
-                setLineQuantity(selectedItem.productId, val);
-              }
-              setShowQtyEditModal(false);
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[340px] bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3 shadow-2xl"
-          >
-            <h3 className="text-xs font-bold uppercase text-slate-300 truncate">
-              Cantidad: {selectedItem.name}
-            </h3>
-            <input
-              type="number"
-              min="0"
-              max={Math.min(MAX_MULTIPLIER, selectedItem.stock)}
-              step="1"
-              autoFocus
-              autoComplete="off"
-              value={qtyEditValue}
-              onChange={(e) =>
-                setQtyEditValue(sanitizeDigits(e.target.value, 4))
-              }
-              onFocus={(e) => e.currentTarget.select()}
-              className="w-full mgmt-input border border-indigo-400! rounded-xl! px-3! py-2.5! text-xl font-mono font-bold text-center outline-none focus:ring-0!"
-            />
-            <p className="text-[11px] text-slate-400 text-center">
-              Stock disponible:{" "}
-              {Math.max(
-                0,
-                selectedItem.stock -
-                getReservedInOtherTickets(selectedItem.productId)
-              )}{" "}
-              u. (0 elimina la línea)
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowQtyEditModal(false)}
-                className="btn btn-sm btn-ghost flex-1"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="btn btn-sm btn-primary flex-1"
-              >
-                Aplicar
-              </button>
-            </div>
-          </form>
-        </div>,
-        document.body
-      )}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const val = parseInt(qtyEditValue, 10);
+                if (Number.isFinite(val) && val >= 0) {
+                  setLineQuantity(selectedItem.productId, val);
+                }
+                setShowQtyEditModal(false);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[340px] bg-[#12101F] border border-white/15 rounded-2xl p-4 space-y-3 shadow-2xl"
+            >
+              <h3 className="text-xs font-bold uppercase text-slate-300 truncate">
+                Cantidad: {selectedItem.name}
+              </h3>
+              <input
+                type="number"
+                min="0"
+                max={Math.min(MAX_MULTIPLIER, selectedItem.stock)}
+                step="1"
+                autoFocus
+                autoComplete="off"
+                value={qtyEditValue}
+                onChange={(e) =>
+                  setQtyEditValue(sanitizeDigits(e.target.value, 4))
+                }
+                onFocus={(e) => e.currentTarget.select()}
+                className="w-full mgmt-input border border-indigo-400! rounded-xl! px-3! py-2.5! text-xl font-mono font-bold text-center outline-none focus:ring-0!"
+              />
+              <p className="text-[11px] text-slate-400 text-center">
+                Stock disponible:{" "}
+                {Math.max(
+                  0,
+                  selectedItem.stock -
+                  getReservedInOtherTickets(selectedItem.productId)
+                )}{" "}
+                u. (0 elimina la línea)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQtyEditModal(false)}
+                  className="btn btn-sm btn-ghost flex-1"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-sm btn-primary flex-1"
+                >
+                  Aplicar
+                </button>
+              </div>
+            </form>
+          </div>,
+          document.body
+        )}
 
       {/* =============================================================== */}
       {/* MODAL DE ATAJOS DE CAJA                                         */}
@@ -1912,48 +1910,48 @@ export default function CreateSalePage() {
             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-poppins"
             onClick={() => setShowHelpModal(false)}
           >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[440px] bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3 shadow-2xl"
-          >
-            <div className="flex justify-between items-center border-b border-white/10 pb-2">
-              <h3 className="text-xs font-bold uppercase text-white">
-                Atajos Rápidos de Operación
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowHelpModal(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="space-y-1.5 text-xs">
-              {[
-                ["Cant * Código", "Ej: 5*7791234 agrega 5 unidades de golpe"],
-                ["F3", "Buscar artículo por nombre (tabla rápida)"],
-                ["=  ó  F4", "Abrir ventana de Cobro y Vuelto"],
-                ["F12", "Cobro Exacto Efectivo en 1 sola tecla"],
-                ["F7", "Alternar Efectivo / Tarjeta (+5% pañales)"],
-                ["↑ / ↓", "Moverse entre líneas del ticket"],
-                ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
-                ["F6", "Poner ticket en espera y abrir otro"],
-              ].map(([k, d]) => (
-                <div
-                  key={k}
-                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-white/5"
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[440px] bg-[#12101F] border border-white/15 rounded-2xl p-5 space-y-3 shadow-2xl"
+            >
+              <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                <h3 className="text-xs font-bold uppercase text-white">
+                  Atajos Rápidos de Operación
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowHelpModal(false)}
+                  className="text-slate-400 hover:text-white"
                 >
-                  <span className="text-slate-300">{d}</span>
-                  <kbd className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-bold">
-                    {k}
-                  </kbd>
-                </div>
-              ))}
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                {[
+                  ["Cant * Código", "Ej: 5*7791234 agrega 5 unidades de golpe"],
+                  ["F3", "Buscar artículo por nombre (tabla rápida)"],
+                  ["=  ó  F4", "Abrir ventana de Cobro y Vuelto"],
+                  ["F12", "Cobro Exacto Efectivo en 1 sola tecla"],
+                  ["F7", "Alternar Efectivo / Tarjeta (+5% pañales)"],
+                  ["↑ / ↓", "Moverse entre líneas del ticket"],
+                  ["+ / - / Supr", "Sumar, restar o borrar la línea marcada"],
+                  ["F6", "Poner ticket en espera y abrir otro"],
+                ].map(([k, d]) => (
+                  <div
+                    key={k}
+                    className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-white/5"
+                  >
+                    <span className="text-slate-300">{d}</span>
+                    <kbd className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-bold">
+                      {k}
+                    </kbd>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
 
       <ConfirmModal
         isOpen={showClearConfirm}
