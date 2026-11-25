@@ -31,6 +31,13 @@ const formatDate = (iso: string) =>
         year: "numeric",
     });
 
+const formatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString("es-AR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    });
+
 const fieldClass =
     "bg-[#151519] border border-white/10 text-slate-200 text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
@@ -351,6 +358,9 @@ export default function ReportsPage() {
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 {formatDate(item.date)}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="text-[11px] text-slate-400">{formatTime(item.date)}</div>
                                             </td>
 
                                             {/* <td className="px-4 py-3">{item.clientName}</td> */}
