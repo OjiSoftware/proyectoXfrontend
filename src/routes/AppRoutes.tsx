@@ -11,7 +11,7 @@ import DashboardPage from "@/pages/management/dashboard";
 import AnalyticsPage from "@/pages/management/analytics";
 import SalesAnalyticsPage from "@/pages/management/analytics/SalesAnalyticsPage";
 import ProfitabilityAnalyticsPage from "@/pages/management/analytics/ProfitabilityAnalyticsPage";
-import ReportsPage from "@/pages/management/reports";
+import ReportsPage from "@/pages/management/analytics/reports/SalesReport";
 
 // Marcas
 import BrandsPage from "@/pages/management/brands";
