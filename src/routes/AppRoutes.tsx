@@ -130,14 +130,18 @@ export const AppRoutes = () => {
                         element={<SalesAnalyticsPage />}
                     />
                     <Route
+                        path="/management/analytics/sales/reports"
+                        element={<ReportsPage />}
+                    />
+                    <Route
                         path="/management/analytics/profitability"
                         element={<ProfitabilityAnalyticsPage />}
                     />
 
-                    {/* REPORTS */}
+                    {/* REDIRECT LEGACY REPORTS */}
                     <Route
                         path="/management/reports"
-                        element={<ReportsPage />}
+                        element={<Navigate to="/management/analytics/sales/reports" replace />}
                     />
 
                     {/* PRODUCTS */}

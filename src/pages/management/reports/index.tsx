@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { DownloadIcon, XIcon } from "lucide-react";
+import { ArrowLeft, DownloadIcon, XIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/PaginationManagement";
@@ -159,16 +160,25 @@ export default function ReportsPage() {
             title="Reporte de ventas"
             subtitle="Ventas completadas, filtrables por fecha, categoría, proveedor y más."
             actions={
-                <button
-                    onClick={handleExport}
-                    disabled={exporting || loading || !report?.totalItems}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-brand-500 rounded-lg shadow-lg hover:bg-brand-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <DownloadIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">
-                        {exporting ? "Exportando..." : "Exportar Excel"}
-                    </span>
-                </button>
+                <div className="flex items-center gap-2">
+                    <Link
+                        to="/management/analytics/sales"
+                        className="btn btn-sm btn-ghost"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Volver a Ventas</span>
+                    </Link>
+                    <button
+                        onClick={handleExport}
+                        disabled={exporting || loading || !report?.totalItems}
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-brand-500 rounded-lg shadow-lg hover:bg-brand-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <DownloadIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                            {exporting ? "Exportando..." : "Exportar Excel"}
+                        </span>
+                    </button>
+                </div>
             }
         >
             <div className="space-y-6">

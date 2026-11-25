@@ -28,7 +28,7 @@ const navigation = [
     { name: "Categorías", href: "/management/categories", icon: BlocksIcon },
     { name: "Proveedores", href: "/management/providers", icon: Truck },
     /*     { name: "Subcategorías", href: "/management/subcategories", icon: DocumentChartBarIcon }, */
-    { name: "Analytics", href: "/management/analytics", icon: DocumentChartBarIcon },
+    { name: "Analíticas", href: "/management/analytics", icon: DocumentChartBarIcon },
 ];
 
 function classNames(...classes: string[]) {

@@ -12,7 +12,7 @@ const placeholderKpis = [
 export default function ProfitabilityAnalyticsPage() {
     return (
         <DashboardLayout
-            title="Analytics · Rentabilidad"
+            title="Analíticas · Rentabilidad"
             subtitle="Indicadores de márgenes y rentabilidad, con acceso a reportes."
             actions={
                 <div className="flex items-center gap-2">
@@ -20,7 +20,7 @@ export default function ProfitabilityAnalyticsPage() {
                         <ArrowLeft className="w-4 h-4" />
                         <span>Volver</span>
                     </Link>
-                    <Link to="/management/reports" className="btn btn-sm btn-primary">
+                    <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>Reportes de ventas</span>
                     </Link>
@@ -34,7 +34,7 @@ export default function ProfitabilityAnalyticsPage() {
                         <ArrowLeft className="w-4 h-4" />
                         <span>Volver</span>
                     </Link>
-                    <Link to="/management/reports" className="btn btn-sm btn-primary">
+                    <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>Reportes de ventas</span>
                     </Link>
@@ -72,7 +72,7 @@ export default function ProfitabilityAnalyticsPage() {
                             Acá se mostrarán las KPIs y análisis de rentabilidad. Mientras tanto,
                             podés consultar el detalle completo en el reporte de ventas.
                         </p>
-                        <Link to="/management/reports" className="btn btn-md btn-primary mt-2">
+                        <Link to="/management/analytics/sales/reports" className="btn btn-md btn-primary mt-2">
                             <FileSpreadsheet className="w-4 h-4" />
                             <span>Ir a reportes de ventas</span>
                         </Link>

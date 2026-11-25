@@ -12,7 +12,7 @@ const placeholderKpis = [
 export default function SalesAnalyticsPage() {
     return (
         <DashboardLayout
-            title="Analytics · Ventas"
+            title="Analíticas · Ventas"
             subtitle="Indicadores de desempeño comercial y acceso al reporte de ventas."
             actions={
                 <div className="flex items-center gap-2">
@@ -20,7 +20,7 @@ export default function SalesAnalyticsPage() {
                         <ArrowLeft className="w-4 h-4" />
                         <span>Volver</span>
                     </Link>
-                    <Link to="/management/reports" className="btn btn-sm btn-primary">
+                    <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>Reportes de ventas</span>
                     </Link>
@@ -34,7 +34,7 @@ export default function SalesAnalyticsPage() {
                         <ArrowLeft className="w-4 h-4" />
                         <span>Volver</span>
                     </Link>
-                    <Link to="/management/reports" className="btn btn-sm btn-primary">
+                    <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>Reportes de ventas</span>
                     </Link>
@@ -72,7 +72,7 @@ export default function SalesAnalyticsPage() {
                             Acá se mostrarán las KPIs y gráficos detallados de ventas. Mientras tanto,
                             podés consultar el detalle completo en el reporte de ventas.
                         </p>
-                        <Link to="/management/reports" className="btn btn-md btn-primary mt-2">
+                        <Link to="/management/analytics/sales/reports" className="btn btn-md btn-primary mt-2">
                             <FileSpreadsheet className="w-4 h-4" />
                             <span>Ir a reportes de ventas</span>
                         </Link>

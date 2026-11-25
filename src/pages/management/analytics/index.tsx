@@ -69,7 +69,7 @@ const sections = [
 export default function AnalyticsPage() {
     return (
         <DashboardLayout
-            title="Analytics"
+            title="Analíticas"
             subtitle="Indicadores clave de rendimiento y acceso a módulos analíticos."
         >
             <div className="space-y-8">
