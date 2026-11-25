@@ -18,7 +18,7 @@ import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
-import { ArrowLeft, BlocksIcon, DollarSign, Truck, MoreHorizontal, Sun, Moon } from "lucide-react";
+import { LogOut, BlocksIcon, DollarSign, Truck, MoreHorizontal, Sun, Moon } from "lucide-react";
 
 const navigation = [
     /*     { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon }, */
@@ -289,7 +289,7 @@ export default function DashboardLayout({
                                             className="btn btn-icon-sm btn-ghost shrink-0"
                                             title="Volver"
                                         >
-                                            <ArrowLeft className="w-4 h-4" />
+                                            <LogOut className="w-4 h-4 rotate-180" />
                                         </Link>
                                     ) : (
                                         <button
@@ -298,7 +298,7 @@ export default function DashboardLayout({
                                             className="btn btn-icon-sm btn-ghost shrink-0"
                                             title="Volver"
                                         >
-                                            <ArrowLeft className="w-4 h-4" />
+                                            <LogOut className="w-4 h-4 rotate-180" />
                                         </button>
                                     )
                                 )}
@@ -320,7 +320,7 @@ export default function DashboardLayout({
                                                 className="btn btn-icon btn-ghost shrink-0"
                                                 title="Volver"
                                             >
-                                                <ArrowLeft className="w-4 h-4" />
+                                                <LogOut className="w-4 h-4 rotate-180" />
                                             </Link>
                                         ) : (
                                             <button
@@ -329,7 +329,7 @@ export default function DashboardLayout({
                                                 className="btn btn-icon btn-ghost shrink-0"
                                                 title="Volver"
                                             >
-                                                <ArrowLeft className="w-4 h-4" />
+                                                <LogOut className="w-4 h-4 rotate-180" />
                                             </button>
                                         )
                                     )}
