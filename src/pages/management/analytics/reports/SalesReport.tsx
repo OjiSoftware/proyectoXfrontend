@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import {
-    ArrowLeft,
-    DownloadIcon,
-    Filter,
-    XIcon,
-} from "lucide-react";
+import { ArrowLeft, DownloadIcon, Filter, XIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/PaginationManagement";
@@ -37,7 +32,7 @@ const formatDate = (iso: string) =>
     });
 
 const fieldClass =
-    "bg-[#151519] border border-white/10 text-slate-200 text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none w-full";
+    "bg-[#151519] border border-white/10 text-slate-200 text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function ReportsPage() {
     const itemsPerPage = useItemsPerpage();
@@ -120,18 +115,16 @@ export default function ReportsPage() {
         return () => controller.abort();
     }, [filters, page, itemsPerPage]);
 
-    const activeFilterCount = useMemo(() => {
-        let count = 0;
-        if (from) count++;
-        if (to) count++;
-        if (categoryId) count++;
-        if (providerId) count++;
-        if (brandId) count++;
-        if (paymentMethod) count++;
-        return count;
-    }, [from, to, categoryId, providerId, brandId, paymentMethod]);
+    const activeFiltersCount = [
+        from,
+        to,
+        categoryId,
+        providerId,
+        brandId,
+        paymentMethod,
+    ].filter(Boolean).length;
 
-    const hasAnyFilter = activeFilterCount > 0 || searchInput !== "";
+    const hasFilters = Object.values(filters).some((v) => v !== undefined);
 
     const clearFilters = () => {
         setFrom("");
@@ -176,225 +169,165 @@ export default function ReportsPage() {
         <DashboardLayout
             title="Reporte de ventas"
             subtitle="Ventas completadas, filtrables por fecha, categoría, proveedor y más."
+            actions={
+                <div className="flex items-center gap-2">
+                    {/* Búsqueda en el header */}
+                    <div className="w-56 lg:w-72">
+                        <SearchBar
+                            value={searchInput}
+                            onChange={setSearchInput}
+                            placeholder="Buscar cliente, DNI..."
+                            containerClassName="w-full"
+                            inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
+                        />
+                    </div>
+
+                    {/* Botón selector de filtros */}
+                    <button
+                        type="button"
+                        onClick={() => setFiltersOpen((prev) => !prev)}
+                        className={`btn btn-sm ${filtersOpen || activeFiltersCount > 0
+                                ? "btn-primary"
+                                : "btn-subtle"
+                            }`}
+                        title="Filtrar por fecha, categoría, marca..."
+                    >
+                        <Filter className="w-4 h-4" />
+                        <span className="hidden sm:inline">Filtros</span>
+                        {activeFiltersCount > 0 && (
+                            <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-indigo-500 text-white text-[10px] font-bold">
+                                {activeFiltersCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Botón exportar Excel */}
+                    <button
+                        onClick={handleExport}
+                        disabled={exporting || loading || !report?.totalItems}
+                        className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-white bg-brand-500 rounded-xl shadow-lg hover:bg-brand-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    >
+                        <DownloadIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                            {exporting ? "Exportando..." : "Exportar Excel"}
+                        </span>
+                    </button>
+
+                    {/* Botón Volver */}
+                    <Link
+                        to="/management/analytics/sales"
+                        className="btn btn-sm btn-ghost shrink-0"
+                        title="Volver a Ventas"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="hidden lg:inline">Volver</span>
+                    </Link>
+                </div>
+            }
         >
             <div className="space-y-6">
-                {/* Barra superior de herramientas: Volver, Buscador, Selector de Filtros y Exportar */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-gray-800/40 border border-white/10 rounded-2xl p-3">
-                    <div className="flex flex-wrap items-center gap-2 flex-1">
-                        <Link
-                            to="/management/analytics/sales"
-                            className="btn btn-sm btn-ghost"
-                            title="Volver a Ventas"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            <span>Volver</span>
-                        </Link>
-
-                        {/* SearchBar */}
-                        <div className="w-full sm:w-72 md:w-80">
-                            <SearchBar
-                                value={searchInput}
-                                onChange={setSearchInput}
-                                placeholder="Buscar cliente, DNI, producto..."
-                                inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
-                            />
-                        </div>
-
-                        {/* Selector de filtros desplegable */}
-                        <div className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setFiltersOpen((prev) => !prev)}
-                                className={`btn btn-sm ${
-                                    activeFilterCount > 0
-                                        ? "btn-primary border-indigo-400"
-                                        : "btn-subtle"
-                                }`}
-                                title="Filtrar reporte"
-                            >
-                                <Filter className="w-4 h-4" />
-                                <span>Filtros</span>
-                                {activeFilterCount > 0 && (
-                                    <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500 text-white">
-                                        {activeFilterCount}
-                                    </span>
-                                )}
-                            </button>
-
-                            {filtersOpen && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setFiltersOpen(false)}
-                                    />
-                                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 sm:w-96 p-4 rounded-2xl bg-[#12101F] border border-white/10 shadow-2xl z-50 space-y-3">
-                                        <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                                            <div className="flex items-center gap-2">
-                                                <Filter className="w-4 h-4 text-indigo-400" />
-                                                <span className="text-xs font-bold text-white uppercase tracking-wider">
-                                                    Filtros de reporte
-                                                </span>
-                                            </div>
-                                            {hasAnyFilter && (
-                                                <button
-                                                    type="button"
-                                                    onClick={clearFilters}
-                                                    className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
-                                                >
-                                                    <XIcon className="w-3.5 h-3.5" />
-                                                    Limpiar
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-2.5">
-                                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                                                Desde
-                                                <input
-                                                    type="date"
-                                                    value={from}
-                                                    max={to || undefined}
-                                                    onChange={(e) => setFrom(e.target.value)}
-                                                    className={fieldClass}
-                                                />
-                                            </label>
-                                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                                                Hasta
-                                                <input
-                                                    type="date"
-                                                    value={to}
-                                                    min={from || undefined}
-                                                    onChange={(e) => setTo(e.target.value)}
-                                                    className={fieldClass}
-                                                />
-                                            </label>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                                                Categoría
-                                                <select
-                                                    value={categoryId}
-                                                    onChange={(e) => setCategoryId(e.target.value)}
-                                                    className={fieldClass}
-                                                >
-                                                    <option value="">Todas las categorías</option>
-                                                    {categories.map((c) => (
-                                                        <option key={c.id} value={c.id}>
-                                                            {c.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </label>
-
-                                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                                                Proveedor
-                                                <select
-                                                    value={providerId}
-                                                    onChange={(e) => setProviderId(e.target.value)}
-                                                    className={fieldClass}
-                                                >
-                                                    <option value="">Todos los proveedores</option>
-                                                    {providers.map((p) => (
-                                                        <option key={p.id} value={p.id}>
-                                                            {p.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </label>
-
-                                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                                                Marca
-                                                <select
-                                                    value={brandId}
-                                                    onChange={(e) => setBrandId(e.target.value)}
-                                                    className={fieldClass}
-                                                >
-                                                    <option value="">Todas las marcas</option>
-                                                    {brands.map((b) => (
-                                                        <option key={b.id} value={b.id}>
-                                                            {b.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </label>
-
-                                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                                                Medio de pago
-                                                <select
-                                                    value={paymentMethod}
-                                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                                    className={fieldClass}
-                                                >
-                                                    <option value="">Todos los medios</option>
-                                                    {(report?.paymentMethods ?? []).map((m) => (
-                                                        <option key={m} value={m}>
-                                                            {m}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </label>
-                                        </div>
-
-                                        <div className="pt-2 flex justify-end">
-                                            <button
-                                                type="button"
-                                                onClick={() => setFiltersOpen(false)}
-                                                className="btn btn-xs btn-primary px-3"
-                                            >
-                                                Listo
-                                            </button>
-                                        </div>
-                                    </div>
-                                </>
+                {/* Panel de filtros desplegable o toggle desde el botón de arriba */}
+                {filtersOpen && (
+                    <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                            <span className="text-xs font-semibold text-slate-300">
+                                Filtrar resultados
+                            </span>
+                            {hasFilters && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <XIcon className="w-3.5 h-3.5" />
+                                    Limpiar filtros
+                                </button>
                             )}
                         </div>
-
-                        {hasAnyFilter && (
-                            <button
-                                type="button"
-                                onClick={clearFilters}
-                                className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors px-2 py-1"
-                            >
-                                <XIcon className="w-3.5 h-3.5" />
-                                Limpiar filtros
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Botón Exportar al lado de la barra de herramientas */}
-                    <div className="flex items-center justify-end">
-                        <button
-                            onClick={handleExport}
-                            disabled={exporting || loading || !report?.totalItems}
-                            className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-brand-500 rounded-xl shadow-lg hover:bg-brand-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                        >
-                            <DownloadIcon className="w-4 h-4" />
-                            <span>{exporting ? "Exportando..." : "Exportar Excel"}</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* KPIs */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                    {kpiCards.map((card) => (
-                        <div
-                            key={card.label}
-                            className="bg-gray-800/50 border border-white/10 rounded-2xl p-4"
-                        >
-                            <p className="text-[11px] text-slate-400 uppercase tracking-wide">
-                                {card.label}
-                            </p>
-                            <p
-                                className={`mt-1 text-lg font-bold text-white ${
-                                    loading ? "opacity-50" : ""
-                                }`}
-                            >
-                                {card.value}
-                            </p>
+                        <div className="flex flex-wrap gap-3 items-end">
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Desde
+                                <input
+                                    type="date"
+                                    value={from}
+                                    max={to || undefined}
+                                    onChange={(e) => setFrom(e.target.value)}
+                                    className={fieldClass}
+                                />
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Hasta
+                                <input
+                                    type="date"
+                                    value={to}
+                                    min={from || undefined}
+                                    onChange={(e) => setTo(e.target.value)}
+                                    className={fieldClass}
+                                />
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Categoría
+                                <select
+                                    value={categoryId}
+                                    onChange={(e) => setCategoryId(e.target.value)}
+                                    className={fieldClass}
+                                >
+                                    <option value="">Todas</option>
+                                    {categories.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Proveedor
+                                <select
+                                    value={providerId}
+                                    onChange={(e) => setProviderId(e.target.value)}
+                                    className={fieldClass}
+                                >
+                                    <option value="">Todos</option>
+                                    {providers.map((p) => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Marca
+                                <select
+                                    value={brandId}
+                                    onChange={(e) => setBrandId(e.target.value)}
+                                    className={fieldClass}
+                                >
+                                    <option value="">Todas</option>
+                                    {brands.map((b) => (
+                                        <option key={b.id} value={b.id}>
+                                            {b.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Medio de pago
+                                <select
+                                    value={paymentMethod}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className={fieldClass}
+                                >
+                                    <option value="">Todos</option>
+                                    {(report?.paymentMethods ?? []).map((m) => (
+                                        <option key={m} value={m}>
+                                            {m}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                )}
+
 
                 {/* Tabla detalle */}
                 <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
@@ -418,19 +351,13 @@ export default function ReportsPage() {
                             <tbody>
                                 {loading && !report ? (
                                     <tr>
-                                        <td
-                                            colSpan={11}
-                                            className="px-4 py-10 text-center text-slate-500"
-                                        >
+                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
                                             Cargando reporte...
                                         </td>
                                     </tr>
                                 ) : report && report.items.length === 0 ? (
                                     <tr>
-                                        <td
-                                            colSpan={11}
-                                            className="px-4 py-10 text-center text-slate-500"
-                                        >
+                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
                                             No hay ventas completadas con los filtros seleccionados.
                                         </td>
                                     </tr>
@@ -438,9 +365,7 @@ export default function ReportsPage() {
                                     report?.items.map((item) => (
                                         <tr
                                             key={item.id}
-                                            className={`border-b border-white/5 hover:bg-white/5 ${
-                                                loading ? "opacity-60" : ""
-                                            }`}
+                                            className={`border-b border-white/5 hover:bg-white/5 ${loading ? "opacity-60" : ""}`}
                                         >
                                             <td className="px-4 py-3 font-medium text-white">
                                                 #{item.saleId}
@@ -454,9 +379,7 @@ export default function ReportsPage() {
                                             <td className="px-4 py-3">{item.providerName}</td>
                                             <td className="px-4 py-3">{item.brandName}</td>
                                             <td className="px-4 py-3">{item.paymentMethod}</td>
-                                            <td className="px-4 py-3 text-right">
-                                                {item.quantity}
-                                            </td>
+                                            <td className="px-4 py-3 text-right">{item.quantity}</td>
                                             <td className="px-4 py-3 text-right whitespace-nowrap">
                                                 {money(item.unitaryPrice)}
                                             </td>
