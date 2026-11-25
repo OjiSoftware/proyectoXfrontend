@@ -351,7 +351,7 @@ export default function DashboardLayout({
 
                 {/* CONTENIDO (Scroll interno, ancho completo w-full sin límites) */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.08),rgba(7,5,12,0))]">
-                    <div className="w-full px-3.5 py-3 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-28 md:pb-20">
+                    <div className="w-full px-3.5 py-3 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-[calc(9rem+env(safe-area-inset-bottom))] md:pb-20">
                         {/* W-FULL reemplazando al max-w de tailwind, para que todo toque los bordes del flex */}
                         {children}
                     </div>
