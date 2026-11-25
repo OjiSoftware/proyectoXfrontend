@@ -6,8 +6,11 @@ import ProductsPage from "@/pages/management/products";
 import CreateProductPage from "@/pages/management/products/CreateProductPage";
 import EditProductPage from "@/pages/management/products/EditProductPage";
 
-// Dashboard y Reportes
+// Dashboard, Analytics y Reportes
 import DashboardPage from "@/pages/management/dashboard";
+import AnalyticsPage from "@/pages/management/analytics";
+import SalesAnalyticsPage from "@/pages/management/analytics/SalesAnalyticsPage";
+import ProfitabilityAnalyticsPage from "@/pages/management/analytics/ProfitabilityAnalyticsPage";
 import ReportsPage from "@/pages/management/reports";
 
 // Marcas
@@ -115,6 +118,20 @@ export const AppRoutes = () => {
                     <Route
                         path="/management/dashboard"
                         element={<DashboardPage />}
+                    />
+
+                    {/* ANALYTICS */}
+                    <Route
+                        path="/management/analytics"
+                        element={<AnalyticsPage />}
+                    />
+                    <Route
+                        path="/management/analytics/sales"
+                        element={<SalesAnalyticsPage />}
+                    />
+                    <Route
+                        path="/management/analytics/profitability"
+                        element={<ProfitabilityAnalyticsPage />}
                     />
 
                     {/* REPORTS */}

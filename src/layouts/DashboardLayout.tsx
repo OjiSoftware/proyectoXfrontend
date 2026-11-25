@@ -28,7 +28,7 @@ const navigation = [
     { name: "Categorías", href: "/management/categories", icon: BlocksIcon },
     { name: "Proveedores", href: "/management/providers", icon: Truck },
     /*     { name: "Subcategorías", href: "/management/subcategories", icon: DocumentChartBarIcon }, */
-    { name: "Reportes", href: "/management/reports", icon: DocumentChartBarIcon },
+    { name: "Analytics", href: "/management/analytics", icon: DocumentChartBarIcon },
 ];
 
 function classNames(...classes: string[]) {
@@ -365,7 +365,7 @@ export default function DashboardLayout({
                 <button
                     onClick={() => setMobileDrawerOpen(true)}
                     className={classNames(
-                        mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/reports")
+                        mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/analytics") || location.pathname.startsWith("/management/reports")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
                         "flex flex-col items-center justify-center gap-0.5 py-1 px-1 transition-colors w-full"
