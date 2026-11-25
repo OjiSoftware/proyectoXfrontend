@@ -1553,7 +1553,7 @@ export default function CreateSalePage() {
                               }
                             }}
                             className={`transition-colors ${noStock
-                              ? "opacity-40 text-gray cursor-not-allowed"
+                              ? "opacity-60 text-gray-400 cursor-not-allowed"
                               : active
                                 ? "bg-indigo-600/35 text-white [[data-theme=mgmt-light]_&]:text-black cursor-pointer"
                                 : "hover:bg-white/5 text-slate-200 cursor-pointer"
