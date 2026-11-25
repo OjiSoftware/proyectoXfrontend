@@ -171,6 +171,16 @@ export default function ReportsPage() {
             subtitle="Ventas completadas, filtrables por fecha, categoría, proveedor y más."
             actions={
                 <div className="flex items-center gap-2">
+                    {/* Botón Volver */}
+                    <Link
+                        to="/management/analytics/sales"
+                        className="btn btn-sm btn-ghost shrink-0"
+                        title="Volver a Ventas"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="hidden lg:inline">Volver</span>
+                    </Link>
+
                     {/* Búsqueda en el header */}
                     <div className="w-56 lg:w-72">
                         <SearchBar
@@ -187,8 +197,8 @@ export default function ReportsPage() {
                         type="button"
                         onClick={() => setFiltersOpen((prev) => !prev)}
                         className={`btn btn-sm ${filtersOpen || activeFiltersCount > 0
-                                ? "btn-primary"
-                                : "btn-subtle"
+                            ? "btn-primary"
+                            : "btn-subtle"
                             }`}
                         title="Filtrar por fecha, categoría, marca..."
                     >
@@ -205,7 +215,7 @@ export default function ReportsPage() {
                     <button
                         onClick={handleExport}
                         disabled={exporting || loading || !report?.totalItems}
-                        className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-white bg-brand-500 rounded-xl shadow-lg hover:bg-brand-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                        className="btn btn-sm btn-primary"
                     >
                         <DownloadIcon className="w-4 h-4" />
                         <span className="hidden sm:inline">
@@ -213,15 +223,7 @@ export default function ReportsPage() {
                         </span>
                     </button>
 
-                    {/* Botón Volver */}
-                    <Link
-                        to="/management/analytics/sales"
-                        className="btn btn-sm btn-ghost shrink-0"
-                        title="Volver a Ventas"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span className="hidden lg:inline">Volver</span>
-                    </Link>
+
                 </div>
             }
         >
@@ -294,21 +296,7 @@ export default function ReportsPage() {
                                     ))}
                                 </select>
                             </label>
-                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                                Marca
-                                <select
-                                    value={brandId}
-                                    onChange={(e) => setBrandId(e.target.value)}
-                                    className={fieldClass}
-                                >
-                                    <option value="">Todas</option>
-                                    {brands.map((b) => (
-                                        <option key={b.id} value={b.id}>
-                                            {b.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
+
                             <label className="flex flex-col gap-1 text-[11px] text-slate-400">
                                 Medio de pago
                                 <select
@@ -337,14 +325,16 @@ export default function ReportsPage() {
                                 <tr>
                                     <th className="px-4 py-3">Venta</th>
                                     <th className="px-4 py-3">Fecha</th>
-                                    <th className="px-4 py-3">Cliente</th>
+
                                     <th className="px-4 py-3">Producto</th>
                                     <th className="px-4 py-3">Categoría</th>
                                     <th className="px-4 py-3">Proveedor</th>
-                                    <th className="px-4 py-3">Marca</th>
+
                                     <th className="px-4 py-3">Pago</th>
                                     <th className="px-4 py-3 text-right">Cant.</th>
-                                    <th className="px-4 py-3 text-right">P. unit.</th>
+                                    <th className="px-4 py-3 text-right">P. costo</th>
+                                    <th className="px-4 py-3 text-right">Margen</th>
+                                    <th className="px-4 py-3 text-right">P. venta</th>
                                     <th className="px-4 py-3 text-right">Subtotal</th>
                                 </tr>
                             </thead>
@@ -373,13 +363,19 @@ export default function ReportsPage() {
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 {formatDate(item.date)}
                                             </td>
-                                            <td className="px-4 py-3">{item.clientName}</td>
+                                            {/* <td className="px-4 py-3">{item.clientName}</td> */}
                                             <td className="px-4 py-3">{item.productName}</td>
                                             <td className="px-4 py-3">{item.categoryName}</td>
                                             <td className="px-4 py-3">{item.providerName}</td>
-                                            <td className="px-4 py-3">{item.brandName}</td>
+                                            {/* <td className="px-4 py-3">{item.brandName}</td> */}
                                             <td className="px-4 py-3">{item.paymentMethod}</td>
                                             <td className="px-4 py-3 text-right">{item.quantity}</td>
+                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                {money(item.costPrice)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                {item.margin != null ? money(item.margin) : "-"}
+                                            </td>
                                             <td className="px-4 py-3 text-right whitespace-nowrap">
                                                 {money(item.unitaryPrice)}
                                             </td>
