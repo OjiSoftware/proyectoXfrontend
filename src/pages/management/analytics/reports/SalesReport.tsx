@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, DownloadIcon, Filter, Package, XIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, DownloadIcon, Filter, XIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/PaginationManagement";
@@ -72,7 +72,7 @@ export default function ReportsPage() {
     const [report, setReport] = useState<SalesReportResult | null>(null);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
-    const [expandedSales, setExpandedSales] = useState<Set<number>>(new Set());
+    const [collapsedSales, setCollapsedSales] = useState<Set<number>>(new Set());
 
     // Opciones de los selects
     useEffect(() => {
@@ -125,7 +125,7 @@ export default function ReportsPage() {
             .getSalesReport(filters, controller.signal)
             .then((data) => {
                 setReport(data);
-                setExpandedSales(new Set());
+                setCollapsedSales(new Set());
             })
             .catch((err) => {
                 if (err?.name !== "AbortError") toast.error("No se pudo cargar el reporte");
@@ -176,8 +176,24 @@ export default function ReportsPage() {
         return groupedSales.slice(start, start + itemsPerPage);
     }, [groupedSales, page, itemsPerPage]);
 
+    // Totales generales sobre todas las ventas filtradas
+    const grandTotals = useMemo(() => {
+        let units = 0;
+        let cost = 0;
+        let margin: number | null = null;
+        let total = 0;
+
+        for (const s of groupedSales) {
+            units += s.totalUnits;
+            cost += s.totalCost;
+            if (s.totalMargin != null) margin = (margin ?? 0) + s.totalMargin;
+            total += s.total;
+        }
+        return { units, cost, margin, total };
+    }, [groupedSales]);
+
     const toggleSale = (saleId: number) => {
-        setExpandedSales((prev) => {
+        setCollapsedSales((prev) => {
             const next = new Set(prev);
             if (next.has(saleId)) next.delete(saleId);
             else next.add(saleId);
@@ -185,14 +201,14 @@ export default function ReportsPage() {
         });
     };
 
-    const allVisibleExpanded =
+    const allVisibleCollapsed =
         currentSales.length > 0 &&
-        currentSales.every((s) => expandedSales.has(s.saleId));
+        currentSales.every((s) => collapsedSales.has(s.saleId));
 
     const toggleAllVisible = () => {
-        setExpandedSales((prev) => {
+        setCollapsedSales((prev) => {
             const next = new Set(prev);
-            if (allVisibleExpanded) {
+            if (allVisibleCollapsed) {
                 currentSales.forEach((s) => next.delete(s.saleId));
             } else {
                 currentSales.forEach((s) => next.add(s.saleId));
@@ -392,7 +408,7 @@ export default function ReportsPage() {
                 )}
 
 
-                {/* Tabla detalle agrupada por venta (Acordeón) */}
+                {/* Tabla única agrupada por venta (estilo Excel con cabeceras de grupo) */}
                 <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                         <span className="text-xs font-medium text-slate-400">
@@ -406,15 +422,15 @@ export default function ReportsPage() {
                                 onClick={toggleAllVisible}
                                 className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer"
                             >
-                                {allVisibleExpanded ? (
-                                    <>
-                                        <ChevronsDownUp className="w-3.5 h-3.5" />
-                                        <span>Contraer todo</span>
-                                    </>
-                                ) : (
+                                {allVisibleCollapsed ? (
                                     <>
                                         <ChevronsUpDown className="w-3.5 h-3.5" />
                                         <span>Expandir todo</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ChevronsDownUp className="w-3.5 h-3.5" />
+                                        <span>Contraer todo</span>
                                     </>
                                 )}
                             </button>
@@ -423,148 +439,149 @@ export default function ReportsPage() {
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs text-left text-slate-300">
-                            <thead className="text-[11px] uppercase text-slate-400 border-b border-white/10">
+                            <thead className="text-[11px] uppercase tracking-wider text-slate-400 bg-white/[0.03] border-b border-white/10">
                                 <tr>
-                                    <th className="w-10 px-3 py-3" />
-                                    <th className="px-4 py-3">Venta</th>
-                                    <th className="px-4 py-3">Fecha y hora</th>
-                                    <th className="px-4 py-3">Productos</th>
-                                    <th className="px-4 py-3">Pago</th>
-                                    <th className="px-4 py-3 text-center">Unidades</th>
-                                    <th className="px-4 py-3 text-right">Costo total</th>
+                                    <th className="px-4 py-3">Producto</th>
+                                    <th className="px-4 py-3">Categoría</th>
+                                    <th className="px-4 py-3">Proveedor</th>
+                                    <th className="px-4 py-3 text-center">Cant.</th>
+                                    <th className="px-4 py-3 text-right">P. costo</th>
                                     <th className="px-4 py-3 text-right">Ganancia</th>
-                                    <th className="px-4 py-3 text-right">Total</th>
+                                    <th className="px-4 py-3 text-right">P. venta</th>
+                                    <th className="px-4 py-3 text-right">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading && !report ? (
                                     <tr>
-                                        <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
                                             Cargando reporte...
                                         </td>
                                     </tr>
                                 ) : groupedSales.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
                                             No hay ventas completadas con los filtros seleccionados.
                                         </td>
                                     </tr>
                                 ) : (
                                     currentSales.map((sale) => {
-                                        const isExpanded = expandedSales.has(sale.saleId);
+                                        const isCollapsed = collapsedSales.has(sale.saleId);
                                         return (
                                             <Fragment key={sale.saleId}>
+                                                {/* Fila cabecera de la venta (alineada a las mismas columnas) */}
                                                 <tr
                                                     onClick={() => toggleSale(sale.saleId)}
-                                                    className={`border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors ${
-                                                        isExpanded ? "bg-indigo-500/[0.06]" : ""
-                                                    } ${loading ? "opacity-60" : ""}`}
+                                                    className={`bg-indigo-500/[0.08] hover:bg-indigo-500/[0.13] border-t border-white/15 border-b border-white/10 border-l-2 border-l-indigo-500 cursor-pointer transition-colors ${
+                                                        loading ? "opacity-60" : ""
+                                                    }`}
                                                 >
-                                                    <td className="px-3 py-3 text-slate-400">
-                                                        {isExpanded ? (
-                                                            <ChevronDown className="w-4 h-4 text-indigo-400" />
-                                                        ) : (
-                                                            <ChevronRight className="w-4 h-4" />
-                                                        )}
-                                                    </td>
-                                                    <td className="px-4 py-3 font-semibold text-white whitespace-nowrap">
-                                                        #{sale.saleId}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="text-slate-200">{formatDate(sale.date)}</div>
-                                                        <div className="text-[11px] text-slate-400">
-                                                            {formatTime(sale.date)} hs
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center gap-2 min-w-0">
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-medium shrink-0">
-                                                                <Package className="w-3 h-3" />
-                                                                {sale.products.length}{" "}
-                                                                {sale.products.length === 1 ? "producto" : "productos"}
+                                                    <td colSpan={3} className="px-4 py-2.5">
+                                                        <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+                                                            <span className="inline-flex items-center gap-1.5 font-bold text-white">
+                                                                {isCollapsed ? (
+                                                                    <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
+                                                                ) : (
+                                                                    <ChevronDown className="w-3.5 h-3.5 text-indigo-400" />
+                                                                )}
+                                                                Venta #{sale.saleId}
                                                             </span>
-                                                            <span className="text-slate-400 truncate max-w-[260px]">
-                                                                {sale.products[0]?.productName}
-                                                                {sale.products.length > 1
-                                                                    ? ` +${sale.products.length - 1} más`
-                                                                    : ""}
+                                                            <span className="text-slate-400">
+                                                                {formatDate(sale.date)} · {formatTime(sale.date)} hs
+                                                            </span>
+                                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-slate-200 text-[11px] font-medium">
+                                                                {sale.paymentMethod}
+                                                            </span>
+                                                            <span className="text-[11px] text-slate-400">
+                                                                ({sale.products.length}{" "}
+                                                                {sale.products.length === 1 ? "producto" : "productos"})
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        {sale.paymentMethod}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-center font-medium">
+                                                    <td className="px-4 py-2.5 text-center font-semibold text-white">
                                                         {sale.totalUnits}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                    <td className="px-4 py-2.5 text-right whitespace-nowrap font-medium text-slate-200">
                                                         {money(sale.totalCost)}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap text-emerald-400 font-medium">
+                                                    <td className="px-4 py-2.5 text-right whitespace-nowrap font-semibold text-emerald-400">
                                                         {sale.totalMargin != null ? money(sale.totalMargin) : "-"}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right font-semibold text-white whitespace-nowrap">
+                                                    <td className="px-4 py-2.5 text-right text-slate-500">
+                                                        —
+                                                    </td>
+                                                    <td className="px-4 py-2.5 text-right whitespace-nowrap font-bold text-white">
                                                         {money(sale.total)}
                                                     </td>
                                                 </tr>
 
-                                                {isExpanded && (
-                                                    <tr className="border-b border-white/10 bg-black/25">
-                                                        <td colSpan={9} className="p-0">
-                                                            <div className="px-6 py-3 pl-12">
-                                                                <table className="w-full text-xs text-left">
-                                                                    <thead className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-white/10">
-                                                                        <tr>
-                                                                            <th className="py-2 pr-4">Producto</th>
-                                                                            <th className="py-2 px-3">Categoría</th>
-                                                                            <th className="py-2 px-3">Proveedor</th>
-                                                                            <th className="py-2 px-3 text-center">Cant.</th>
-                                                                            <th className="py-2 px-3 text-right">P. costo</th>
-                                                                            <th className="py-2 px-3 text-right">Ganancia</th>
-                                                                            <th className="py-2 px-3 text-right">P. venta</th>
-                                                                            <th className="py-2 pl-3 text-right">Subtotal</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody className="divide-y divide-white/5">
-                                                                        {sale.products.map((item) => (
-                                                                            <tr key={item.id} className="hover:bg-white/[0.03]">
-                                                                                <td className="py-2 pr-4 font-medium text-slate-200">
-                                                                                    {item.productName}
-                                                                                </td>
-                                                                                <td className="py-2 px-3 text-slate-400">
-                                                                                    {item.categoryName}
-                                                                                </td>
-                                                                                <td className="py-2 px-3 text-slate-400">
-                                                                                    {item.providerName}
-                                                                                </td>
-                                                                                <td className="py-2 px-3 text-center text-slate-300">
-                                                                                    {item.quantity}
-                                                                                </td>
-                                                                                <td className="py-2 px-3 text-right whitespace-nowrap text-slate-300">
-                                                                                    {money(item.costPrice)}
-                                                                                </td>
-                                                                                <td className="py-2 px-3 text-right whitespace-nowrap text-emerald-400/90">
-                                                                                    {item.margin != null ? money(item.margin) : "-"}
-                                                                                </td>
-                                                                                <td className="py-2 px-3 text-right whitespace-nowrap text-slate-300">
-                                                                                    {money(item.unitaryPrice)}
-                                                                                </td>
-                                                                                <td className="py-2 pl-3 text-right whitespace-nowrap font-semibold text-white">
-                                                                                    {money(item.subtotal)}
-                                                                                </td>
-                                                                            </tr>
-                                                                        ))}
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
+                                                {/* Filas de productos de la venta */}
+                                                {!isCollapsed &&
+                                                    sale.products.map((item) => (
+                                                        <tr
+                                                            key={item.id}
+                                                            className={`border-b border-white/5 border-l-2 border-l-indigo-500/25 hover:bg-white/[0.03] transition-colors ${
+                                                                loading ? "opacity-60" : ""
+                                                            }`}
+                                                        >
+                                                            <td className="py-2.5 pl-9 pr-4 text-slate-200">
+                                                                {item.productName}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">
+                                                                {item.categoryName}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">
+                                                                {item.providerName}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-center text-slate-300">
+                                                                {item.quantity}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-400">
+                                                                {money(item.costPrice)}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-emerald-400/80">
+                                                                {item.margin != null ? money(item.margin) : "-"}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-300">
+                                                                {money(item.unitaryPrice)}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap font-medium text-slate-100">
+                                                                {money(item.subtotal)}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
                                             </Fragment>
                                         );
                                     })
                                 )}
                             </tbody>
+
+                            {/* Fila de Super Total del período filtrado */}
+                            {groupedSales.length > 0 && (
+                                <tfoot>
+                                    <tr className="bg-white/[0.05] border-t-2 border-white/15 font-bold text-white">
+                                        <td colSpan={3} className="px-4 py-3 text-xs uppercase tracking-wider text-slate-300">
+                                            Total general ({groupedSales.length}{" "}
+                                            {groupedSales.length === 1 ? "venta" : "ventas"})
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            {grandTotals.units}
+                                        </td>
+                                        <td className="px-4 py-3 text-right whitespace-nowrap text-slate-200">
+                                            {money(grandTotals.cost)}
+                                        </td>
+                                        <td className="px-4 py-3 text-right whitespace-nowrap text-emerald-400">
+                                            {grandTotals.margin != null ? money(grandTotals.margin) : "-"}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-slate-500">
+                                            —
+                                        </td>
+                                        <td className="px-4 py-3 text-right whitespace-nowrap text-white">
+                                            {money(grandTotals.total)}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            )}
                         </table>
                     </div>
                 </div>
