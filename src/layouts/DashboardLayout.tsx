@@ -89,7 +89,7 @@ export default function DashboardLayout({
         "&background=6366f1&color=fff";
 
     return (
-        <div className="flex h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-hidden font-poppins transition-colors duration-200">
+        <div className="flex h-dvh md:h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-hidden font-poppins transition-colors duration-200">
 
             {/* --------------------------- */}
             {/* SIDEBAR ESCRITORIO          */}
