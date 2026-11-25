@@ -14,12 +14,9 @@ export default function SalesAnalyticsPage() {
         <DashboardLayout
             title="Analíticas · Ventas"
             subtitle="Indicadores de desempeño comercial y acceso al reporte de ventas."
+            backUrl="/management/analytics"
             actions={
                 <div className="flex items-center gap-2">
-                    <Link to="/management/analytics" className="btn btn-sm btn-ghost">
-                        <ArrowLeft className="w-4 h-4" />
-                        <span>Volver</span>
-                    </Link>
                     <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>Reportes de ventas</span>
@@ -30,10 +27,6 @@ export default function SalesAnalyticsPage() {
             <div className="space-y-6">
                 {/* Acciones visibles también en mobile */}
                 <div className="flex flex-wrap items-center gap-2 md:hidden">
-                    <Link to="/management/analytics" className="btn btn-sm btn-ghost">
-                        <ArrowLeft className="w-4 h-4" />
-                        <span>Volver</span>
-                    </Link>
                     <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>Reportes de ventas</span>

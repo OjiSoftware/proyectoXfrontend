@@ -18,7 +18,7 @@ import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
-import { BlocksIcon, DollarSign, Truck, MoreHorizontal, Sun, Moon } from "lucide-react";
+import { ArrowLeft, BlocksIcon, DollarSign, Truck, MoreHorizontal, Sun, Moon } from "lucide-react";
 
 const navigation = [
     /*     { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon }, */
@@ -41,12 +41,16 @@ export default function DashboardLayout({
     subtitle,
     actions,
     headerWidgets,
+    backUrl,
+    onBack,
 }: {
     children: React.ReactNode;
     title?: string;
     subtitle?: string;
     actions?: React.ReactNode;
     headerWidgets?: React.ReactNode;
+    backUrl?: string;
+    onBack?: () => void;
 }) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -277,16 +281,62 @@ export default function DashboardLayout({
                     <>
                         {/* HEADER MOBILE (< md): Ultracompacto, sin widgets de stock ni botón crear */}
                         <header className="md:hidden shrink-0 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)] relative z-30 shadow-sm px-3.5 py-2">
-                            <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
-                            {subtitle && <p className="text-[11px] text-[var(--text-muted)] truncate">{subtitle}</p>}
+                            <div className="flex items-center gap-2.5">
+                                {(backUrl || onBack) && (
+                                    backUrl ? (
+                                        <Link
+                                            to={backUrl}
+                                            className="btn btn-icon-sm btn-ghost shrink-0"
+                                            title="Volver"
+                                        >
+                                            <ArrowLeft className="w-4 h-4" />
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={onBack}
+                                            className="btn btn-icon-sm btn-ghost shrink-0"
+                                            title="Volver"
+                                        >
+                                            <ArrowLeft className="w-4 h-4" />
+                                        </button>
+                                    )
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
+                                    {subtitle && <p className="text-[11px] text-[var(--text-muted)] truncate">{subtitle}</p>}
+                                </div>
+                            </div>
                         </header>
 
-                        {/* HEADER DESKTOP (md+): Sin tocar, mantiene widgets de alertas y botón crear */}
+                        {/* HEADER DESKTOP (md+): Con botón volver integrado a la izquierda si existe */}
                         <header className="hidden md:block shrink-0 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)] relative z-30 shadow-sm overflow-visible">
                             <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
-                                    {subtitle && <p className="text-sm text-[var(--text-muted)] mt-1 truncate">{subtitle}</p>}
+                                <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                                    {(backUrl || onBack) && (
+                                        backUrl ? (
+                                            <Link
+                                                to={backUrl}
+                                                className="btn btn-icon btn-ghost shrink-0"
+                                                title="Volver"
+                                            >
+                                                <ArrowLeft className="w-4 h-4" />
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={onBack}
+                                                className="btn btn-icon btn-ghost shrink-0"
+                                                title="Volver"
+                                            >
+                                                <ArrowLeft className="w-4 h-4" />
+                                            </button>
+                                        )
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
+                                        {subtitle && <p className="text-sm text-[var(--text-muted)] mt-1 truncate">{subtitle}</p>}
+                                    </div>
                                 </div>
 
                                 {/* WIDGETS + ACCIONES agrupados a la derecha */}

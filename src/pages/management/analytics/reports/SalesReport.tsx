@@ -169,18 +169,9 @@ export default function ReportsPage() {
         <DashboardLayout
             title="Reporte de ventas"
             subtitle="Ventas completadas, filtrables por fecha, categoría, proveedor y más."
+            backUrl="/management/analytics/sales"
             actions={
                 <div className="flex items-center gap-2">
-                    {/* Botón Volver */}
-                    <Link
-                        to="/management/analytics/sales"
-                        className="btn btn-sm btn-ghost shrink-0"
-                        title="Volver a Ventas"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span className="hidden lg:inline">Volver</span>
-                    </Link>
-
                     {/* Búsqueda en el header */}
                     <div className="w-56 lg:w-72">
                         <SearchBar
@@ -222,8 +213,6 @@ export default function ReportsPage() {
                             {exporting ? "Exportando..." : "Exportar Excel"}
                         </span>
                     </button>
-
-
                 </div>
             }
         >
