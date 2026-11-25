@@ -89,7 +89,7 @@ export default function DashboardLayout({
         "&background=6366f1&color=fff";
 
     return (
-        <div className="flex h-dvh md:h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-hidden font-poppins transition-colors duration-200">
+        <div className="flex flex-col md:flex-row h-dvh md:h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-hidden font-poppins transition-colors duration-200">
 
             {/* --------------------------- */}
             {/* SIDEBAR ESCRITORIO          */}
@@ -276,7 +276,7 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* AREA PRINCIPAL 100% WIDTH   */}
             {/* --------------------------- */}
-            <div className="flex flex-1 flex-col overflow-hidden pt-14 md:pt-0 bg-[var(--bg-app)] transition-colors duration-200">
+            <div className="flex flex-1 min-h-0 flex-col overflow-hidden pt-14 md:pt-0 bg-[var(--bg-app)] transition-colors duration-200">
                 {title && (
                     <>
                         {/* HEADER MOBILE (< md): Ultracompacto, sin widgets de stock ni botón crear */}
@@ -351,7 +351,7 @@ export default function DashboardLayout({
 
                 {/* CONTENIDO (Scroll interno, ancho completo w-full sin límites) */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.08),rgba(7,5,12,0))]">
-                    <div className="w-full px-3.5 py-3 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-[calc(9rem+env(safe-area-inset-bottom))] md:pb-20">
+                    <div className="w-full px-3.5 py-3 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-6 md:pb-20">
                         {/* W-FULL reemplazando al max-w de tailwind, para que todo toque los bordes del flex */}
                         {children}
                     </div>
@@ -361,7 +361,7 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* BOTTOM NAVIGATION BAR MÓVIL */}
             {/* --------------------------- */}
-            <nav className="md:hidden shrink-0 fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 z-40 grid grid-cols-5 items-center shadow-[0_-10px_30px_rgba(0,0,0,0.6)] py-1">
+            <nav className="md:hidden shrink-0 relative pb-[env(safe-area-inset-bottom)] bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 z-40 grid grid-cols-5 items-center shadow-[0_-10px_30px_rgba(0,0,0,0.6)] py-1">
                 <Link
                     to="/management/sales"
                     className={classNames(
