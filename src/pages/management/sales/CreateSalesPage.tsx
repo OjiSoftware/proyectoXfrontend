@@ -667,21 +667,24 @@ export default function CreateSalePage() {
           details: saleDetails,
         });
 
-        // Dejar constancia segura en notas si hubo recargo del 5% en pañales con tarjeta
+        // Dejar constancia segura en notas si el pago fue con tarjeta (con o sin recargo en pañales)
         const createdSaleId = Number(createdSale?.id ?? createdSale?.sale?.id);
         if (
           Number.isInteger(createdSaleId) &&
           createdSaleId > 0 &&
-          method === "CARD" &&
-          appliedSurcharge > 0
+          (method === "CARD" || appliedSurcharge > 0)
         ) {
-          saleApi
+          const cardNotes =
+            appliedSurcharge > 0
+              ? `Pago con Tarjeta • Incluye +5% recargo en pañales (${formatARS(
+                  appliedSurcharge
+                )}) • Total cobrado: ${formatARS(computedTotal)}`
+              : `Pago con Tarjeta • Total cobrado: ${formatARS(computedTotal)}`;
+
+          await saleApi
             .update(String(createdSaleId), {
               status: "COMPLETED",
-              notes: `Pago con Tarjeta • Incluye +5% recargo en pañales (${formatARS(
-                appliedSurcharge
-              )}) • Total cobrado: ${formatARS(computedTotal)}`,
-              details: saleDetails,
+              notes: cardNotes,
             })
             .catch(() => {
               // No interrumpir flujo de caja si falla actualización secundaria de nota
@@ -1552,7 +1555,7 @@ export default function CreateSalePage() {
                             className={`transition-colors ${noStock
                               ? "opacity-40 text-gray cursor-not-allowed"
                               : active
-                                ? "bg-indigo-600/35 text-white cursor-pointer"
+                                ? "bg-indigo-600/35 text-white [[data-theme=mgmt-light]_&]:text-black cursor-pointer"
                                 : "hover:bg-white/5 text-slate-200 cursor-pointer"
                               }`}
                           >

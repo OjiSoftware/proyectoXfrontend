@@ -18,7 +18,7 @@ import logo from "../assets/OJI_logo/OJI_logo_soft_color_v3.svg";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
-import { BlocksIcon, DollarSign, Truck, MoreHorizontal, Sun, Moon } from "lucide-react";
+import { LogOut, BlocksIcon, DollarSign, Truck, MoreHorizontal, Sun, Moon } from "lucide-react";
 
 const navigation = [
     /*     { name: "Dashboard", href: "/management/dashboard", icon: ChartBarIcon }, */
@@ -28,7 +28,7 @@ const navigation = [
     { name: "Categorías", href: "/management/categories", icon: BlocksIcon },
     { name: "Proveedores", href: "/management/providers", icon: Truck },
     /*     { name: "Subcategorías", href: "/management/subcategories", icon: DocumentChartBarIcon }, */
-    { name: "Reportes", href: "/management/reports", icon: DocumentChartBarIcon },
+    { name: "Analíticas", href: "/management/analytics", icon: DocumentChartBarIcon },
 ];
 
 function classNames(...classes: string[]) {
@@ -41,12 +41,16 @@ export default function DashboardLayout({
     subtitle,
     actions,
     headerWidgets,
+    backUrl,
+    onBack,
 }: {
     children: React.ReactNode;
     title?: string;
     subtitle?: string;
     actions?: React.ReactNode;
     headerWidgets?: React.ReactNode;
+    backUrl?: string;
+    onBack?: () => void;
 }) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -85,7 +89,7 @@ export default function DashboardLayout({
         "&background=6366f1&color=fff";
 
     return (
-        <div className="flex h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-hidden font-poppins transition-colors duration-200">
+        <div className="flex flex-col md:flex-row h-dvh md:h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-hidden font-poppins transition-colors duration-200">
 
             {/* --------------------------- */}
             {/* SIDEBAR ESCRITORIO          */}
@@ -272,21 +276,67 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* AREA PRINCIPAL 100% WIDTH   */}
             {/* --------------------------- */}
-            <div className="flex flex-1 flex-col overflow-hidden pt-14 md:pt-0 bg-[var(--bg-app)] transition-colors duration-200">
+            <div className="flex flex-1 min-h-0 flex-col overflow-hidden pt-14 md:pt-0 bg-[var(--bg-app)] transition-colors duration-200">
                 {title && (
                     <>
                         {/* HEADER MOBILE (< md): Ultracompacto, sin widgets de stock ni botón crear */}
                         <header className="md:hidden shrink-0 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)] relative z-30 shadow-sm px-3.5 py-2">
-                            <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
-                            {subtitle && <p className="text-[11px] text-[var(--text-muted)] truncate">{subtitle}</p>}
+                            <div className="flex items-center gap-2.5">
+                                {(backUrl || onBack) && (
+                                    backUrl ? (
+                                        <Link
+                                            to={backUrl}
+                                            className="btn btn-icon-sm btn-ghost shrink-0"
+                                            title="Volver"
+                                        >
+                                            <LogOut className="w-4 h-4 rotate-180" />
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={onBack}
+                                            className="btn btn-icon-sm btn-ghost shrink-0"
+                                            title="Volver"
+                                        >
+                                            <LogOut className="w-4 h-4 rotate-180" />
+                                        </button>
+                                    )
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
+                                    {subtitle && <p className="text-[11px] text-[var(--text-muted)] truncate">{subtitle}</p>}
+                                </div>
+                            </div>
                         </header>
 
-                        {/* HEADER DESKTOP (md+): Sin tocar, mantiene widgets de alertas y botón crear */}
+                        {/* HEADER DESKTOP (md+): Con botón volver integrado a la izquierda si existe */}
                         <header className="hidden md:block shrink-0 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)] relative z-30 shadow-sm overflow-visible">
                             <div className="w-full px-4 py-5 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
-                                    {subtitle && <p className="text-sm text-[var(--text-muted)] mt-1 truncate">{subtitle}</p>}
+                                <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                                    {(backUrl || onBack) && (
+                                        backUrl ? (
+                                            <Link
+                                                to={backUrl}
+                                                className="btn btn-icon btn-ghost shrink-0"
+                                                title="Volver"
+                                            >
+                                                <LogOut className="w-4 h-4 rotate-180" />
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={onBack}
+                                                className="btn btn-icon btn-ghost shrink-0"
+                                                title="Volver"
+                                            >
+                                                <LogOut className="w-4 h-4 rotate-180" />
+                                            </button>
+                                        )
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] truncate">{title}</h1>
+                                        {subtitle && <p className="text-sm text-[var(--text-muted)] mt-1 truncate">{subtitle}</p>}
+                                    </div>
                                 </div>
 
                                 {/* WIDGETS + ACCIONES agrupados a la derecha */}
@@ -301,7 +351,7 @@ export default function DashboardLayout({
 
                 {/* CONTENIDO (Scroll interno, ancho completo w-full sin límites) */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.08),rgba(7,5,12,0))]">
-                    <div className="w-full px-3.5 py-3 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-28 md:pb-20">
+                    <div className="w-full px-3.5 py-3 md:px-4 md:py-8 sm:px-6 lg:px-8 pb-6 md:pb-20">
                         {/* W-FULL reemplazando al max-w de tailwind, para que todo toque los bordes del flex */}
                         {children}
                     </div>
@@ -311,7 +361,7 @@ export default function DashboardLayout({
             {/* --------------------------- */}
             {/* BOTTOM NAVIGATION BAR MÓVIL */}
             {/* --------------------------- */}
-            <nav className="md:hidden shrink-0 fixed bottom-0 inset-x-0 bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 z-40 grid grid-cols-5 items-center shadow-[0_-10px_30px_rgba(0,0,0,0.6)] py-1">
+            <nav className="md:hidden shrink-0 relative pb-[env(safe-area-inset-bottom)] bg-[#0A0812]/95 backdrop-blur-xl border-t border-white/10 z-40 grid grid-cols-5 items-center shadow-[0_-10px_30px_rgba(0,0,0,0.6)] py-1">
                 <Link
                     to="/management/sales"
                     className={classNames(
@@ -365,7 +415,7 @@ export default function DashboardLayout({
                 <button
                     onClick={() => setMobileDrawerOpen(true)}
                     className={classNames(
-                        mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/reports")
+                        mobileDrawerOpen || location.pathname.startsWith("/management/providers") || location.pathname.startsWith("/management/analytics") || location.pathname.startsWith("/management/reports")
                             ? "text-indigo-400 font-semibold"
                             : "text-slate-400 hover:text-slate-200 font-medium",
                         "flex flex-col items-center justify-center gap-0.5 py-1 px-1 transition-colors w-full"

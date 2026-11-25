@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { DownloadIcon, XIcon } from "lucide-react";
+import { ArrowLeft, DownloadIcon, Filter, XIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/PaginationManagement";
@@ -45,6 +46,7 @@ export default function ReportsPage() {
     const [searchInput, setSearchInput] = useState("");
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
+    const [filtersOpen, setFiltersOpen] = useState(false);
 
     const [categories, setCategories] = useState<Option[]>([]);
     const [providers, setProviders] = useState<Option[]>([]);
@@ -113,6 +115,15 @@ export default function ReportsPage() {
         return () => controller.abort();
     }, [filters, page, itemsPerPage]);
 
+    const activeFiltersCount = [
+        from,
+        to,
+        categoryId,
+        providerId,
+        brandId,
+        paymentMethod,
+    ].filter(Boolean).length;
+
     const hasFilters = Object.values(filters).some((v) => v !== undefined);
 
     const clearFilters = () => {
@@ -158,142 +169,142 @@ export default function ReportsPage() {
         <DashboardLayout
             title="Reporte de ventas"
             subtitle="Ventas completadas, filtrables por fecha, categoría, proveedor y más."
+            backUrl="/management/analytics/sales"
             actions={
-                <button
-                    onClick={handleExport}
-                    disabled={exporting || loading || !report?.totalItems}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-brand-500 rounded-lg shadow-lg hover:bg-brand-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <DownloadIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">
-                        {exporting ? "Exportando..." : "Exportar Excel"}
-                    </span>
-                </button>
-            }
-        >
-            <div className="space-y-6">
-                {/* Filtros */}
-                <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-4 space-y-3">
-                    <div className="flex flex-wrap gap-3 items-end">
-                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                            Desde
-                            <input
-                                type="date"
-                                value={from}
-                                max={to || undefined}
-                                onChange={(e) => setFrom(e.target.value)}
-                                className={fieldClass}
-                            />
-                        </label>
-                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                            Hasta
-                            <input
-                                type="date"
-                                value={to}
-                                min={from || undefined}
-                                onChange={(e) => setTo(e.target.value)}
-                                className={fieldClass}
-                            />
-                        </label>
-                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                            Categoría
-                            <select
-                                value={categoryId}
-                                onChange={(e) => setCategoryId(e.target.value)}
-                                className={fieldClass}
-                            >
-                                <option value="">Todas</option>
-                                {categories.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                            Proveedor
-                            <select
-                                value={providerId}
-                                onChange={(e) => setProviderId(e.target.value)}
-                                className={fieldClass}
-                            >
-                                <option value="">Todos</option>
-                                {providers.map((p) => (
-                                    <option key={p.id} value={p.id}>
-                                        {p.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                            Marca
-                            <select
-                                value={brandId}
-                                onChange={(e) => setBrandId(e.target.value)}
-                                className={fieldClass}
-                            >
-                                <option value="">Todas</option>
-                                {brands.map((b) => (
-                                    <option key={b.id} value={b.id}>
-                                        {b.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="flex flex-col gap-1 text-[11px] text-slate-400">
-                            Medio de pago
-                            <select
-                                value={paymentMethod}
-                                onChange={(e) => setPaymentMethod(e.target.value)}
-                                className={fieldClass}
-                            >
-                                <option value="">Todos</option>
-                                {(report?.paymentMethods ?? []).map((m) => (
-                                    <option key={m} value={m}>
-                                        {m}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                    </div>
-                    <div className="flex flex-wrap gap-3 items-center">
+                <div className="flex items-center gap-2">
+                    {/* Búsqueda en el header */}
+                    <div className="w-56 lg:w-72">
                         <SearchBar
                             value={searchInput}
                             onChange={setSearchInput}
-                            placeholder="Buscar por cliente, DNI o producto..."
-                            containerClassName="max-w-md"
+                            placeholder="Buscar cliente, DNI..."
+                            containerClassName="w-full"
                             inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
                         />
-                        {hasFilters && (
-                            <button
-                                onClick={clearFilters}
-                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
-                            >
-                                <XIcon className="w-3.5 h-3.5" />
-                                Limpiar filtros
-                            </button>
-                        )}
                     </div>
-                </div>
 
-                {/* KPIs */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                    {kpiCards.map((card) => (
-                        <div
-                            key={card.label}
-                            className="bg-gray-800/50 border border-white/10 rounded-2xl p-4"
-                        >
-                            <p className="text-[11px] text-slate-400 uppercase tracking-wide">
-                                {card.label}
-                            </p>
-                            <p
-                                className={`mt-1 text-lg font-bold text-white ${loading ? "opacity-50" : ""}`}
-                            >
-                                {card.value}
-                            </p>
-                        </div>
-                    ))}
+                    {/* Botón selector de filtros */}
+                    <button
+                        type="button"
+                        onClick={() => setFiltersOpen((prev) => !prev)}
+                        className={`btn btn-sm ${filtersOpen || activeFiltersCount > 0
+                            ? "btn-primary"
+                            : "btn-subtle"
+                            }`}
+                        title="Filtrar por fecha, categoría, marca..."
+                    >
+                        <Filter className="w-4 h-4" />
+                        <span className="hidden sm:inline">Filtros</span>
+                        {activeFiltersCount > 0 && (
+                            <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-indigo-500 text-white text-[10px] font-bold">
+                                {activeFiltersCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Botón exportar Excel */}
+                    <button
+                        onClick={handleExport}
+                        disabled={exporting || loading || !report?.totalItems}
+                        className="btn btn-sm btn-primary"
+                    >
+                        <DownloadIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                            {exporting ? "Exportando..." : "Exportar Excel"}
+                        </span>
+                    </button>
                 </div>
+            }
+        >
+            <div className="space-y-6">
+                {/* Panel de filtros desplegable o toggle desde el botón de arriba */}
+                {filtersOpen && (
+                    <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                            <span className="text-xs font-semibold text-slate-300">
+                                Filtrar resultados
+                            </span>
+                            {hasFilters && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <XIcon className="w-3.5 h-3.5" />
+                                    Limpiar filtros
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-3 items-end">
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Desde
+                                <input
+                                    type="date"
+                                    value={from}
+                                    max={to || undefined}
+                                    onChange={(e) => setFrom(e.target.value)}
+                                    className={fieldClass}
+                                />
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Hasta
+                                <input
+                                    type="date"
+                                    value={to}
+                                    min={from || undefined}
+                                    onChange={(e) => setTo(e.target.value)}
+                                    className={fieldClass}
+                                />
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Categoría
+                                <select
+                                    value={categoryId}
+                                    onChange={(e) => setCategoryId(e.target.value)}
+                                    className={fieldClass}
+                                >
+                                    <option value="">Todas</option>
+                                    {categories.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Proveedor
+                                <select
+                                    value={providerId}
+                                    onChange={(e) => setProviderId(e.target.value)}
+                                    className={fieldClass}
+                                >
+                                    <option value="">Todos</option>
+                                    {providers.map((p) => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                                Medio de pago
+                                <select
+                                    value={paymentMethod}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className={fieldClass}
+                                >
+                                    <option value="">Todos</option>
+                                    {(report?.paymentMethods ?? []).map((m) => (
+                                        <option key={m} value={m}>
+                                            {m}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                )}
+
 
                 {/* Tabla detalle */}
                 <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
@@ -303,14 +314,16 @@ export default function ReportsPage() {
                                 <tr>
                                     <th className="px-4 py-3">Venta</th>
                                     <th className="px-4 py-3">Fecha</th>
-                                    <th className="px-4 py-3">Cliente</th>
+
                                     <th className="px-4 py-3">Producto</th>
                                     <th className="px-4 py-3">Categoría</th>
                                     <th className="px-4 py-3">Proveedor</th>
-                                    <th className="px-4 py-3">Marca</th>
+
                                     <th className="px-4 py-3">Pago</th>
                                     <th className="px-4 py-3 text-right">Cant.</th>
-                                    <th className="px-4 py-3 text-right">P. unit.</th>
+                                    <th className="px-4 py-3 text-right">P. costo</th>
+                                    <th className="px-4 py-3 text-right">Margen</th>
+                                    <th className="px-4 py-3 text-right">P. venta</th>
                                     <th className="px-4 py-3 text-right">Subtotal</th>
                                 </tr>
                             </thead>
@@ -339,13 +352,19 @@ export default function ReportsPage() {
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 {formatDate(item.date)}
                                             </td>
-                                            <td className="px-4 py-3">{item.clientName}</td>
+                                            {/* <td className="px-4 py-3">{item.clientName}</td> */}
                                             <td className="px-4 py-3">{item.productName}</td>
                                             <td className="px-4 py-3">{item.categoryName}</td>
                                             <td className="px-4 py-3">{item.providerName}</td>
-                                            <td className="px-4 py-3">{item.brandName}</td>
+                                            {/* <td className="px-4 py-3">{item.brandName}</td> */}
                                             <td className="px-4 py-3">{item.paymentMethod}</td>
                                             <td className="px-4 py-3 text-right">{item.quantity}</td>
+                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                {money(item.costPrice)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                {item.margin != null ? money(item.margin) : "-"}
+                                            </td>
                                             <td className="px-4 py-3 text-right whitespace-nowrap">
                                                 {money(item.unitaryPrice)}
                                             </td>
