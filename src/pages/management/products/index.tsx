@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown, SlidersHorizontal, Tag } from "lucide-react";
 import { ExportDropdown } from "@/components/ExportDropdown";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { ProductsTable } from "@/components/ProductsTable";
@@ -46,14 +46,17 @@ export default function ProductsPage() {
     };
 
     // ---------------- Dropdown refs ----------------
+    const [categoryOpen, setCategoryOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const [paramsOpen, setParamsOpen] = useState(false);
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+    const categoryRef = useRef<HTMLDivElement>(null);
     const filterRef = useRef<HTMLDivElement>(null);
     const paramsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
+            if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) setCategoryOpen(false);
             if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
             if (paramsRef.current && !paramsRef.current.contains(e.target as Node)) setParamsOpen(false);
         };
@@ -266,14 +269,15 @@ export default function ProductsPage() {
         setFilterSubCategory('all');
     };
 
-    const activeFiltersCount = [
+    const otherFiltersCount = [
         filterStock !== 'all',
         filterVisibility !== 'all',
         filterBrand !== 'all',
-        filterCategory !== 'all',
         filterProvider !== 'all',
         filterSubCategory !== 'all',
     ].filter(Boolean).length;
+
+    const activeFiltersCount = otherFiltersCount + (filterCategory !== 'all' ? 1 : 0);
 
     const hasActiveFilters = query !== '' || activeFiltersCount > 0;
 
@@ -524,21 +528,67 @@ export default function ProductsPage() {
 
                         {/* Contenedor de Filtros y Acciones */}
                         <div className="flex items-center gap-2 lg:gap-2.5 shrink-0">
-                            {/* Dropdown FILTROS unificado (Stock, Visibilidad, Categoría y Proveedor) */}
+                            {/* Dropdown CATEGORÍAS */}
+                            <div ref={categoryRef} className="relative shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => { setCategoryOpen(o => !o); setFilterOpen(false); setParamsOpen(false); }}
+                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${categoryOpen || filterCategory !== 'all'
+                                        ? 'bg-neutral-500/20 border-neutral-500/40 text-white'
+                                        : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
+                                        }`}
+                                >
+                                    <Tag className="w-3.5 h-3.5 shrink-0" />
+                                    <span className="max-w-[140px] truncate">
+                                        {filterCategory === 'all' ? 'Categorías' : filterCategory}
+                                    </span>
+                                    <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                {categoryOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-60 max-h-[75vh] overflow-y-auto bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-2 space-y-1">
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider px-2 pt-1 pb-1">Categoría</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setFilterCategory('all'); setCategoryOpen(false); }}
+                                            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${filterCategory === 'all'
+                                                ? 'bg-neutral-500/20 text-white font-semibold'
+                                                : 'text-gray-400 font-medium hover:bg-neutral-500/10 hover:text-gray-200'
+                                                }`}
+                                        >
+                                            Todas las categorías
+                                        </button>
+                                        {uniqueCategories.map(cat => (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                onClick={() => { setFilterCategory(cat); setCategoryOpen(false); }}
+                                                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${filterCategory === cat
+                                                    ? 'bg-neutral-500/20 text-white font-semibold'
+                                                    : 'text-gray-400 font-medium hover:bg-neutral-500/10 hover:text-gray-200'
+                                                    }`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Dropdown OTROS FILTROS (Stock, Visibilidad y Proveedor) */}
                             <div ref={filterRef} className="relative shrink-0">
                                 <button
                                     type="button"
-                                    onClick={() => { setFilterOpen(o => !o); setParamsOpen(false); }}
-                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${filterOpen || activeFiltersCount > 0
+                                    onClick={() => { setFilterOpen(o => !o); setCategoryOpen(false); setParamsOpen(false); }}
+                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${filterOpen || otherFiltersCount > 0
                                         ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
                                         : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
                                         }`}
                                 >
                                     <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" />
-                                    <span>Filtros</span>
-                                    {activeFiltersCount > 0 && (
+                                    <span>Otros filtros</span>
+                                    {otherFiltersCount > 0 && (
                                         <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 px-1.5 rounded-full">
-                                            {activeFiltersCount}
+                                            {otherFiltersCount}
                                         </span>
                                     )}
                                     <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
@@ -573,23 +623,6 @@ export default function ProductsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Categoría */}
-                                        <div>
-                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Categoría</p>
-                                            <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                                                <button type="button" onClick={() => setFilterCategory('all')}
-                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterCategory === 'all' ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                        }`}>Todas las categorías</button>
-                                                {uniqueCategories.map(cat => (
-                                                    <button key={cat} type="button" onClick={() => setFilterCategory(cat)}
-                                                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterCategory === cat ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                            }`}>
-                                                        {cat}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
                                         {/* Proveedor */}
                                         <div>
                                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Proveedor</p>
@@ -607,13 +640,12 @@ export default function ProductsPage() {
                                             </div>
                                         </div>
 
-                                        {activeFiltersCount > 0 && (
+                                        {otherFiltersCount > 0 && (
                                             <button
                                                 type="button"
                                                 onClick={() => {
                                                     setFilterStock('all');
                                                     setFilterVisibility('all');
-                                                    setFilterCategory('all');
                                                     setFilterProvider('all');
                                                     setFilterBrand('all');
                                                     setFilterSubCategory('all');
@@ -644,7 +676,7 @@ export default function ProductsPage() {
                             <div ref={paramsRef} className="relative shrink-0">
                                 <button
                                     type="button"
-                                    onClick={() => { setParamsOpen(o => !o); setFilterOpen(false); }}
+                                    onClick={() => { setParamsOpen(o => !o); setFilterOpen(false); setCategoryOpen(false); }}
                                     className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${paramsOpen || visibleColumns.size < ALL_PRODUCT_COLS.size
                                         ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
                                         : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'

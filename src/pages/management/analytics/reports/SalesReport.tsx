@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { ArrowLeft, DownloadIcon, Filter, XIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, DownloadIcon, Filter, Package, XIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/PaginationManagement";
@@ -10,11 +9,22 @@ import { reportApi } from "@/services/ReportService";
 import { productApi } from "@/services/ProductService";
 import { exportExcel } from "@/helpers/excelExport";
 import { buildSalesReportSheets } from "@/helpers/reportExport";
-import type { SalesReportResult } from "@/types/report.types";
+import type { SalesReportItem, SalesReportResult } from "@/types/report.types";
 
 interface Option {
     id: number;
     name: string;
+}
+
+interface GroupedSale {
+    saleId: number;
+    date: string;
+    paymentMethod: string;
+    products: SalesReportItem[];
+    totalUnits: number;
+    totalCost: number;
+    totalMargin: number | null;
+    total: number;
 }
 
 const money = (n: number) =>
@@ -62,6 +72,7 @@ export default function ReportsPage() {
     const [report, setReport] = useState<SalesReportResult | null>(null);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
+    const [expandedSales, setExpandedSales] = useState<Set<number>>(new Set());
 
     // Opciones de los selects
     useEffect(() => {
@@ -111,8 +122,11 @@ export default function ReportsPage() {
         const controller = new AbortController();
         setLoading(true);
         reportApi
-            .getSalesReport({ ...filters, page, pageSize: itemsPerPage }, controller.signal)
-            .then(setReport)
+            .getSalesReport(filters, controller.signal)
+            .then((data) => {
+                setReport(data);
+                setExpandedSales(new Set());
+            })
             .catch((err) => {
                 if (err?.name !== "AbortError") toast.error("No se pudo cargar el reporte");
             })
@@ -120,7 +134,72 @@ export default function ReportsPage() {
                 if (!controller.signal.aborted) setLoading(false);
             });
         return () => controller.abort();
-    }, [filters, page, itemsPerPage]);
+    }, [filters]);
+
+    // Agrupación por saleId en el front
+    const groupedSales = useMemo<GroupedSale[]>(() => {
+        if (!report?.items?.length) return [];
+        const map = new Map<number, GroupedSale>();
+
+        for (const item of report.items) {
+            const existing = map.get(item.saleId);
+            const lineCost = (item.costPrice || 0) * (item.quantity || 0);
+
+            if (!existing) {
+                map.set(item.saleId, {
+                    saleId: item.saleId,
+                    date: item.date,
+                    paymentMethod: item.paymentMethod,
+                    products: [item],
+                    totalUnits: item.quantity || 0,
+                    totalCost: lineCost,
+                    totalMargin: item.margin != null ? item.margin : null,
+                    total: item.subtotal || 0,
+                });
+            } else {
+                existing.products.push(item);
+                existing.totalUnits += item.quantity || 0;
+                existing.totalCost += lineCost;
+                if (item.margin != null) {
+                    existing.totalMargin = (existing.totalMargin ?? 0) + item.margin;
+                }
+                existing.total += item.subtotal || 0;
+            }
+        }
+
+        return Array.from(map.values());
+    }, [report]);
+
+    // Paginación en el front sobre ventas agrupadas (evita partir tickets entre páginas)
+    const currentSales = useMemo(() => {
+        const start = (page - 1) * itemsPerPage;
+        return groupedSales.slice(start, start + itemsPerPage);
+    }, [groupedSales, page, itemsPerPage]);
+
+    const toggleSale = (saleId: number) => {
+        setExpandedSales((prev) => {
+            const next = new Set(prev);
+            if (next.has(saleId)) next.delete(saleId);
+            else next.add(saleId);
+            return next;
+        });
+    };
+
+    const allVisibleExpanded =
+        currentSales.length > 0 &&
+        currentSales.every((s) => expandedSales.has(s.saleId));
+
+    const toggleAllVisible = () => {
+        setExpandedSales((prev) => {
+            const next = new Set(prev);
+            if (allVisibleExpanded) {
+                currentSales.forEach((s) => next.delete(s.saleId));
+            } else {
+                currentSales.forEach((s) => next.add(s.saleId));
+            }
+            return next;
+        });
+    };
 
     const activeFiltersCount = [
         from,
@@ -313,86 +392,186 @@ export default function ReportsPage() {
                 )}
 
 
-                {/* Tabla detalle */}
+                {/* Tabla detalle agrupada por venta (Acordeón) */}
                 <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                        <span className="text-xs font-medium text-slate-400">
+                            {groupedSales.length}{" "}
+                            {groupedSales.length === 1 ? "venta" : "ventas"}
+                            {report?.items.length ? ` · ${report.items.length} ítems` : ""}
+                        </span>
+                        {currentSales.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={toggleAllVisible}
+                                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                            >
+                                {allVisibleExpanded ? (
+                                    <>
+                                        <ChevronsDownUp className="w-3.5 h-3.5" />
+                                        <span>Contraer todo</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ChevronsUpDown className="w-3.5 h-3.5" />
+                                        <span>Expandir todo</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
+
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs text-left text-slate-300">
                             <thead className="text-[11px] uppercase text-slate-400 border-b border-white/10">
                                 <tr>
+                                    <th className="w-10 px-3 py-3" />
                                     <th className="px-4 py-3">Venta</th>
-                                    <th className="px-4 py-3">Fecha</th>
-
-                                    <th className="px-4 py-3">Producto</th>
-                                    <th className="px-4 py-3">Categoría</th>
-                                    <th className="px-4 py-3">Proveedor</th>
-
+                                    <th className="px-4 py-3">Fecha y hora</th>
+                                    <th className="px-4 py-3">Productos</th>
                                     <th className="px-4 py-3">Pago</th>
-                                    <th className="px-4 py-3 text-right">Cant.</th>
-                                    <th className="px-4 py-3 text-right">P. costo</th>
+                                    <th className="px-4 py-3 text-center">Unidades</th>
+                                    <th className="px-4 py-3 text-right">Costo total</th>
                                     <th className="px-4 py-3 text-right">Ganancia</th>
-                                    <th className="px-4 py-3 text-right">P. venta</th>
-                                    <th className="px-4 py-3 text-right">Subtotal</th>
+                                    <th className="px-4 py-3 text-right">Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading && !report ? (
                                     <tr>
-                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
                                             Cargando reporte...
                                         </td>
                                     </tr>
-                                ) : report && report.items.length === 0 ? (
+                                ) : groupedSales.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
                                             No hay ventas completadas con los filtros seleccionados.
                                         </td>
                                     </tr>
                                 ) : (
-                                    report?.items.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className={`border-b border-white/5 hover:bg-white/5 ${loading ? "opacity-60" : ""}`}
-                                        >
-                                            <td className="px-4 py-3 font-medium text-white">
-                                                #{item.saleId}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                {formatDate(item.date)}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <div className="text-[11px] text-slate-400">{formatTime(item.date)}</div>
-                                            </td>
+                                    currentSales.map((sale) => {
+                                        const isExpanded = expandedSales.has(sale.saleId);
+                                        return (
+                                            <Fragment key={sale.saleId}>
+                                                <tr
+                                                    onClick={() => toggleSale(sale.saleId)}
+                                                    className={`border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors ${
+                                                        isExpanded ? "bg-indigo-500/[0.06]" : ""
+                                                    } ${loading ? "opacity-60" : ""}`}
+                                                >
+                                                    <td className="px-3 py-3 text-slate-400">
+                                                        {isExpanded ? (
+                                                            <ChevronDown className="w-4 h-4 text-indigo-400" />
+                                                        ) : (
+                                                            <ChevronRight className="w-4 h-4" />
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 font-semibold text-white whitespace-nowrap">
+                                                        #{sale.saleId}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <div className="text-slate-200">{formatDate(sale.date)}</div>
+                                                        <div className="text-[11px] text-slate-400">
+                                                            {formatTime(sale.date)} hs
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-medium shrink-0">
+                                                                <Package className="w-3 h-3" />
+                                                                {sale.products.length}{" "}
+                                                                {sale.products.length === 1 ? "producto" : "productos"}
+                                                            </span>
+                                                            <span className="text-slate-400 truncate max-w-[260px]">
+                                                                {sale.products[0]?.productName}
+                                                                {sale.products.length > 1
+                                                                    ? ` +${sale.products.length - 1} más`
+                                                                    : ""}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        {sale.paymentMethod}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center font-medium">
+                                                        {sale.totalUnits}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                        {money(sale.totalCost)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap text-emerald-400 font-medium">
+                                                        {sale.totalMargin != null ? money(sale.totalMargin) : "-"}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right font-semibold text-white whitespace-nowrap">
+                                                        {money(sale.total)}
+                                                    </td>
+                                                </tr>
 
-                                            {/* <td className="px-4 py-3">{item.clientName}</td> */}
-                                            <td className="px-4 py-3">{item.productName}</td>
-                                            <td className="px-4 py-3">{item.categoryName}</td>
-                                            <td className="px-4 py-3">{item.providerName}</td>
-                                            {/* <td className="px-4 py-3">{item.brandName}</td> */}
-                                            <td className="px-4 py-3">{item.paymentMethod}</td>
-                                            <td className="px-4 py-3 text-center">{item.quantity}</td>
-                                            <td className="px-4 py-3 text-center whitespace-nowrap">
-                                                {money(item.costPrice)}
-                                            </td>
-                                            <td className="px-4 py-3 text-center whitespace-nowrap">
-                                                {item.margin != null ? money(item.margin) : "-"}
-                                            </td>
-                                            <td className="px-4 py-3 text-center whitespace-nowrap">
-                                                {money(item.unitaryPrice)}
-                                            </td>
-                                            <td className="px-4 py-3 text-center font-semibold text-white whitespace-nowrap">
-                                                {money(item.subtotal)}
-                                            </td>
-                                        </tr>
-                                    ))
+                                                {isExpanded && (
+                                                    <tr className="border-b border-white/10 bg-black/25">
+                                                        <td colSpan={9} className="p-0">
+                                                            <div className="px-6 py-3 pl-12">
+                                                                <table className="w-full text-xs text-left">
+                                                                    <thead className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-white/10">
+                                                                        <tr>
+                                                                            <th className="py-2 pr-4">Producto</th>
+                                                                            <th className="py-2 px-3">Categoría</th>
+                                                                            <th className="py-2 px-3">Proveedor</th>
+                                                                            <th className="py-2 px-3 text-center">Cant.</th>
+                                                                            <th className="py-2 px-3 text-right">P. costo</th>
+                                                                            <th className="py-2 px-3 text-right">Ganancia</th>
+                                                                            <th className="py-2 px-3 text-right">P. venta</th>
+                                                                            <th className="py-2 pl-3 text-right">Subtotal</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody className="divide-y divide-white/5">
+                                                                        {sale.products.map((item) => (
+                                                                            <tr key={item.id} className="hover:bg-white/[0.03]">
+                                                                                <td className="py-2 pr-4 font-medium text-slate-200">
+                                                                                    {item.productName}
+                                                                                </td>
+                                                                                <td className="py-2 px-3 text-slate-400">
+                                                                                    {item.categoryName}
+                                                                                </td>
+                                                                                <td className="py-2 px-3 text-slate-400">
+                                                                                    {item.providerName}
+                                                                                </td>
+                                                                                <td className="py-2 px-3 text-center text-slate-300">
+                                                                                    {item.quantity}
+                                                                                </td>
+                                                                                <td className="py-2 px-3 text-right whitespace-nowrap text-slate-300">
+                                                                                    {money(item.costPrice)}
+                                                                                </td>
+                                                                                <td className="py-2 px-3 text-right whitespace-nowrap text-emerald-400/90">
+                                                                                    {item.margin != null ? money(item.margin) : "-"}
+                                                                                </td>
+                                                                                <td className="py-2 px-3 text-right whitespace-nowrap text-slate-300">
+                                                                                    {money(item.unitaryPrice)}
+                                                                                </td>
+                                                                                <td className="py-2 pl-3 text-right whitespace-nowrap font-semibold text-white">
+                                                                                    {money(item.subtotal)}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </Fragment>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {report && report.totalItems > itemsPerPage && (
+                {groupedSales.length > itemsPerPage && (
                     <Pagination
-                        totalItems={report.totalItems}
+                        totalItems={groupedSales.length}
                         itemsPerPage={itemsPerPage}
                         currentPage={page}
                         onPageChange={setPage}
