@@ -10,7 +10,8 @@ import { useDeleteProvider } from "@/hooks/useDeleteProvider";
 import { providerApi } from "@/services/ProviderService";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
-import { PlusIcon, Download } from "lucide-react";
+import { PlusIcon } from "lucide-react";
+import { ExportDropdown } from "@/components/ExportDropdown";
 import toast from "react-hot-toast";
 import { buildProviderExportSheet } from "@/helpers/providerExport";
 
@@ -124,32 +125,26 @@ export default function ProvidersPage() {
         <DashboardLayout
             title="Lista de proveedores"
             subtitle="Gestión de proveedores y contactos del sistema."
-            actions={
-                <button
-                    title="Nuevo proveedor"
-                    onClick={() => navigate(ROUTES.providers.create)}
-                    className="group flex items-center justify-center w-11 h-11 rounded-[14px] bg-indigo-600 text-white font-bold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 border border-indigo-400/30 active:scale-95 active:translate-y-0"
-                >
-                    <PlusIcon size={22} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] group-hover:rotate-90 transition-transform duration-500" />
-                </button>
-            }
         >
             <div className="space-y-3">
                 {/* BUSCADOR */}
                 {/* Buscador Móvil (< md) */}
-                <div className="md:hidden">
-                    <SearchBar
-                        value={query}
-                        onChange={setQuery}
-                        placeholder="Buscar por nombre, razón social, teléfono o email..."
-                        containerClassName="max-w-full"
-                        inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
-                        iconClassName="text-slate-500 group-focus-within:text-indigo-400"
-                    />
+                <div className="md:hidden flex items-center gap-2">
+                    <div className="flex-1">
+                        <SearchBar
+                            value={query}
+                            onChange={setQuery}
+                            placeholder="Buscar por nombre, razón social, teléfono o email..."
+                            containerClassName="max-w-full"
+                            inputClassName="bg-[#151519] text-white text-xs border-white/10 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all rounded-xl h-9"
+                            iconClassName="text-slate-500 group-focus-within:text-indigo-400"
+                        />
+                    </div>
+                    <ExportDropdown onExportExcel={handleExportProviders} compact />
                 </div>
 
-                {/* Buscador Escritorio (md+) */}
-                <div className="hidden md:flex items-center gap-3 w-full">
+                {/* Buscador y Acciones Escritorio (md+) */}
+                <div className="hidden md:flex items-center justify-between gap-3 w-full">
                     <div className="flex-1">
                         <SearchBar
                             value={query}
@@ -160,18 +155,18 @@ export default function ProvidersPage() {
                             iconClassName="text-slate-500 group-focus-within:text-indigo-400"
                         />
                     </div>
-                </div>
-
-
-                <div className="flex justify-end">
-                    <button
-                        type="button"
-                        onClick={handleExportProviders}
-                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
-                    >
-                        <Download className="h-4 w-4" />
-                        Exportar a Excel
-                    </button>
+                    <div className="flex items-center gap-2 lg:gap-2.5 shrink-0">
+                        <ExportDropdown onExportExcel={handleExportProviders} />
+                        <button
+                            type="button"
+                            title="Nuevo proveedor"
+                            onClick={() => navigate(ROUTES.providers.create)}
+                            className="group h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-semibold transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.35)] hover:bg-indigo-500 hover:shadow-[0_0_25px_rgba(79,70,229,0.55)] border border-indigo-400/30 active:scale-95 shrink-0"
+                        >
+                            <PlusIcon size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+                            <span>Nuevo proveedor</span>
+                        </button>
+                    </div>
                 </div>
 
 

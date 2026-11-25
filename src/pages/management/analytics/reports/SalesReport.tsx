@@ -322,7 +322,7 @@ export default function ReportsPage() {
                                     <th className="px-4 py-3">Pago</th>
                                     <th className="px-4 py-3 text-right">Cant.</th>
                                     <th className="px-4 py-3 text-right">P. costo</th>
-                                    <th className="px-4 py-3 text-right">Margen</th>
+                                    <th className="px-4 py-3 text-right">Ganancia</th>
                                     <th className="px-4 py-3 text-right">P. venta</th>
                                     <th className="px-4 py-3 text-right">Subtotal</th>
                                 </tr>
@@ -352,23 +352,24 @@ export default function ReportsPage() {
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 {formatDate(item.date)}
                                             </td>
+
                                             {/* <td className="px-4 py-3">{item.clientName}</td> */}
                                             <td className="px-4 py-3">{item.productName}</td>
                                             <td className="px-4 py-3">{item.categoryName}</td>
                                             <td className="px-4 py-3">{item.providerName}</td>
                                             {/* <td className="px-4 py-3">{item.brandName}</td> */}
                                             <td className="px-4 py-3">{item.paymentMethod}</td>
-                                            <td className="px-4 py-3 text-right">{item.quantity}</td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                            <td className="px-4 py-3 text-center">{item.quantity}</td>
+                                            <td className="px-4 py-3 text-center whitespace-nowrap">
                                                 {money(item.costPrice)}
                                             </td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                            <td className="px-4 py-3 text-center whitespace-nowrap">
                                                 {item.margin != null ? money(item.margin) : "-"}
                                             </td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                            <td className="px-4 py-3 text-center whitespace-nowrap">
                                                 {money(item.unitaryPrice)}
                                             </td>
-                                            <td className="px-4 py-3 text-right font-semibold text-white whitespace-nowrap">
+                                            <td className="px-4 py-3 text-center font-semibold text-white whitespace-nowrap">
                                                 {money(item.subtotal)}
                                             </td>
                                         </tr>

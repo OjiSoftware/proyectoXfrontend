@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown, SlidersHorizontal, Download } from "lucide-react";
+import { CheckCircle2, X, PlusIcon, AlertTriangle, PackageX, EyeOff, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { ExportDropdown } from "@/components/ExportDropdown";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { ProductsTable } from "@/components/ProductsTable";
 import Pagination from "@/components/PaginationManagement";
@@ -46,26 +47,14 @@ export default function ProductsPage() {
 
     // ---------------- Dropdown refs ----------------
     const [filterOpen, setFilterOpen] = useState(false);
-    const [brandOpen, setBrandOpen] = useState(false);
-    const [categoryOpen, setCategoryOpen] = useState(false);
-    const [providerOpen, setProviderOpen] = useState(false);
-    const [subCategoryOpen, setSubCategoryOpen] = useState(false);
     const [paramsOpen, setParamsOpen] = useState(false);
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
-    const brandRef = useRef<HTMLDivElement>(null);
-    const categoryRef = useRef<HTMLDivElement>(null);
-    const providerRef = useRef<HTMLDivElement>(null);
-    const subCategoryRef = useRef<HTMLDivElement>(null);
     const paramsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
-            if (brandRef.current && !brandRef.current.contains(e.target as Node)) setBrandOpen(false);
-            if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) setCategoryOpen(false);
-            if (providerRef.current && !providerRef.current.contains(e.target as Node)) setProviderOpen(false);
-            if (subCategoryRef.current && !subCategoryRef.current.contains(e.target as Node)) setSubCategoryOpen(false);
             if (paramsRef.current && !paramsRef.current.contains(e.target as Node)) setParamsOpen(false);
         };
         document.addEventListener('mousedown', handler);
@@ -277,7 +266,16 @@ export default function ProductsPage() {
         setFilterSubCategory('all');
     };
 
-    const hasActiveFilters = query !== '' || filterStock !== 'all' || filterVisibility !== 'all' || filterBrand !== 'all' || filterCategory !== 'all' || filterProvider !== 'all' || filterSubCategory !== 'all';
+    const activeFiltersCount = [
+        filterStock !== 'all',
+        filterVisibility !== 'all',
+        filterBrand !== 'all',
+        filterCategory !== 'all',
+        filterProvider !== 'all',
+        filterSubCategory !== 'all',
+    ].filter(Boolean).length;
+
+    const hasActiveFilters = query !== '' || activeFiltersCount > 0;
 
 
     return (
@@ -311,15 +309,6 @@ export default function ProductsPage() {
             <DashboardLayout
                 title="Lista de productos"
                 subtitle="Gestión de productos del sistema."
-                actions={
-                    <button
-                        title="Nuevo producto"
-                        onClick={() => navigate(ROUTES.products.create)}
-                        className="group flex items-center justify-center w-11 h-11 rounded-[14px] bg-indigo-600 text-white font-bold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 border border-indigo-400/30 active:scale-95 active:translate-y-0"
-                    >
-                        <PlusIcon size={22} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] group-hover:rotate-90 transition-transform duration-500" />
-                    </button>
-                }
                 headerWidgets={
                     <div ref={dropdownRef} className="flex items-center gap-2">
 
@@ -534,196 +523,104 @@ export default function ProductsPage() {
                         </div>
 
                         {/* Contenedor de Filtros y Acciones */}
-                        <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-
-
-
-                            {/* Dropdown MARCA */}
-                            {/*                             <div ref={brandRef} className="relative shrink-0">
-                                <button
-                                    onClick={() => { setBrandOpen(o => !o); setFilterOpen(false); setCategoryOpen(false); setParamsOpen(false); }}
-                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${brandOpen || filterBrand !== 'all'
-                                        ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-                                        : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-                                        }`}
-                                >
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${brandOpen ? 'rotate-180' : ''}`} />
-                                    {filterBrand !== 'all' ? filterBrand : 'Marca'}
-                                    {filterBrand !== 'all' && (
-                                        <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
-                                    )}
-                                </button>
-                                {brandOpen && (
-                                    <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3">
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Marca</p>
-                                        <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
-                                            <button onClick={() => setFilterBrand('all')}
-                                                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterBrand === 'all' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                    }`}>Todas las marcas</button>
-                                            {uniqueBrands.map(brand => (
-                                                <button key={brand} onClick={() => setFilterBrand(brand)}
-                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterBrand === brand ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                        }`}>
-                                                    {brand}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div> */}
-
-                            {/* Dropdown CATEGORÍA */}
-                            <div ref={categoryRef} className="relative shrink-0">
-                                <button
-                                    onClick={() => { setCategoryOpen(o => !o); setFilterOpen(false); setBrandOpen(false); setProviderOpen(false); setParamsOpen(false); }}
-                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${categoryOpen || filterCategory !== 'all'
-                                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                                        : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-                                        }`}
-                                >
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
-                                    {filterCategory !== 'all' ? filterCategory : 'Categoría'}
-                                    {filterCategory !== 'all' && (
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                                    )}
-                                </button>
-                                {categoryOpen && (
-                                    <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3">
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Categoría</p>
-                                        <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
-                                            <button onClick={() => setFilterCategory('all')}
-                                                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterCategory === 'all' ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                    }`}>Todas las categorías</button>
-                                            {uniqueCategories.map(cat => (
-                                                <button key={cat} onClick={() => setFilterCategory(cat)}
-                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterCategory === cat ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                        }`}>
-                                                    {cat}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Dropdown PROVEEDOR */}
-                            <div ref={providerRef} className="relative shrink-0">
-                                <button
-                                    onClick={() => { setProviderOpen(o => !o); setFilterOpen(false); setBrandOpen(false); setCategoryOpen(false); setParamsOpen(false); }}
-                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${providerOpen || filterProvider !== 'all'
-                                        ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-                                        : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-                                        }`}
-                                >
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${providerOpen ? 'rotate-180' : ''}`} />
-                                    {filterProvider !== 'all' ? filterProvider : 'Proveedor'}
-                                    {filterProvider !== 'all' && (
-                                        <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
-                                    )}
-                                </button>
-                                {providerOpen && (
-                                    <div className="absolute left-0 top-full mt-2 w-56 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3">
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Proveedor</p>
-                                        <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
-                                            <button onClick={() => setFilterProvider('all')}
-                                                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterProvider === 'all' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                    }`}>Todos los proveedores</button>
-                                            {uniqueProviders.map(prov => (
-                                                <button key={prov} onClick={() => setFilterProvider(prov)}
-                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterProvider === prov ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                        }`}>
-                                                    {prov}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Dropdown SUBCATEGORÍA */}
-                            {/* <div ref={subCategoryRef} className="relative shrink-0">
-                                <button
-                                    onClick={() => { setSubCategoryOpen(o => !o); setFilterOpen(false); setBrandOpen(false); setCategoryOpen(false); setParamsOpen(false); }}
-                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${subCategoryOpen || filterSubCategory !== 'all'
-                                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                                        : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-                                        }`}
-                                >
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${subCategoryOpen ? 'rotate-180' : ''}`} />
-                                    {filterSubCategory !== 'all' ? filterSubCategory : 'Subcategoría'}
-                                    {filterSubCategory !== 'all' && (
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                                    )}
-                                </button>
-                                {subCategoryOpen && (
-                                    <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3">
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Subcategoría</p>
-                                        {filterCategory !== 'all' && (
-                                            <p className="text-[10px] text-emerald-400/70 mb-2 px-1">Filtrado por: {filterCategory}</p>
-                                        )}
-                                        <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
-                                            <button onClick={() => setFilterSubCategory('all')}
-                                                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterSubCategory === 'all' ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                    }`}>Todas las subcategorías</button>
-                                            {uniqueSubCategories.map(sub => (
-                                                <button key={sub} onClick={() => setFilterSubCategory(sub)}
-                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterSubCategory === sub ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                                                        }`}>
-                                                    {sub}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div> */}
-
-                            {/* Dropdown otros FILTROS — solo Stock y Visibilidad */}
+                        <div className="flex items-center gap-2 lg:gap-2.5 shrink-0">
+                            {/* Dropdown FILTROS unificado (Stock, Visibilidad, Categoría y Proveedor) */}
                             <div ref={filterRef} className="relative shrink-0">
                                 <button
-                                    onClick={() => { setFilterOpen(o => !o); setBrandOpen(false); setCategoryOpen(false); setParamsOpen(false); }}
-                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${filterOpen || filterStock !== 'all' || filterVisibility !== 'all'
+                                    type="button"
+                                    onClick={() => { setFilterOpen(o => !o); setParamsOpen(false); }}
+                                    className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${filterOpen || activeFiltersCount > 0
                                         ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
                                         : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
                                         }`}
                                 >
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
-                                    Otros filtros
-                                    {(filterStock !== 'all' || filterVisibility !== 'all') && (
-                                        <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
+                                    <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Filtros</span>
+                                    {activeFiltersCount > 0 && (
+                                        <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 px-1.5 rounded-full">
+                                            {activeFiltersCount}
+                                        </span>
                                     )}
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
                                 </button>
                                 {filterOpen && (
-                                    <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3 space-y-4">
+                                    <div className="absolute right-0 top-full mt-2 w-72 max-h-[75vh] overflow-y-auto bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3.5 space-y-4">
                                         {/* Stock */}
                                         <div>
                                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Stock</p>
-                                            <div className="space-y-1">
+                                            <div className="grid grid-cols-2 gap-1.5">
                                                 {([['all', 'Todo'], ['ok', 'Con stock'], ['low', 'Poco stock'], ['out', 'Sin stock']] as const).map(([val, lbl]) => (
-                                                    <button key={val} onClick={() => setFilterStock(val)}
-                                                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterStock === val ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                    <button key={val} type="button" onClick={() => setFilterStock(val)}
+                                                        className={`text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterStock === val ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
                                                             }`}>
                                                         {lbl}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
+
                                         {/* Visibilidad */}
                                         <div>
                                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Visibilidad</p>
-                                            <div className="space-y-1">
+                                            <div className="grid grid-cols-3 gap-1.5">
                                                 {([['all', 'Todos'], ['visible', 'Visibles'], ['hidden', 'Ocultos']] as const).map(([val, lbl]) => (
-                                                    <button key={val} onClick={() => setFilterVisibility(val)}
-                                                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterVisibility === val ? 'bg-violet-500/20 text-violet-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                    <button key={val} type="button" onClick={() => setFilterVisibility(val)}
+                                                        className={`text-center px-2 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterVisibility === val ? 'bg-violet-500/20 text-violet-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
                                                             }`}>
                                                         {lbl}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
-                                        {(filterStock !== 'all' || filterVisibility !== 'all') && (
-                                            <button onClick={() => { setFilterStock('all'); setFilterVisibility('all'); }}
-                                                className="w-full text-center text-[10px] text-rose-400/70 hover:text-rose-400 transition-colors cursor-pointer pt-1 border-t border-white/5">
-                                                Limpiar
+
+                                        {/* Categoría */}
+                                        <div>
+                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Categoría</p>
+                                            <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                                                <button type="button" onClick={() => setFilterCategory('all')}
+                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterCategory === 'all' ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                        }`}>Todas las categorías</button>
+                                                {uniqueCategories.map(cat => (
+                                                    <button key={cat} type="button" onClick={() => setFilterCategory(cat)}
+                                                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterCategory === cat ? 'bg-emerald-500/20 text-emerald-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                            }`}>
+                                                        {cat}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Proveedor */}
+                                        <div>
+                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Proveedor</p>
+                                            <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                                                <button type="button" onClick={() => setFilterProvider('all')}
+                                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterProvider === 'all' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                        }`}>Todos los proveedores</button>
+                                                {uniqueProviders.map(prov => (
+                                                    <button key={prov} type="button" onClick={() => setFilterProvider(prov)}
+                                                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filterProvider === prov ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                                            }`}>
+                                                        {prov}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {activeFiltersCount > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFilterStock('all');
+                                                    setFilterVisibility('all');
+                                                    setFilterCategory('all');
+                                                    setFilterProvider('all');
+                                                    setFilterBrand('all');
+                                                    setFilterSubCategory('all');
+                                                }}
+                                                className="w-full text-center text-[11px] font-medium text-rose-400/80 hover:text-rose-400 transition-colors cursor-pointer pt-2 border-t border-white/5"
+                                            >
+                                                Limpiar filtros
                                             </button>
                                         )}
                                     </div>
@@ -733,6 +630,7 @@ export default function ProductsPage() {
                             {/* Botón LIMPIAR FILTROS (Global) */}
                             {hasActiveFilters && (
                                 <button
+                                    type="button"
                                     onClick={resetFilters}
                                     className="btn btn-md btn-danger text-xs font-medium"
                                     title="Limpiar todos los filtros"
@@ -742,9 +640,10 @@ export default function ProductsPage() {
                                 </button>
                             )}
 
-                            {/* Dropdown PARÁMETROS - Siempre al final a la derecha */}
-                            <div ref={paramsRef} className="relative shrink-0 ml-auto">
+                            {/* Dropdown PARÁMETROS (Ver columnas) */}
+                            <div ref={paramsRef} className="relative shrink-0">
                                 <button
+                                    type="button"
                                     onClick={() => { setParamsOpen(o => !o); setFilterOpen(false); }}
                                     className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${paramsOpen || visibleColumns.size < ALL_PRODUCT_COLS.size
                                         ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
@@ -782,7 +681,7 @@ export default function ProductsPage() {
                                             </label>
                                         ))}
                                         <div className="pt-1 border-t border-white/5">
-                                            <button onClick={() => setVisibleColumns(new Set(ALL_PRODUCT_COLS))}
+                                            <button type="button" onClick={() => setVisibleColumns(new Set(ALL_PRODUCT_COLS))}
                                                 className="w-full text-center text-[10px] text-gray-500 hover:text-gray-300 transition-colors cursor-pointer py-1">
                                                 Mostrar todas
                                             </button>
@@ -790,16 +689,20 @@ export default function ProductsPage() {
                                     </div>
                                 )}
                             </div>
-                            <div className="flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={handleExportProducts}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
-                                >
-                                    <Download className="h-4 w-4" />
-                                    Exportar a Excel
-                                </button>
-                            </div>
+
+                            {/* Dropdown Exportar */}
+                            <ExportDropdown onExportExcel={handleExportProducts} />
+
+                            {/* Botón Nuevo producto */}
+                            <button
+                                type="button"
+                                title="Nuevo producto"
+                                onClick={() => navigate(ROUTES.products.create)}
+                                className="group h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-semibold transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.35)] hover:bg-indigo-500 hover:shadow-[0_0_25px_rgba(79,70,229,0.55)] border border-indigo-400/30 active:scale-95 shrink-0"
+                            >
+                                <PlusIcon size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+                                <span>Nuevo producto</span>
+                            </button>
                         </div>
 
                     </div>
