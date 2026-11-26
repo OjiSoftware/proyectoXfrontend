@@ -226,8 +226,8 @@ export default function SalesAnalyticsPage() {
                     </div>
 
                     {/* Serie de transacciones por período + menú de reportes */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-9 mgmt-surface rounded-2xl p-6 space-y-4">
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                        <div className="w-full md:flex-1 min-w-0 mgmt-surface rounded-2xl p-6 space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5">
                                 <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
@@ -291,7 +291,7 @@ export default function SalesAnalyticsPage() {
                         )}
                         </div>
 
-                        <div className="lg:col-span-3">
+                        <div className="w-full md:w-64 shrink-0">
                             <ReportTabs variant="menu" />
                         </div>
                     </div>
