@@ -5,7 +5,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import SearchBar from "@/components/SearchBar";
 import { reportApi } from "@/services/ReportService";
 import { productApi } from "@/services/ProductService";
-import { exportExcel } from "@/helpers/excelExport";
+import { exportExcel, type ExcelCell } from "@/helpers/excelExport";
 import type { SalesReportResult } from "@/types/report.types";
 import { ReportTabs } from "./ReportTabs";
 
@@ -178,7 +178,7 @@ export default function CategoriesSalesReport() {
         }
         setExporting(true);
         try {
-            const rows: Record<string, unknown>[] = groupedCategories.map((c) => ({
+            const rows: Record<string, ExcelCell>[] = groupedCategories.map((c) => ({
                 Nombre: c.categoryName,
                 Cantidad: c.totalUnits,
                 Costo: c.totalCost,

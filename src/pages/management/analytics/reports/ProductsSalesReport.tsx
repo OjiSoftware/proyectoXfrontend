@@ -15,7 +15,7 @@ import Pagination from "@/components/PaginationManagement";
 import { useItemsPerpage } from "@/hooks/useItemsPerpage";
 import { reportApi } from "@/services/ReportService";
 import { productApi } from "@/services/ProductService";
-import { exportExcel } from "@/helpers/excelExport";
+import { exportExcel, type ExcelCell } from "@/helpers/excelExport";
 import type { SalesReportItem, SalesReportResult } from "@/types/report.types";
 import { ReportTabs } from "./ReportTabs";
 
@@ -251,7 +251,7 @@ export default function ProductsSalesReport() {
         }
         setExporting(true);
         try {
-            const rows: Record<string, unknown>[] = [];
+            const rows: Record<string, ExcelCell>[] = [];
             for (const prod of groupedProducts) {
                 prod.entries.forEach((entry, idx) => {
                     rows.push({
