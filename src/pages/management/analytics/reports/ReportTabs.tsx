@@ -23,7 +23,7 @@ export function ReportTabs() {
     const { pathname } = useLocation();
 
     return (
-        <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#151519] border border-white/10">
+        <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm">
             {TABS.map((tab) => {
                 const isActive = pathname === tab.to;
                 const Icon = tab.icon;
@@ -33,8 +33,8 @@ export function ReportTabs() {
                         to={tab.to}
                         className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
                             isActive
-                                ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/35 shadow-sm"
-                                : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
+                                ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/35 shadow-sm"
+                                : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] border border-transparent"
                         }`}
                     >
                         <Icon className="w-3.5 h-3.5 shrink-0" />

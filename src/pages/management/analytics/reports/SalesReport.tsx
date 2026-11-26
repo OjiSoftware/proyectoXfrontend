@@ -10,7 +10,6 @@ import { productApi } from "@/services/ProductService";
 import { exportExcel } from "@/helpers/excelExport";
 import { buildSalesReportSheets } from "@/helpers/reportExport";
 import type { SalesReportItem, SalesReportResult } from "@/types/report.types";
-import { ReportTabs } from "./ReportTabs";
 
 interface Option {
     id: number;
@@ -50,7 +49,7 @@ const formatTime = (iso: string) =>
     });
 
 const fieldClass =
-    "bg-[#151519] border border-white/10 text-slate-200 text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
+    "mgmt-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function ReportsPage() {
     const itemsPerPage = useItemsPerpage();
@@ -327,20 +326,18 @@ export default function ReportsPage() {
                 </div>
             }
         >
-            <div className="space-y-5">
-                <ReportTabs />
-
+            <div className="space-y-6">
                 {/* Panel de filtros desplegable o toggle desde el botón de arriba */}
                 {filtersOpen && (
-                    <div className="bg-[#151519] border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                            <span className="text-xs font-semibold text-slate-300">
+                    <div className="mgmt-surface rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+                            <span className="text-xs font-semibold text-[var(--text-primary)]">
                                 Filtrar resultados
                             </span>
                             {hasFilters && (
                                 <button
                                     onClick={clearFilters}
-                                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                                    className="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                                 >
                                     <XIcon className="w-3.5 h-3.5" />
                                     Limpiar filtros
@@ -348,7 +345,7 @@ export default function ReportsPage() {
                             )}
                         </div>
                         <div className="flex flex-wrap gap-3 items-end">
-                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            <label className="flex flex-col gap-1 text-[11px] text-[var(--text-muted)]">
                                 Desde
                                 <input
                                     type="date"
@@ -421,23 +418,23 @@ export default function ReportsPage() {
 
                 {/* Tabla única agrupada por venta (estilo Excel con cabeceras de grupo) */}
                 <div className="management-table-container rounded-2xl overflow-hidden">
-                    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[#151519] border-b border-white/10">
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                    <div className="report-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
                             <span className="font-medium">
                                 {groupedSales.length}{" "}
                                 {groupedSales.length === 1 ? "venta" : "ventas"}
                                 {report?.items.length ? ` · ${report.items.length} ítems` : ""}
                             </span>
-                            <span className="text-white/15 hidden sm:inline">|</span>
+                            <span className="text-[var(--border-strong)] hidden sm:inline">|</span>
                             <span>
                                 Categoría:{" "}
-                                <strong className="text-slate-200 font-medium">
+                                <strong className="text-[var(--text-primary)] font-medium">
                                     {selectedCategoryLabel}
                                 </strong>
                             </span>
                             <span>
                                 Proveedor:{" "}
-                                <strong className="text-slate-200 font-medium">
+                                <strong className="text-[var(--text-primary)] font-medium">
                                     {selectedProviderLabel}
                                 </strong>
                             </span>
@@ -446,7 +443,7 @@ export default function ReportsPage() {
                             <button
                                 type="button"
                                 onClick={toggleAllVisible}
-                                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-gray-200 transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                             >
                                 {allVisibleCollapsed ? (
                                     <>
@@ -464,30 +461,30 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-xs text-left text-slate-300 management-table">
-                            <thead className="border-b border-white/10">
+                        <table className="w-full text-xs text-left text-[var(--text-secondary)] management-table report-table">
+                            <thead className="border-b border-[var(--border-subtle)]">
                                 <tr className="border-l-2 border-l-transparent">
                                     {showProductColumns ? (
                                         <>
-                                            <th className="!bg-[#131317] pl-4 pr-6 py-3 text-slate-400">
+                                            <th className="pl-4 pr-6 py-3">
                                                 <div className="flex items-center justify-between gap-4">
                                                     <span className="pl-5">Venta</span>
                                                     <span>Producto</span>
                                                 </div>
                                             </th>
-                                            <th className="!bg-[#131317] w-24 px-4 py-3 text-center text-slate-400">Cant.</th>
-                                            <th className="!bg-[#131317] w-32 px-4 py-3 text-right text-slate-400 whitespace-nowrap">P. costo</th>
-                                            <th className="!bg-[#131317] w-32 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Ganancia</th>
-                                            <th className="!bg-[#131317] w-32 px-4 py-3 text-right text-slate-400 whitespace-nowrap">P. venta</th>
-                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Subtotal</th>
+                                            <th className="w-24 px-4 py-3 text-center">Cant.</th>
+                                            <th className="w-32 px-4 py-3 text-right whitespace-nowrap">P. costo</th>
+                                            <th className="w-32 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
+                                            <th className="w-32 px-4 py-3 text-right whitespace-nowrap">P. venta</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
                                         </>
                                     ) : (
                                         <>
-                                            <th className="!bg-[#131317] pl-9 pr-4 py-3 text-slate-400">Venta</th>
-                                            <th className="!bg-[#131317] w-28 px-4 py-3 text-center text-slate-400">Unidades</th>
-                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Costo total</th>
-                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Ganancia</th>
-                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Total</th>
+                                            <th className="pl-9 pr-4 py-3">Venta</th>
+                                            <th className="w-28 px-4 py-3 text-center">Unidades</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Costo total</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Total</th>
                                         </>
                                     )}
                                 </tr>
@@ -514,51 +511,51 @@ export default function ReportsPage() {
                                                 {/* Nivel 2: Fila cabecera de la venta */}
                                                 <tr
                                                     onClick={() => toggleSale(sale.saleId)}
-                                                    className={`!bg-[#1c1c22] hover:!bg-[#24242d] border-t border-white/10 border-b ${
+                                                    className={`report-group-row ${
                                                         isCollapsed
-                                                            ? "border-b-white/5 border-l-2 border-l-transparent"
-                                                            : "border-b-white/10 border-l-2 border-l-indigo-400/70"
+                                                            ? "border-l-2 border-l-transparent"
+                                                            : "border-l-2 border-l-indigo-500/70"
                                                     } cursor-pointer transition-colors ${
                                                         loading ? "opacity-60" : ""
                                                     }`}
                                                 >
                                                     <td className="px-4 py-3">
                                                         <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
-                                                            <span className="inline-flex items-center gap-1.5 font-semibold text-white">
+                                                            <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--text-primary)]">
                                                                 {isCollapsed ? (
-                                                                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                                                                    <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                                                                 ) : (
                                                                     <ChevronDown className="w-3.5 h-3.5 text-indigo-400" />
                                                                 )}
-                                                                Venta #{sale.saleId}
+                                                                #{sale.saleId}
                                                             </span>
-                                                            <span className="text-slate-400">
+                                                            <span className="text-[var(--text-muted)]">
                                                                 {formatDate(sale.date)} · {formatTime(sale.date)} hs
                                                             </span>
-                                                            <span className="px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 text-slate-200 text-[11px] font-medium">
+                                                            <span className="report-chip px-2 py-0.5 rounded-md text-[11px] font-medium">
                                                                 {sale.paymentMethod}
                                                             </span>
-                                                            <span className="text-[11px] text-slate-500">
+                                                            <span className="text-[11px] text-[var(--text-muted)]">
                                                                 {sale.products.length}{" "}
                                                                 {sale.products.length === 1 ? "producto" : "productos"}
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 text-center font-semibold text-white tabular-nums">
+                                                    <td className="px-4 py-3 text-center font-semibold text-[var(--text-primary)] tabular-nums">
                                                         {sale.totalUnits}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-slate-200 tabular-nums">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-[var(--text-secondary)] tabular-nums">
                                                         {money(sale.totalCost)}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-emerald-400 tabular-nums">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-[var(--report-profit)] tabular-nums">
                                                         {sale.totalMargin != null ? money(sale.totalMargin) : "-"}
                                                     </td>
                                                     {showProductColumns && (
-                                                        <td className="px-4 py-3 text-right text-slate-600 tabular-nums">
+                                                        <td className="px-4 py-3 text-right text-[var(--text-muted)] opacity-50 tabular-nums">
                                                             —
                                                         </td>
                                                     )}
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-white tabular-nums">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-[var(--text-primary)] tabular-nums">
                                                         {money(sale.total)}
                                                     </td>
                                                 </tr>
@@ -568,26 +565,26 @@ export default function ReportsPage() {
                                                     sale.products.map((item) => (
                                                         <tr
                                                             key={item.id}
-                                                            className={`!bg-[#111115] hover:!bg-[#18181f] border-b border-white/[0.04] border-l-2 border-l-indigo-400/20 transition-colors ${
+                                                            className={`report-child-row border-l-2 border-l-indigo-500/25 transition-colors ${
                                                                 loading ? "opacity-60" : ""
                                                             }`}
                                                         >
-                                                            <td className="py-2.5 pl-9 pr-6 text-right text-slate-300">
+                                                            <td className="py-2.5 pl-9 pr-6 text-right text-[var(--text-secondary)]">
                                                                 {item.productName}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-center text-slate-400 tabular-nums">
+                                                            <td className="px-4 py-2.5 text-center text-[var(--text-muted)] tabular-nums">
                                                                 {item.quantity}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-500 tabular-nums">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-[var(--text-muted)] tabular-nums">
                                                                 {money(item.costPrice)}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-emerald-400/65 tabular-nums">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-[var(--report-profit-soft)] tabular-nums">
                                                                 {item.margin != null ? money(item.margin) : "-"}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-400 tabular-nums">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-[var(--text-muted)] tabular-nums">
                                                                 {money(item.unitaryPrice)}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap font-medium text-slate-200 tabular-nums">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap font-medium text-[var(--text-primary)] tabular-nums">
                                                                 {money(item.subtotal)}
                                                             </td>
                                                         </tr>
@@ -595,7 +592,7 @@ export default function ReportsPage() {
 
                                                 {/* Espaciador visual entre el último producto expandido y la siguiente venta */}
                                                 {!isCollapsed && !isLastSale && (
-                                                    <tr className="h-3 !bg-[#0c0c0f] hover:!bg-[#0c0c0f] border-none">
+                                                    <tr className="h-3 report-spacer-row border-none">
                                                         <td colSpan={totalColCount} className="p-0" />
                                                     </tr>
                                                 )}
@@ -608,26 +605,26 @@ export default function ReportsPage() {
                             {/* Nivel 1: Fila de Total General del período filtrado */}
                             {groupedSales.length > 0 && (
                                 <tfoot>
-                                    <tr className="!bg-[#22222a] border-t-2 border-white/20 border-l-2 border-l-transparent font-bold text-white">
-                                        <td className="pl-9 pr-4 py-3.5 text-xs uppercase tracking-wider text-slate-200">
+                                    <tr className="report-tfoot-row border-l-2 border-l-transparent font-bold text-[var(--text-primary)]">
+                                        <td className="pl-9 pr-4 py-3.5 text-xs uppercase tracking-wider text-[var(--text-primary)]">
                                             Total general ({groupedSales.length}{" "}
                                             {groupedSales.length === 1 ? "venta" : "ventas"})
                                         </td>
-                                        <td className="px-4 py-3.5 text-center text-white tabular-nums">
+                                        <td className="px-4 py-3.5 text-center text-[var(--text-primary)] tabular-nums">
                                             {grandTotals.units}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-slate-200 tabular-nums">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--text-secondary)] tabular-nums">
                                             {money(grandTotals.cost)}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-emerald-300 tabular-nums">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--report-profit-strong)] tabular-nums">
                                             {grandTotals.margin != null ? money(grandTotals.margin) : "-"}
                                         </td>
                                         {showProductColumns && (
-                                            <td className="px-4 py-3.5 text-right text-slate-600 tabular-nums">
+                                            <td className="px-4 py-3.5 text-right text-[var(--text-muted)] opacity-50 tabular-nums">
                                                 —
                                             </td>
                                         )}
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-white tabular-nums">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--text-primary)] tabular-nums">
                                             {money(grandTotals.total)}
                                         </td>
                                     </tr>

@@ -7,7 +7,6 @@ import { reportApi } from "@/services/ReportService";
 import { productApi } from "@/services/ProductService";
 import { exportExcel, type ExcelCell } from "@/helpers/excelExport";
 import type { SalesReportResult } from "@/types/report.types";
-import { ReportTabs } from "./ReportTabs";
 
 interface Option {
     id: number;
@@ -31,7 +30,7 @@ const money = (n: number) =>
     }).format(n || 0);
 
 const fieldClass =
-    "bg-[#151519] border border-white/10 text-slate-200 text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
+    "mgmt-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function CategoriesSalesReport() {
     const [from, setFrom] = useState("");
@@ -261,19 +260,17 @@ export default function CategoriesSalesReport() {
                 </div>
             }
         >
-            <div className="space-y-5">
-                <ReportTabs />
-
+            <div className="space-y-6">
                 {filtersOpen && (
-                    <div className="bg-[#151519] border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                            <span className="text-xs font-semibold text-slate-300">
+                    <div className="mgmt-surface rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+                            <span className="text-xs font-semibold text-[var(--text-primary)]">
                                 Filtrar resultados
                             </span>
                             {hasFilters && (
                                 <button
                                     onClick={clearFilters}
-                                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                                    className="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                                 >
                                     <XIcon className="w-3.5 h-3.5" />
                                     Limpiar filtros
@@ -281,7 +278,7 @@ export default function CategoriesSalesReport() {
                             )}
                         </div>
                         <div className="flex flex-wrap gap-3 items-end">
-                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            <label className="flex flex-col gap-1 text-[11px] text-[var(--text-muted)]">
                                 Desde
                                 <input
                                     type="date"
@@ -337,22 +334,22 @@ export default function CategoriesSalesReport() {
 
                 {/* Tabla resumen por categoría */}
                 <div className="management-table-container rounded-2xl overflow-hidden">
-                    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[#151519] border-b border-white/10">
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                    <div className="report-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
                             <span className="font-medium">
                                 {groupedCategories.length}{" "}
                                 {groupedCategories.length === 1 ? "categoría" : "categorías"}
                             </span>
-                            <span className="text-white/15 hidden sm:inline">|</span>
+                            <span className="text-[var(--border-strong)] hidden sm:inline">|</span>
                             <span>
                                 Proveedor:{" "}
-                                <strong className="text-slate-200 font-medium">
+                                <strong className="text-[var(--text-primary)] font-medium">
                                     {selectedProviderLabel}
                                 </strong>
                             </span>
                             <span>
                                 Pago:{" "}
-                                <strong className="text-slate-200 font-medium">
+                                <strong className="text-[var(--text-primary)] font-medium">
                                     {paymentMethod || "Todos"}
                                 </strong>
                             </span>
@@ -360,26 +357,26 @@ export default function CategoriesSalesReport() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-xs text-left text-slate-300 management-table">
-                            <thead className="border-b border-white/10">
+                        <table className="w-full text-xs text-left text-[var(--text-secondary)] management-table report-table">
+                            <thead className="border-b border-[var(--border-subtle)]">
                                 <tr>
-                                    <th className="!bg-[#131317] px-4 py-3 text-slate-400">Nombre</th>
-                                    <th className="!bg-[#131317] w-28 px-4 py-3 text-center text-slate-400">Cantidad</th>
-                                    <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Costo</th>
-                                    <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Ganancia</th>
-                                    <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Total</th>
+                                    <th className="px-4 py-3">Nombre</th>
+                                    <th className="w-28 px-4 py-3 text-center">Cantidad</th>
+                                    <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Costo</th>
+                                    <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
+                                    <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading && !report ? (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={5} className="px-4 py-10 text-center text-[var(--text-muted)]">
                                             Cargando reporte...
                                         </td>
                                     </tr>
                                 ) : groupedCategories.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={5} className="px-4 py-10 text-center text-[var(--text-muted)]">
                                             No hay ventas completadas con los filtros seleccionados.
                                         </td>
                                     </tr>
@@ -387,31 +384,31 @@ export default function CategoriesSalesReport() {
                                     groupedCategories.map((cat) => (
                                         <tr
                                             key={cat.categoryName}
-                                            className={`!bg-[#151519] hover:!bg-[#1c1c22] border-b border-white/5 transition-colors ${
+                                            className={`report-row transition-colors ${
                                                 loading ? "opacity-60" : ""
                                             }`}
                                         >
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2.5">
-                                                    <span className="font-semibold text-white">
+                                                    <span className="font-semibold text-[var(--text-primary)]">
                                                         {cat.categoryName}
                                                     </span>
-                                                    <span className="text-[11px] text-slate-500">
+                                                    <span className="text-[11px] text-[var(--text-muted)]">
                                                         {cat.productsCount}{" "}
                                                         {cat.productsCount === 1 ? "producto" : "productos"}
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-3 text-center font-medium text-slate-200 tabular-nums">
+                                            <td className="px-4 py-3 text-center font-medium text-[var(--text-primary)] tabular-nums">
                                                 {cat.totalUnits}
                                             </td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap text-slate-300 tabular-nums">
+                                            <td className="px-4 py-3 text-right whitespace-nowrap text-[var(--text-secondary)] tabular-nums">
                                                 {money(cat.totalCost)}
                                             </td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-emerald-400 tabular-nums">
+                                            <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-[var(--report-profit)] tabular-nums">
                                                 {cat.totalMargin != null ? money(cat.totalMargin) : "-"}
                                             </td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-white tabular-nums">
+                                            <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-[var(--text-primary)] tabular-nums">
                                                 {money(cat.total)}
                                             </td>
                                         </tr>
@@ -421,21 +418,21 @@ export default function CategoriesSalesReport() {
 
                             {groupedCategories.length > 0 && (
                                 <tfoot>
-                                    <tr className="!bg-[#22222a] border-t-2 border-white/20 font-bold text-white">
-                                        <td className="px-4 py-3.5 text-xs uppercase tracking-wider text-slate-200">
+                                    <tr className="report-tfoot-row font-bold text-[var(--text-primary)]">
+                                        <td className="px-4 py-3.5 text-xs uppercase tracking-wider text-[var(--text-primary)]">
                                             Super total ({groupedCategories.length}{" "}
                                             {groupedCategories.length === 1 ? "categoría" : "categorías"})
                                         </td>
-                                        <td className="px-4 py-3.5 text-center text-white tabular-nums">
+                                        <td className="px-4 py-3.5 text-center text-[var(--text-primary)] tabular-nums">
                                             {grandTotals.units}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-slate-200 tabular-nums">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--text-secondary)] tabular-nums">
                                             {money(grandTotals.cost)}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-emerald-300 tabular-nums">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--report-profit-strong)] tabular-nums">
                                             {grandTotals.margin != null ? money(grandTotals.margin) : "-"}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-white tabular-nums">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--text-primary)] tabular-nums">
                                             {money(grandTotals.total)}
                                         </td>
                                     </tr>
