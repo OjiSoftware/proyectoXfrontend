@@ -73,13 +73,8 @@ export default function SalesAnalyticsPage() {
             title="Analíticas · Ventas"
             subtitle="Indicadores de desempeño comercial y acceso al reporte de ventas."
             backUrl="/management/analytics"
-            actions={<ReportTabs />}
         >
             <div className="space-y-6">
-                {/* Botonera de reportes visible también en mobile */}
-                <div className="flex flex-wrap items-center gap-2 md:hidden">
-                    <ReportTabs />
-                </div>
 
                 {/* Filtros de período y agrupación */}
                 <div className="mgmt-surface rounded-2xl p-4 flex flex-wrap items-end justify-between gap-4">
@@ -230,8 +225,9 @@ export default function SalesAnalyticsPage() {
                         </div>
                     </div>
 
-                    {/* Serie de transacciones por período */}
-                    <div className="mgmt-surface rounded-2xl p-6 space-y-4">
+                    {/* Serie de transacciones por período + menú de reportes */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <div className="lg:col-span-9 mgmt-surface rounded-2xl p-6 space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5">
                                 <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
@@ -293,6 +289,11 @@ export default function SalesAnalyticsPage() {
                                 })}
                             </div>
                         )}
+                        </div>
+
+                        <div className="lg:col-span-3">
+                            <ReportTabs variant="menu" />
+                        </div>
                     </div>
                 </section>
             </div>
