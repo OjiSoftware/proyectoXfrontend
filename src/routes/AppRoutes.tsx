@@ -12,6 +12,8 @@ import AnalyticsPage from "@/pages/management/analytics";
 import SalesAnalyticsPage from "@/pages/management/analytics/SalesAnalyticsPage";
 import ProfitabilityAnalyticsPage from "@/pages/management/analytics/ProfitabilityAnalyticsPage";
 import ReportsPage from "@/pages/management/analytics/reports/SalesReport";
+import ProductsSalesReport from "@/pages/management/analytics/reports/ProductsSalesReport";
+import CategoriesSalesReport from "@/pages/management/analytics/reports/CategoriesSalesReport";
 
 // Marcas
 import BrandsPage from "@/pages/management/brands";
@@ -132,6 +134,14 @@ export const AppRoutes = () => {
                     <Route
                         path="/management/analytics/sales/reports"
                         element={<ReportsPage />}
+                    />
+                    <Route
+                        path="/management/analytics/sales/reports/products"
+                        element={<ProductsSalesReport />}
+                    />
+                    <Route
+                        path="/management/analytics/sales/reports/categories"
+                        element={<CategoriesSalesReport />}
                     />
                     <Route
                         path="/management/analytics/profitability"

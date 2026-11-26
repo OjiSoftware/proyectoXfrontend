@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { ArrowLeft, DownloadIcon, Filter, XIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, DownloadIcon, Filter, XIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/PaginationManagement";
@@ -10,11 +9,22 @@ import { reportApi } from "@/services/ReportService";
 import { productApi } from "@/services/ProductService";
 import { exportExcel } from "@/helpers/excelExport";
 import { buildSalesReportSheets } from "@/helpers/reportExport";
-import type { SalesReportResult } from "@/types/report.types";
+import type { SalesReportItem, SalesReportResult } from "@/types/report.types";
 
 interface Option {
     id: number;
     name: string;
+}
+
+interface GroupedSale {
+    saleId: number;
+    date: string;
+    paymentMethod: string;
+    products: SalesReportItem[];
+    totalUnits: number;
+    totalCost: number;
+    totalMargin: number | null;
+    total: number;
 }
 
 const money = (n: number) =>
@@ -31,8 +41,15 @@ const formatDate = (iso: string) =>
         year: "numeric",
     });
 
+const formatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString("es-AR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    });
+
 const fieldClass =
-    "bg-[#151519] border border-white/10 text-slate-200 text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
+    "report-filter-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function ReportsPage() {
     const itemsPerPage = useItemsPerpage();
@@ -55,6 +72,7 @@ export default function ReportsPage() {
     const [report, setReport] = useState<SalesReportResult | null>(null);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
+    const [collapsedSales, setCollapsedSales] = useState<Set<number>>(new Set());
 
     // Opciones de los selects
     useEffect(() => {
@@ -104,8 +122,11 @@ export default function ReportsPage() {
         const controller = new AbortController();
         setLoading(true);
         reportApi
-            .getSalesReport({ ...filters, page, pageSize: itemsPerPage }, controller.signal)
-            .then(setReport)
+            .getSalesReport(filters, controller.signal)
+            .then((data) => {
+                setReport(data);
+                setCollapsedSales(new Set());
+            })
             .catch((err) => {
                 if (err?.name !== "AbortError") toast.error("No se pudo cargar el reporte");
             })
@@ -113,7 +134,96 @@ export default function ReportsPage() {
                 if (!controller.signal.aborted) setLoading(false);
             });
         return () => controller.abort();
-    }, [filters, page, itemsPerPage]);
+    }, [filters]);
+
+    // Agrupación por saleId en el front
+    const groupedSales = useMemo<GroupedSale[]>(() => {
+        if (!report?.items?.length) return [];
+        const map = new Map<number, GroupedSale>();
+
+        for (const item of report.items) {
+            const existing = map.get(item.saleId);
+            const lineCost = (item.costPrice || 0) * (item.quantity || 0);
+
+            if (!existing) {
+                map.set(item.saleId, {
+                    saleId: item.saleId,
+                    date: item.date,
+                    paymentMethod: item.paymentMethod,
+                    products: [item],
+                    totalUnits: item.quantity || 0,
+                    totalCost: lineCost,
+                    totalMargin: item.margin != null ? item.margin : null,
+                    total: item.subtotal || 0,
+                });
+            } else {
+                existing.products.push(item);
+                existing.totalUnits += item.quantity || 0;
+                existing.totalCost += lineCost;
+                if (item.margin != null) {
+                    existing.totalMargin = (existing.totalMargin ?? 0) + item.margin;
+                }
+                existing.total += item.subtotal || 0;
+            }
+        }
+
+        return Array.from(map.values());
+    }, [report]);
+
+    // Paginación en el front sobre ventas agrupadas (evita partir tickets entre páginas)
+    const currentSales = useMemo(() => {
+        const start = (page - 1) * itemsPerPage;
+        return groupedSales.slice(start, start + itemsPerPage);
+    }, [groupedSales, page, itemsPerPage]);
+
+    // Totales generales sobre todas las ventas filtradas
+    const grandTotals = useMemo(() => {
+        let units = 0;
+        let cost = 0;
+        let margin: number | null = null;
+        let total = 0;
+
+        for (const s of groupedSales) {
+            units += s.totalUnits;
+            cost += s.totalCost;
+            if (s.totalMargin != null) margin = (margin ?? 0) + s.totalMargin;
+            total += s.total;
+        }
+        return { units, cost, margin, total };
+    }, [groupedSales]);
+
+    const toggleSale = (saleId: number) => {
+        setCollapsedSales((prev) => {
+            const next = new Set(prev);
+            if (next.has(saleId)) next.delete(saleId);
+            else next.add(saleId);
+            return next;
+        });
+    };
+
+    const allVisibleCollapsed =
+        currentSales.length > 0 &&
+        currentSales.every((s) => collapsedSales.has(s.saleId));
+
+    const showProductColumns = !allVisibleCollapsed;
+    const totalColCount = showProductColumns ? 6 : 5;
+
+    const selectedCategoryLabel =
+        categories.find((c) => String(c.id) === categoryId)?.name ?? "Todas";
+    const selectedProviderLabel =
+        providers.find((p) => String(p.id) === providerId)?.name ?? "Todos";
+
+    const toggleAllVisible = () => {
+        setCollapsedSales((prev) => {
+            const next = new Set(prev);
+            if (allVisibleCollapsed) {
+                currentSales.forEach((s) => next.delete(s.saleId));
+            } else {
+                currentSales.forEach((s) => next.add(s.saleId));
+            }
+            return next;
+        });
+    };
 
     const activeFiltersCount = [
         from,
@@ -219,15 +329,15 @@ export default function ReportsPage() {
             <div className="space-y-6">
                 {/* Panel de filtros desplegable o toggle desde el botón de arriba */}
                 {filtersOpen && (
-                    <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                            <span className="text-xs font-semibold text-slate-300">
+                    <div className="report-filter-panel rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+                            <span className="text-xs font-semibold text-[var(--text-primary)]">
                                 Filtrar resultados
                             </span>
                             {hasFilters && (
                                 <button
                                     onClick={clearFilters}
-                                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                                    className="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                                 >
                                     <XIcon className="w-3.5 h-3.5" />
                                     Limpiar filtros
@@ -235,7 +345,7 @@ export default function ReportsPage() {
                             )}
                         </div>
                         <div className="flex flex-wrap gap-3 items-end">
-                            <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                            <label className="flex flex-col gap-1 text-[11px] text-[var(--text-muted)]">
                                 Desde
                                 <input
                                     type="date"
@@ -306,82 +416,227 @@ export default function ReportsPage() {
                 )}
 
 
-                {/* Tabla detalle */}
-                <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
+                {/* Tabla única agrupada por venta (estilo Excel con cabeceras de grupo) */}
+                <div className="management-table-container rounded-2xl overflow-hidden">
+                    <div className="report-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
+                            <span className="font-medium">
+                                {groupedSales.length}{" "}
+                                {groupedSales.length === 1 ? "venta" : "ventas"}
+                                {report?.items.length ? ` · ${report.items.length} ítems` : ""}
+                            </span>
+                            <span className="text-[var(--border-strong)] hidden sm:inline">|</span>
+                            <span>
+                                Categoría:{" "}
+                                <strong className="text-[var(--text-primary)] font-medium">
+                                    {selectedCategoryLabel}
+                                </strong>
+                            </span>
+                            <span>
+                                Proveedor:{" "}
+                                <strong className="text-[var(--text-primary)] font-medium">
+                                    {selectedProviderLabel}
+                                </strong>
+                            </span>
+                        </div>
+                        {currentSales.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={toggleAllVisible}
+                                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                            >
+                                {allVisibleCollapsed ? (
+                                    <>
+                                        <ChevronsUpDown className="w-3.5 h-3.5" />
+                                        <span>Expandir todo</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ChevronsDownUp className="w-3.5 h-3.5" />
+                                        <span>Contraer todo</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
+
                     <div className="overflow-x-auto">
-                        <table className="w-full text-xs text-left text-slate-300">
-                            <thead className="text-[11px] uppercase text-slate-400 border-b border-white/10">
-                                <tr>
-                                    <th className="px-4 py-3">Venta</th>
-                                    <th className="px-4 py-3">Fecha</th>
-
-                                    <th className="px-4 py-3">Producto</th>
-                                    <th className="px-4 py-3">Categoría</th>
-                                    <th className="px-4 py-3">Proveedor</th>
-
-                                    <th className="px-4 py-3">Pago</th>
-                                    <th className="px-4 py-3 text-right">Cant.</th>
-                                    <th className="px-4 py-3 text-right">P. costo</th>
-                                    <th className="px-4 py-3 text-right">Margen</th>
-                                    <th className="px-4 py-3 text-right">P. venta</th>
-                                    <th className="px-4 py-3 text-right">Subtotal</th>
+                        <table className="w-full text-xs text-left text-[var(--text-secondary)] management-table report-table">
+                            <thead className="border-b border-[var(--border-subtle)]">
+                                <tr className="border-l-2 border-l-transparent">
+                                    {showProductColumns ? (
+                                        <>
+                                            <th className="pl-4 pr-6 py-3">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <span className="pl-5">Venta</span>
+                                                    <span>Producto</span>
+                                                </div>
+                                            </th>
+                                            <th className="w-24 px-4 py-3 text-center">Cant.</th>
+                                            <th className="w-32 px-4 py-3 text-right whitespace-nowrap">P. costo</th>
+                                            <th className="w-32 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
+                                            <th className="w-32 px-4 py-3 text-right whitespace-nowrap">P. venta</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <th className="pl-9 pr-4 py-3">Venta</th>
+                                            <th className="w-28 px-4 py-3 text-center">Unidades</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Costo total</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
+                                            <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Total</th>
+                                        </>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading && !report ? (
                                     <tr>
-                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={totalColCount} className="px-4 py-10 text-center text-slate-500">
                                             Cargando reporte...
                                         </td>
                                     </tr>
-                                ) : report && report.items.length === 0 ? (
+                                ) : groupedSales.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={totalColCount} className="px-4 py-10 text-center text-slate-500">
                                             No hay ventas completadas con los filtros seleccionados.
                                         </td>
                                     </tr>
                                 ) : (
-                                    report?.items.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className={`border-b border-white/5 hover:bg-white/5 ${loading ? "opacity-60" : ""}`}
-                                        >
-                                            <td className="px-4 py-3 font-medium text-white">
-                                                #{item.saleId}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                {formatDate(item.date)}
-                                            </td>
-                                            {/* <td className="px-4 py-3">{item.clientName}</td> */}
-                                            <td className="px-4 py-3">{item.productName}</td>
-                                            <td className="px-4 py-3">{item.categoryName}</td>
-                                            <td className="px-4 py-3">{item.providerName}</td>
-                                            {/* <td className="px-4 py-3">{item.brandName}</td> */}
-                                            <td className="px-4 py-3">{item.paymentMethod}</td>
-                                            <td className="px-4 py-3 text-right">{item.quantity}</td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap">
-                                                {money(item.costPrice)}
-                                            </td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap">
-                                                {item.margin != null ? money(item.margin) : "-"}
-                                            </td>
-                                            <td className="px-4 py-3 text-right whitespace-nowrap">
-                                                {money(item.unitaryPrice)}
-                                            </td>
-                                            <td className="px-4 py-3 text-right font-semibold text-white whitespace-nowrap">
-                                                {money(item.subtotal)}
-                                            </td>
-                                        </tr>
-                                    ))
+                                    currentSales.map((sale, idx) => {
+                                        const isCollapsed = collapsedSales.has(sale.saleId);
+                                        const isLastSale = idx === currentSales.length - 1;
+                                        return (
+                                            <Fragment key={sale.saleId}>
+                                                {/* Nivel 2: Fila cabecera de la venta */}
+                                                <tr
+                                                    onClick={() => toggleSale(sale.saleId)}
+                                                    className={`report-group-row ${
+                                                        isCollapsed
+                                                            ? "border-l-2 border-l-transparent"
+                                                            : "border-l-2 border-l-indigo-500/70"
+                                                    } cursor-pointer transition-colors ${
+                                                        loading ? "opacity-60" : ""
+                                                    }`}
+                                                >
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+                                                            <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--text-primary)]">
+                                                                {isCollapsed ? (
+                                                                    <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                                                                ) : (
+                                                                    <ChevronDown className="w-3.5 h-3.5 text-indigo-400" />
+                                                                )}
+                                                                #{sale.saleId}
+                                                            </span>
+                                                            <span className="text-[var(--text-muted)]">
+                                                                {formatDate(sale.date)} · {formatTime(sale.date)} hs
+                                                            </span>
+                                                            <span className="report-chip px-2 py-0.5 rounded-md text-[11px] font-medium">
+                                                                {sale.paymentMethod}
+                                                            </span>
+                                                            <span className="text-[11px] text-[var(--text-muted)]">
+                                                                {sale.products.length}{" "}
+                                                                {sale.products.length === 1 ? "producto" : "productos"}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center font-semibold text-[var(--text-primary)] tabular-nums">
+                                                        {sale.totalUnits}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-[var(--text-secondary)] tabular-nums">
+                                                        {money(sale.totalCost)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-[var(--report-profit)] tabular-nums">
+                                                        {sale.totalMargin != null ? money(sale.totalMargin) : "-"}
+                                                    </td>
+                                                    {showProductColumns && (
+                                                        <td className="px-4 py-3 text-right text-[var(--text-muted)] opacity-50 tabular-nums">
+                                                            —
+                                                        </td>
+                                                    )}
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-[var(--text-primary)] tabular-nums">
+                                                        {money(sale.total)}
+                                                    </td>
+                                                </tr>
+
+                                                {/* Nivel 4: Filas de productos alineados a la derecha, junto a Cantidad */}
+                                                {!isCollapsed &&
+                                                    sale.products.map((item) => (
+                                                        <tr
+                                                            key={item.id}
+                                                            className={`report-child-row border-l-2 border-l-indigo-500/25 transition-colors ${
+                                                                loading ? "opacity-60" : ""
+                                                            }`}
+                                                        >
+                                                            <td className="py-2.5 pl-9 pr-6 text-right text-[var(--text-secondary)]">
+                                                                {item.productName}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-center text-[var(--text-muted)] tabular-nums">
+                                                                {item.quantity}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-[var(--text-muted)] tabular-nums">
+                                                                {money(item.costPrice)}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-[var(--report-profit-soft)] tabular-nums">
+                                                                {item.margin != null ? money(item.margin) : "-"}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-[var(--text-muted)] tabular-nums">
+                                                                {money(item.unitaryPrice)}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap font-medium text-[var(--text-primary)] tabular-nums">
+                                                                {money(item.subtotal)}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+
+                                                {/* Espaciador visual entre el último producto expandido y la siguiente venta */}
+                                                {!isCollapsed && !isLastSale && (
+                                                    <tr className="h-3 report-spacer-row border-none">
+                                                        <td colSpan={totalColCount} className="p-0" />
+                                                    </tr>
+                                                )}
+                                            </Fragment>
+                                        );
+                                    })
                                 )}
                             </tbody>
+
+                            {/* Nivel 1: Fila de Total General del período filtrado */}
+                            {groupedSales.length > 0 && (
+                                <tfoot>
+                                    <tr className="report-tfoot-row border-l-2 border-l-transparent font-bold text-[var(--text-primary)]">
+                                        <td className="pl-9 pr-4 py-3.5 text-xs uppercase tracking-wider text-[var(--text-primary)]">
+                                            Total general ({groupedSales.length}{" "}
+                                            {groupedSales.length === 1 ? "venta" : "ventas"})
+                                        </td>
+                                        <td className="px-4 py-3.5 text-center text-[var(--text-primary)] tabular-nums">
+                                            {grandTotals.units}
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--text-secondary)] tabular-nums">
+                                            {money(grandTotals.cost)}
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--report-profit-strong)] tabular-nums">
+                                            {grandTotals.margin != null ? money(grandTotals.margin) : "-"}
+                                        </td>
+                                        {showProductColumns && (
+                                            <td className="px-4 py-3.5 text-right text-[var(--text-muted)] opacity-50 tabular-nums">
+                                                —
+                                            </td>
+                                        )}
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-[var(--text-primary)] tabular-nums">
+                                            {money(grandTotals.total)}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            )}
                         </table>
                     </div>
                 </div>
 
-                {report && report.totalItems > itemsPerPage && (
+                {groupedSales.length > itemsPerPage && (
                     <Pagination
-                        totalItems={report.totalItems}
+                        totalItems={groupedSales.length}
                         itemsPerPage={itemsPerPage}
                         currentPage={page}
                         onPageChange={setPage}

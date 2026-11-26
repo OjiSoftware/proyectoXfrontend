@@ -302,7 +302,7 @@ export function SalesTable({
       {/* VISTA ESCRITORIO: TABLA ESTANDARIZADA CON PRODUCTOS (md+) */}
       <div className="hidden md:block overflow-x-auto rounded-2xl management-table-container relative w-full">
         <Table hoverable className="w-full management-table">
-          <TableHead className="bg-[#151124] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
+          <TableHead className="bg-[#1b1b21] border-b border-white/10 text-slate-300 [&_th]:!bg-transparent [&_th]:transition-all [&_th:hover]:!bg-white/5 [&_th]:font-semibold [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider">
             <TableRow className="hover:bg-transparent border-none">
               <TableHeadCell
                 className="px-4 w-14 cursor-pointer select-none"

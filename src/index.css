@@ -90,12 +90,29 @@
   --text-muted: #94a3b8;
 
   /* Tablas Management Dark */
-  --mgmt-table-bg: #0d0a18;
-  --mgmt-table-th-bg: #151124;
+  --mgmt-table-bg: #151519;
+  --mgmt-table-th-bg: #1b1b21;
   --mgmt-table-th-text: #cbd5e1;
-  --mgmt-table-zebra: rgba(255, 255, 255, 0.015);
-  --mgmt-table-hover: rgba(99, 102, 241, 0.08);
-  --mgmt-table-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  --mgmt-table-zebra: rgba(255, 255, 255, 0.02);
+  --mgmt-table-hover: rgba(255, 255, 255, 0.045);
+  --mgmt-table-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.65);
+
+  /* Reportes Analytics Dark (jerarquía de 4 niveles) */
+  --report-topbar-bg: #151519;
+  --report-th-bg: #131317;
+  --report-group-bg: #1c1c22;
+  --report-group-hover: #24242d;
+  --report-child-bg: #111115;
+  --report-child-hover: #18181f;
+  --report-row-bg: #151519;
+  --report-row-hover: #1c1c22;
+  --report-spacer-bg: #0c0c0f;
+  --report-tfoot-bg: #22222a;
+  --report-chip-bg: rgba(255, 255, 255, 0.06);
+  --report-chip-border: rgba(255, 255, 255, 0.1);
+  --report-profit: #34d399;
+  --report-profit-soft: rgba(52, 211, 153, 0.65);
+  --report-profit-strong: #6ee7b7;
 
   /* Botones - Tema Management Dark (Glassmorphism) */
   --btn-primary-bg: rgba(79, 70, 229, 0.22);
@@ -162,6 +179,23 @@
   --mgmt-table-zebra: rgba(15, 23, 42, 0.02);
   --mgmt-table-hover: rgba(79, 70, 229, 0.05);
   --mgmt-table-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.1);
+
+  /* Reportes Analytics Light (jerarquía de 4 niveles) */
+  --report-topbar-bg: #ffffff;
+  --report-th-bg: #f1f5f9;
+  --report-group-bg: #f8fafc;
+  --report-group-hover: #eef2ff;
+  --report-child-bg: #ffffff;
+  --report-child-hover: #f8fafc;
+  --report-row-bg: #ffffff;
+  --report-row-hover: #f8fafc;
+  --report-spacer-bg: #e2e8f0;
+  --report-tfoot-bg: #e2e8f0;
+  --report-chip-bg: #f1f5f9;
+  --report-chip-border: #cbd5e1;
+  --report-profit: #059669;
+  --report-profit-soft: #10b981;
+  --report-profit-strong: #047857;
 
   /* Botones - Tema Management Light */
   --btn-primary-bg: #4f46e5;
@@ -362,6 +396,10 @@
   color: #0284c7 !important;
 }
 
+[data-theme="mgmt-light"] .text-violet-400 {
+  color: #7c3aed !important;
+}
+
 @layer base {
   body {
     font-family: var(--font-public-body);
@@ -389,13 +427,13 @@
 
   /* Estandarización de tablas del panel de gestión */
   .management-table-container {
-    background-color: var(--mgmt-table-bg, #0d0a18);
-    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    box-shadow: var(--mgmt-table-shadow, 0 20px 40px -15px rgba(0, 0, 0, 0.7));
+    background-color: var(--mgmt-table-bg, #151519);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+    box-shadow: var(--mgmt-table-shadow, 0 20px 40px -15px rgba(0, 0, 0, 0.65));
   }
 
   .management-table th {
-    background-color: var(--mgmt-table-th-bg, #151124) !important;
+    background-color: var(--mgmt-table-th-bg, #1b1b21) !important;
     font-size: 0.75rem !important; /* 12px (text-xs) */
     font-weight: 600 !important;
     text-transform: uppercase !important;
@@ -561,6 +599,71 @@
     background-color: var(--bg-input);
     border: 1px solid var(--border-subtle);
     color: var(--text-primary);
+  }
+
+  /* Tablas de Reportes Analytics (adaptativas a mgmt-dark y mgmt-light) */
+  .report-filter-panel {
+    background-color: var(--report-topbar-bg);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+
+  .report-filter-input {
+    background-color: var(--report-group-bg);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+
+  .report-topbar {
+    background-color: var(--report-topbar-bg);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .report-table th {
+    background-color: var(--report-th-bg) !important;
+    color: var(--text-muted) !important;
+  }
+
+  .report-group-row {
+    background-color: var(--report-group-bg) !important;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .report-group-row:hover {
+    background-color: var(--report-group-hover) !important;
+  }
+
+  .report-child-row {
+    background-color: var(--report-child-bg) !important;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .report-child-row:hover {
+    background-color: var(--report-child-hover) !important;
+  }
+
+  .report-row {
+    background-color: var(--report-row-bg) !important;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .report-row:hover {
+    background-color: var(--report-row-hover) !important;
+  }
+
+  .report-spacer-row,
+  .report-spacer-row:hover {
+    background-color: var(--report-spacer-bg) !important;
+  }
+
+  .report-tfoot-row,
+  .report-tfoot-row:hover {
+    background-color: var(--report-tfoot-bg) !important;
+    border-top: 2px solid var(--border-strong);
+  }
+
+  .report-chip {
+    background-color: var(--report-chip-bg);
+    border: 1px solid var(--report-chip-border);
+    color: var(--text-secondary);
   }
 }
 

@@ -11,12 +11,11 @@ import { ROUTES } from '@/constants/routes';
 import { useDisableSale } from '@/hooks/useDisableSale';
 import {
   PlusIcon,
-  Clock,
   ChevronDown,
   X,
   SlidersHorizontal,
-  Download,
 } from 'lucide-react';
+import { ExportDropdown } from '@/components/ExportDropdown';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import toast from 'react-hot-toast';
 import {
@@ -77,19 +76,15 @@ export default function SalesPage() {
   };
 
   // ---------------- Dropdown refs ----------------
-  const [statusOpen, setStatusOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [paramsOpen, setParamsOpen] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const statusRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const paramsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (statusRef.current && !statusRef.current.contains(e.target as Node))
-        setStatusOpen(false);
       if (filterRef.current && !filterRef.current.contains(e.target as Node))
         setFilterOpen(false);
       if (paramsRef.current && !paramsRef.current.contains(e.target as Node))
@@ -319,11 +314,13 @@ export default function SalesPage() {
     filterNotes,
   ]);
 
-  const hasActiveFilters =
-    query !== '' ||
-    filterStatus !== 'all' ||
-    filterPayment !== 'all' ||
-    filterNotes !== 'all';
+  const activeFiltersCount = [
+    filterStatus !== 'all',
+    filterPayment !== 'all',
+    filterNotes !== 'all',
+  ].filter(Boolean).length;
+
+  const hasActiveFilters = query !== '' || activeFiltersCount > 0;
 
   const resetFilters = () => {
     setQuery('');
@@ -332,28 +329,10 @@ export default function SalesPage() {
     setFilterNotes('all');
   };
 
-  const STATUS_LABELS: Record<typeof filterStatus, string> = {
-    all: 'Estado',
-    COMPLETED: 'Completadas',
-    CANCELLED: 'Canceladas',
-  };
-
   return (
     <DashboardLayout
       title="Lista de ventas"
       subtitle="Gestión de ventas generadas en el sistema."
-      actions={
-        <button
-          title="Nueva venta"
-          onClick={() => navigate(ROUTES.sales.create)}
-          className="group flex items-center justify-center w-11 h-11 rounded-[14px] bg-indigo-600 text-white font-bold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 border border-indigo-400/30 active:scale-95 active:translate-y-0"
-        >
-          <PlusIcon
-            size={22}
-            className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] group-hover:rotate-90 transition-transform duration-500"
-          />
-        </button>
-      }
     >
       <div className="space-y-3">
         {/* BUSCADOR + FILTROS + PARÁMETROS (ESTILO UNIFICADO CON PRODUCTOS) */}
@@ -475,90 +454,64 @@ export default function SalesPage() {
           </div>
 
           {/* Contenedor de Filtros y Acciones */}
-          <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-            {/* Dropdown ESTADO (color esmeralda igual que Categoría en Productos) */}
-            <div ref={statusRef} className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setStatusOpen((o) => !o);
-                  setFilterOpen(false);
-                  setParamsOpen(false);
-                }}
-                className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                  statusOpen || filterStatus !== 'all'
-                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                    : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
-                }`}
-              >
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform ${
-                    statusOpen ? 'rotate-180' : ''
-                  }`}
-                />
-                {STATUS_LABELS[filterStatus]}
-                {filterStatus !== 'all' && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                )}
-              </button>
-              {statusOpen && (
-                <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Estado
-                  </p>
-                  <div className="space-y-1">
-                    {(
-                      [
-                        ['all', 'Todos los estados'],
-                        ['COMPLETED', 'Completadas'],
-                        ['CANCELLED', 'Canceladas'],
-                      ] as const
-                    ).map(([val, lbl]) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setFilterStatus(val)}
-                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                          filterStatus === val
-                            ? 'bg-emerald-500/20 text-emerald-300'
-                            : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                        }`}
-                      >
-                        {lbl}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Dropdown OTROS FILTROS — Pago y Comentarios (igual a Otros filtros en Productos) */}
+          <div className="flex items-center gap-2 lg:gap-2.5 shrink-0">
+            {/* Dropdown FILTROS unificado (Estado, Medio de Pago y Comentarios) */}
             <div ref={filterRef} className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => {
                   setFilterOpen((o) => !o);
-                  setStatusOpen(false);
                   setParamsOpen(false);
                 }}
                 className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                  filterOpen || filterPayment !== 'all' || filterNotes !== 'all'
+                  filterOpen || activeFiltersCount > 0
                     ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
                     : 'bg-[#151519] border-white/10 text-gray-400 hover:border-white/25 hover:text-gray-200'
                 }`}
               >
+                <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" />
+                <span>Filtros</span>
+                {activeFiltersCount > 0 && (
+                  <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 px-1.5 rounded-full">
+                    {activeFiltersCount}
+                  </span>
+                )}
                 <ChevronDown
                   className={`w-4 h-4 transition-transform ${
                     filterOpen ? 'rotate-180' : ''
                   }`}
                 />
-                Otros filtros
-                {(filterPayment !== 'all' || filterNotes !== 'all') && (
-                  <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
-                )}
               </button>
               {filterOpen && (
-                <div className="absolute left-0 top-full mt-2 w-52 bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden p-3 space-y-4">
+                <div className="absolute right-0 top-full mt-2 w-64 max-h-[75vh] overflow-y-auto bg-[#151519] backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 p-3.5 space-y-4">
+                  {/* Estado */}
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Estado
+                    </p>
+                    <div className="space-y-1">
+                      {(
+                        [
+                          ['all', 'Todos los estados'],
+                          ['COMPLETED', 'Completadas'],
+                          ['CANCELLED', 'Canceladas'],
+                        ] as const
+                      ).map(([val, lbl]) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setFilterStatus(val)}
+                          className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                            filterStatus === val
+                              ? 'bg-emerald-500/20 text-emerald-300'
+                              : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                          }`}
+                        >
+                          {lbl}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   {/* Medio de pago */}
                   <div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
@@ -616,23 +569,24 @@ export default function SalesPage() {
                       ))}
                     </div>
                   </div>
-                  {(filterPayment !== 'all' || filterNotes !== 'all') && (
+                  {activeFiltersCount > 0 && (
                     <button
                       type="button"
                       onClick={() => {
+                        setFilterStatus('all');
                         setFilterPayment('all');
                         setFilterNotes('all');
                       }}
-                      className="w-full text-center text-[10px] text-rose-400/70 hover:text-rose-400 transition-colors cursor-pointer pt-1 border-t border-white/5"
+                      className="w-full text-center text-[11px] font-medium text-rose-400/80 hover:text-rose-400 transition-colors cursor-pointer pt-2 border-t border-white/5"
                     >
-                      Limpiar
+                      Limpiar filtros
                     </button>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Botón LIMPIAR FILTROS (Global - mismo estilo que Productos) */}
+            {/* Botón LIMPIAR FILTROS (Global) */}
             {hasActiveFilters && (
               <button
                 type="button"
@@ -646,12 +600,11 @@ export default function SalesPage() {
             )}
 
             {/* Dropdown PARÁMETROS (Ver columnas) */}
-            <div ref={paramsRef} className="relative shrink-0 ml-auto">
+            <div ref={paramsRef} className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => {
                   setParamsOpen((o) => !o);
-                  setStatusOpen(false);
                   setFilterOpen(false);
                 }}
                 className={`h-11 flex items-center gap-2 px-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
@@ -725,17 +678,22 @@ export default function SalesPage() {
               )}
             </div>
 
-            {/* Botón Exportar a Excel (mismo estilo y posición que Productos) */}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleExportSales}
-                className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
-              >
-                <Download className="h-4 w-4" />
-                Exportar a Excel
-              </button>
-            </div>
+            {/* Dropdown Exportar */}
+            <ExportDropdown onExportExcel={handleExportSales} />
+
+            {/* Botón Nueva venta */}
+            <button
+              type="button"
+              title="Nueva venta"
+              onClick={() => navigate(ROUTES.sales.create)}
+              className="group h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-semibold transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.35)] hover:bg-indigo-500 hover:shadow-[0_0_25px_rgba(79,70,229,0.55)] border border-indigo-400/30 active:scale-95 shrink-0"
+            >
+              <PlusIcon
+                size={16}
+                className="group-hover:rotate-90 transition-transform duration-300"
+              />
+              <span>Nueva venta</span>
+            </button>
           </div>
         </div>
 
