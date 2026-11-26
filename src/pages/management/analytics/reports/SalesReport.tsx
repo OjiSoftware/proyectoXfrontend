@@ -206,7 +206,12 @@ export default function ReportsPage() {
         currentSales.every((s) => collapsedSales.has(s.saleId));
 
     const showProductColumns = !allVisibleCollapsed;
-    const totalColCount = showProductColumns ? 8 : 5;
+    const totalColCount = showProductColumns ? 6 : 5;
+
+    const selectedCategoryLabel =
+        categories.find((c) => String(c.id) === categoryId)?.name ?? "Todas";
+    const selectedProviderLabel =
+        providers.find((p) => String(p.id) === providerId)?.name ?? "Todos";
 
     const toggleAllVisible = () => {
         setCollapsedSales((prev) => {
@@ -413,12 +418,27 @@ export default function ReportsPage() {
 
                 {/* Tabla única agrupada por venta (estilo Excel con cabeceras de grupo) */}
                 <div className="management-table-container rounded-2xl overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-3 bg-[#151519] border-b border-white/10">
-                        <span className="text-xs font-medium text-slate-400">
-                            {groupedSales.length}{" "}
-                            {groupedSales.length === 1 ? "venta" : "ventas"}
-                            {report?.items.length ? ` · ${report.items.length} ítems` : ""}
-                        </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[#151519] border-b border-white/10">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                            <span className="font-medium">
+                                {groupedSales.length}{" "}
+                                {groupedSales.length === 1 ? "venta" : "ventas"}
+                                {report?.items.length ? ` · ${report.items.length} ítems` : ""}
+                            </span>
+                            <span className="text-white/15 hidden sm:inline">|</span>
+                            <span>
+                                Categoría:{" "}
+                                <strong className="text-slate-200 font-medium">
+                                    {selectedCategoryLabel}
+                                </strong>
+                            </span>
+                            <span>
+                                Proveedor:{" "}
+                                <strong className="text-slate-200 font-medium">
+                                    {selectedProviderLabel}
+                                </strong>
+                            </span>
+                        </div>
                         {currentSales.length > 0 && (
                             <button
                                 type="button"
@@ -446,9 +466,12 @@ export default function ReportsPage() {
                                 <tr>
                                     {showProductColumns ? (
                                         <>
-                                            <th className="!bg-[#131317] px-4 py-3 text-slate-400">Venta / Producto</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-slate-400">Categoría</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-slate-400">Proveedor</th>
+                                            <th className="!bg-[#131317] px-4 py-3 text-slate-400">
+                                                <div className="flex items-center justify-between">
+                                                    <span>Venta</span>
+                                                    <span className="pr-2">Producto</span>
+                                                </div>
+                                            </th>
                                             <th className="!bg-[#131317] px-4 py-3 text-center text-slate-400">Cant.</th>
                                             <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">P. costo</th>
                                             <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">Ganancia</th>
@@ -496,7 +519,7 @@ export default function ReportsPage() {
                                                         loading ? "opacity-60" : ""
                                                     }`}
                                                 >
-                                                    <td colSpan={showProductColumns ? 3 : 1} className="px-4 py-3">
+                                                    <td className="px-4 py-3">
                                                         <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
                                                             <span className="inline-flex items-center gap-1.5 font-semibold text-white">
                                                                 {isCollapsed ? (
@@ -537,7 +560,7 @@ export default function ReportsPage() {
                                                     </td>
                                                 </tr>
 
-                                                {/* Nivel 4: Filas de productos de la venta (más hundidas y sutiles) */}
+                                                {/* Nivel 4: Filas de productos alineados a la derecha, junto a Cantidad */}
                                                 {!isCollapsed &&
                                                     sale.products.map((item) => (
                                                         <tr
@@ -546,14 +569,8 @@ export default function ReportsPage() {
                                                                 loading ? "opacity-60" : ""
                                                             }`}
                                                         >
-                                                            <td className="py-2.5 pl-9 pr-4 text-slate-300">
+                                                            <td className="py-2.5 pl-9 pr-6 text-right text-slate-300">
                                                                 {item.productName}
-                                                            </td>
-                                                            <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap">
-                                                                {item.categoryName}
-                                                            </td>
-                                                            <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap">
-                                                                {item.providerName}
                                                             </td>
                                                             <td className="px-4 py-2.5 text-center text-slate-400">
                                                                 {item.quantity}
@@ -589,7 +606,7 @@ export default function ReportsPage() {
                             {groupedSales.length > 0 && (
                                 <tfoot>
                                     <tr className="!bg-[#22222a] border-t-2 border-white/20 font-bold text-white">
-                                        <td colSpan={showProductColumns ? 3 : 1} className="px-4 py-3.5 text-xs uppercase tracking-wider text-slate-200">
+                                        <td className="px-4 py-3.5 text-xs uppercase tracking-wider text-slate-200">
                                             Total general ({groupedSales.length}{" "}
                                             {groupedSales.length === 1 ? "venta" : "ventas"})
                                         </td>
