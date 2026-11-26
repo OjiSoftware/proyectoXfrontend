@@ -602,6 +602,18 @@
   }
 
   /* Tablas de Reportes Analytics (adaptativas a mgmt-dark y mgmt-light) */
+  .report-filter-panel {
+    background-color: var(--report-topbar-bg);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+
+  .report-filter-input {
+    background-color: var(--report-group-bg);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+
   .report-topbar {
     background-color: var(--report-topbar-bg);
     border-bottom: 1px solid var(--border-subtle);

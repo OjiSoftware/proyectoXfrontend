@@ -56,7 +56,7 @@ const formatTime = (iso: string) =>
     });
 
 const fieldClass =
-    "mgmt-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
+    "report-filter-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function ProductsSalesReport() {
     const itemsPerPage = useItemsPerpage();
@@ -337,11 +337,10 @@ export default function ProductsSalesReport() {
                     <button
                         type="button"
                         onClick={() => setFiltersOpen((prev) => !prev)}
-                        className={`btn btn-sm ${
-                            filtersOpen || activeFiltersCount > 0
-                                ? "btn-primary"
-                                : "btn-subtle"
-                        }`}
+                        className={`btn btn-sm ${filtersOpen || activeFiltersCount > 0
+                            ? "btn-primary"
+                            : "btn-subtle"
+                            }`}
                         title="Filtrar por fecha, categoría, proveedor..."
                     >
                         <Filter className="w-4 h-4" />
@@ -368,7 +367,7 @@ export default function ProductsSalesReport() {
         >
             <div className="space-y-6">
                 {filtersOpen && (
-                    <div className="mgmt-surface rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                    <div className="report-filter-panel rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
                         <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
                             <span className="text-xs font-semibold text-[var(--text-primary)]">
                                 Filtrar resultados
@@ -459,8 +458,8 @@ export default function ProductsSalesReport() {
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
                             <span className="font-medium">
                                 {groupedProducts.length}{" "}
-                                {groupedProducts.length === 1 ? "producto" : "productos"}
-                                {report?.items.length ? ` · ${report.items.length} registros` : ""}
+                                {groupedProducts.length === 1 ? "item" : "items"}
+                                {report?.items.length ? ` · ${report.items.length} ventas` : ""}
                             </span>
                             <span className="text-[var(--border-strong)] hidden sm:inline">|</span>
                             <span>
@@ -509,7 +508,7 @@ export default function ProductsSalesReport() {
                                                     <span>Venta</span>
                                                 </div>
                                             </th>
-                                            <th className="w-24 px-4 py-3 text-center">Cant.</th>
+                                            <th className="w-24 px-4 py-3 text-center">Uds.</th>
                                             <th className="w-28 px-4 py-3 text-center">Fecha</th>
                                             <th className="w-24 px-4 py-3 text-center">Hora</th>
                                             <th className="w-32 px-4 py-3 text-right whitespace-nowrap">Costo</th>
@@ -520,7 +519,7 @@ export default function ProductsSalesReport() {
                                     ) : (
                                         <>
                                             <th className="pl-9 pr-4 py-3">Producto</th>
-                                            <th className="w-28 px-4 py-3 text-center">Cantidad</th>
+                                            <th className="w-28 px-4 py-3 text-center">Unidades</th>
                                             <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Costo total</th>
                                             <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
                                             <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Total</th>
@@ -550,13 +549,11 @@ export default function ProductsSalesReport() {
                                                 {/* Cabecera del producto (con sus totales) */}
                                                 <tr
                                                     onClick={() => toggleProduct(prod.productName)}
-                                                    className={`report-group-row ${
-                                                        isCollapsed
-                                                            ? "border-l-2 border-l-transparent"
-                                                            : "border-l-2 border-l-indigo-500/70"
-                                                    } cursor-pointer transition-colors ${
-                                                        loading ? "opacity-60" : ""
-                                                    }`}
+                                                    className={`report-group-row ${isCollapsed
+                                                        ? "border-l-2 border-l-transparent"
+                                                        : "border-l-2 border-l-indigo-500/70"
+                                                        } cursor-pointer transition-colors ${loading ? "opacity-60" : ""
+                                                        }`}
                                                 >
                                                     <td className="px-4 py-3">
                                                         <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
@@ -604,9 +601,8 @@ export default function ProductsSalesReport() {
                                                     prod.entries.map((entry) => (
                                                         <tr
                                                             key={entry.id}
-                                                            className={`report-child-row border-l-2 border-l-indigo-500/25 transition-colors ${
-                                                                loading ? "opacity-60" : ""
-                                                            }`}
+                                                            className={`report-child-row border-l-2 border-l-indigo-500/25 transition-colors ${loading ? "opacity-60" : ""
+                                                                }`}
                                                         >
                                                             <td className="py-2.5 pl-9 pr-6 text-right text-[var(--text-muted)]">
                                                                 <span className="text-[var(--text-secondary)] font-medium">
@@ -655,7 +651,7 @@ export default function ProductsSalesReport() {
                                 <tfoot>
                                     <tr className="report-tfoot-row border-l-2 border-l-transparent font-bold text-[var(--text-primary)]">
                                         <td className="pl-9 pr-4 py-3.5 text-xs uppercase tracking-wider text-[var(--text-primary)]">
-                                            Total general ({groupedProducts.length}{" "}
+                                            Total ({groupedProducts.length}{" "}
                                             {groupedProducts.length === 1 ? "producto" : "productos"})
                                         </td>
                                         <td className="px-4 py-3.5 text-center text-[var(--text-primary)] tabular-nums">

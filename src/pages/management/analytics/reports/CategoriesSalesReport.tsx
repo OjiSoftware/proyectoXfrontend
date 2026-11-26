@@ -30,7 +30,7 @@ const money = (n: number) =>
     }).format(n || 0);
 
 const fieldClass =
-    "mgmt-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
+    "report-filter-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function CategoriesSalesReport() {
     const [from, setFrom] = useState("");
@@ -231,11 +231,10 @@ export default function CategoriesSalesReport() {
                     <button
                         type="button"
                         onClick={() => setFiltersOpen((prev) => !prev)}
-                        className={`btn btn-sm ${
-                            filtersOpen || activeFiltersCount > 0
-                                ? "btn-primary"
-                                : "btn-subtle"
-                        }`}
+                        className={`btn btn-sm ${filtersOpen || activeFiltersCount > 0
+                            ? "btn-primary"
+                            : "btn-subtle"
+                            }`}
                         title="Filtrar por fecha, proveedor o medio de pago"
                     >
                         <Filter className="w-4 h-4" />
@@ -262,7 +261,7 @@ export default function CategoriesSalesReport() {
         >
             <div className="space-y-6">
                 {filtersOpen && (
-                    <div className="mgmt-surface rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                    <div className="report-filter-panel rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
                         <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
                             <span className="text-xs font-semibold text-[var(--text-primary)]">
                                 Filtrar resultados
@@ -361,7 +360,7 @@ export default function CategoriesSalesReport() {
                             <thead className="border-b border-[var(--border-subtle)]">
                                 <tr>
                                     <th className="px-4 py-3">Nombre</th>
-                                    <th className="w-28 px-4 py-3 text-center">Cantidad</th>
+                                    <th className="w-28 px-4 py-3 text-center">Unidades</th>
                                     <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Costo</th>
                                     <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
                                     <th className="w-36 px-4 py-3 text-right whitespace-nowrap">Total</th>
@@ -384,9 +383,8 @@ export default function CategoriesSalesReport() {
                                     groupedCategories.map((cat) => (
                                         <tr
                                             key={cat.categoryName}
-                                            className={`report-row transition-colors ${
-                                                loading ? "opacity-60" : ""
-                                            }`}
+                                            className={`report-row transition-colors ${loading ? "opacity-60" : ""
+                                                }`}
                                         >
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2.5">
@@ -420,7 +418,7 @@ export default function CategoriesSalesReport() {
                                 <tfoot>
                                     <tr className="report-tfoot-row font-bold text-[var(--text-primary)]">
                                         <td className="px-4 py-3.5 text-xs uppercase tracking-wider text-[var(--text-primary)]">
-                                            Super total ({groupedCategories.length}{" "}
+                                            Total ({groupedCategories.length}{" "}
                                             {groupedCategories.length === 1 ? "categoría" : "categorías"})
                                         </td>
                                         <td className="px-4 py-3.5 text-center text-[var(--text-primary)] tabular-nums">

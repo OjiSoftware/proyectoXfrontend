@@ -49,7 +49,7 @@ const formatTime = (iso: string) =>
     });
 
 const fieldClass =
-    "mgmt-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
+    "report-filter-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
 
 export default function ReportsPage() {
     const itemsPerPage = useItemsPerpage();
@@ -329,7 +329,7 @@ export default function ReportsPage() {
             <div className="space-y-6">
                 {/* Panel de filtros desplegable o toggle desde el botón de arriba */}
                 {filtersOpen && (
-                    <div className="mgmt-surface rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                    <div className="report-filter-panel rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
                         <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
                             <span className="text-xs font-semibold text-[var(--text-primary)]">
                                 Filtrar resultados
