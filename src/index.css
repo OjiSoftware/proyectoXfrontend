@@ -90,12 +90,12 @@
   --text-muted: #94a3b8;
 
   /* Tablas Management Dark */
-  --mgmt-table-bg: #0d0a18;
-  --mgmt-table-th-bg: #151124;
+  --mgmt-table-bg: #151519;
+  --mgmt-table-th-bg: #1b1b21;
   --mgmt-table-th-text: #cbd5e1;
-  --mgmt-table-zebra: rgba(255, 255, 255, 0.015);
-  --mgmt-table-hover: rgba(99, 102, 241, 0.08);
-  --mgmt-table-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  --mgmt-table-zebra: rgba(255, 255, 255, 0.02);
+  --mgmt-table-hover: rgba(255, 255, 255, 0.045);
+  --mgmt-table-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.65);
 
   /* Botones - Tema Management Dark (Glassmorphism) */
   --btn-primary-bg: rgba(79, 70, 229, 0.22);
@@ -389,13 +389,13 @@
 
   /* Estandarización de tablas del panel de gestión */
   .management-table-container {
-    background-color: var(--mgmt-table-bg, #0d0a18);
-    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    box-shadow: var(--mgmt-table-shadow, 0 20px 40px -15px rgba(0, 0, 0, 0.7));
+    background-color: var(--mgmt-table-bg, #151519);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+    box-shadow: var(--mgmt-table-shadow, 0 20px 40px -15px rgba(0, 0, 0, 0.65));
   }
 
   .management-table th {
-    background-color: var(--mgmt-table-th-bg, #151124) !important;
+    background-color: var(--mgmt-table-th-bg, #1b1b21) !important;
     font-size: 0.75rem !important; /* 12px (text-xs) */
     font-weight: 600 !important;
     text-transform: uppercase !important;

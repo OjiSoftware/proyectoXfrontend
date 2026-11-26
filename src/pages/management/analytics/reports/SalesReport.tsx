@@ -321,7 +321,7 @@ export default function ReportsPage() {
             <div className="space-y-6">
                 {/* Panel de filtros desplegable o toggle desde el botón de arriba */}
                 {filtersOpen && (
-                    <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                    <div className="bg-[#151519] border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
                         <div className="flex items-center justify-between border-b border-white/10 pb-2">
                             <span className="text-xs font-semibold text-slate-300">
                                 Filtrar resultados
@@ -409,8 +409,8 @@ export default function ReportsPage() {
 
 
                 {/* Tabla única agrupada por venta (estilo Excel con cabeceras de grupo) */}
-                <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                <div className="management-table-container rounded-2xl overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 bg-[#151519] border-b border-white/10">
                         <span className="text-xs font-medium text-slate-400">
                             {groupedSales.length}{" "}
                             {groupedSales.length === 1 ? "venta" : "ventas"}
@@ -420,7 +420,7 @@ export default function ReportsPage() {
                             <button
                                 type="button"
                                 onClick={toggleAllVisible}
-                                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-gray-200 transition-colors cursor-pointer"
                             >
                                 {allVisibleCollapsed ? (
                                     <>
@@ -438,8 +438,8 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-xs text-left text-slate-300">
-                            <thead className="text-[11px] uppercase tracking-wider text-slate-400 bg-white/[0.03] border-b border-white/10">
+                        <table className="w-full text-xs text-left text-slate-300 management-table">
+                            <thead className="border-b border-white/10">
                                 <tr>
                                     <th className="px-4 py-3">Producto</th>
                                     <th className="px-4 py-3">Categoría</th>
@@ -472,7 +472,7 @@ export default function ReportsPage() {
                                                 {/* Fila cabecera de la venta (alineada a las mismas columnas) */}
                                                 <tr
                                                     onClick={() => toggleSale(sale.saleId)}
-                                                    className={`bg-indigo-500/[0.08] hover:bg-indigo-500/[0.13] border-t border-white/15 border-b border-white/10 border-l-2 border-l-indigo-500 cursor-pointer transition-colors ${
+                                                    className={`!bg-[#1c1c22] hover:!bg-[#23232b] border-t border-white/10 border-b border-white/10 border-l-2 border-l-white/25 cursor-pointer transition-colors ${
                                                         loading ? "opacity-60" : ""
                                                     }`}
                                                 >
@@ -480,16 +480,16 @@ export default function ReportsPage() {
                                                         <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
                                                             <span className="inline-flex items-center gap-1.5 font-bold text-white">
                                                                 {isCollapsed ? (
-                                                                    <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
+                                                                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                                                                 ) : (
-                                                                    <ChevronDown className="w-3.5 h-3.5 text-indigo-400" />
+                                                                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                                                                 )}
                                                                 Venta #{sale.saleId}
                                                             </span>
                                                             <span className="text-slate-400">
                                                                 {formatDate(sale.date)} · {formatTime(sale.date)} hs
                                                             </span>
-                                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-slate-200 text-[11px] font-medium">
+                                                            <span className="px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 text-slate-200 text-[11px] font-medium">
                                                                 {sale.paymentMethod}
                                                             </span>
                                                             <span className="text-[11px] text-slate-400">
@@ -520,7 +520,7 @@ export default function ReportsPage() {
                                                     sale.products.map((item) => (
                                                         <tr
                                                             key={item.id}
-                                                            className={`border-b border-white/5 border-l-2 border-l-indigo-500/25 hover:bg-white/[0.03] transition-colors ${
+                                                            className={`!bg-[#151519] hover:!bg-white/[0.04] border-b border-white/5 border-l-2 border-l-white/10 transition-colors ${
                                                                 loading ? "opacity-60" : ""
                                                             }`}
                                                         >
@@ -559,7 +559,7 @@ export default function ReportsPage() {
                             {/* Fila de Super Total del período filtrado */}
                             {groupedSales.length > 0 && (
                                 <tfoot>
-                                    <tr className="bg-white/[0.05] border-t-2 border-white/15 font-bold text-white">
+                                    <tr className="bg-[#1b1b21] border-t-2 border-white/15 font-bold text-white">
                                         <td colSpan={3} className="px-4 py-3 text-xs uppercase tracking-wider text-slate-300">
                                             Total general ({groupedSales.length}{" "}
                                             {groupedSales.length === 1 ? "venta" : "ventas"})
