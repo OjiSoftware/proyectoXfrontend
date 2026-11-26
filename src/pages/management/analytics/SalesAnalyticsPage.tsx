@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-    FileSpreadsheet,
     BarChart3,
     TrendingUp,
     TrendingDown,
@@ -21,6 +19,44 @@ const formatCurrency = (value: number) =>
         currency: "ARS",
         maximumFractionDigits: 2,
     }).format(value);
+
+const toInputDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+};
+
+const formatDisplayDate = (isoDate: string) => {
+    const [year, month, day] = isoDate.split("-");
+    return `${day}/${month}/${year}`;
+};
+
+const getPresetRange = (preset: "today" | "7d" | "30d" | "month") => {
+    const now = new Date();
+    const today = toInputDate(now);
+
+    if (preset === "today") return { from: today, to: today };
+    if (preset === "7d") {
+        const start = new Date(now);
+        start.setDate(start.getDate() - 6);
+        return { from: toInputDate(start), to: today };
+    }
+    if (preset === "30d") {
+        const start = new Date(now);
+        start.setDate(start.getDate() - 29);
+        return { from: toInputDate(start), to: today };
+    }
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { from: toInputDate(startOfMonth), to: today };
+};
+
+const DATE_PRESETS: { id: "today" | "7d" | "30d" | "month"; label: string }[] = [
+    { id: "today", label: "Hoy" },
+    { id: "7d", label: "7 días" },
+    { id: "30d", label: "30 días" },
+    { id: "month", label: "Este mes" },
+];
 
 const GROUP_BY_OPTIONS: { value: KpiGroupBy; label: string }[] = [
     { value: "day", label: "Por día" },
@@ -68,6 +104,28 @@ export default function SalesAnalyticsPage() {
         1,
     );
 
+    const activeRangeLabel = (() => {
+        if (!from && !to) return "Últimos 30 días";
+        if (from && to) {
+            return from === to
+                ? formatDisplayDate(from)
+                : `${formatDisplayDate(from)} al ${formatDisplayDate(to)}`;
+        }
+        if (from) return `Desde ${formatDisplayDate(from)}`;
+        return `Hasta ${formatDisplayDate(to)}`;
+    })();
+
+    const isPresetActive = (presetId: "today" | "7d" | "30d" | "month") => {
+        const range = getPresetRange(presetId);
+        return from === range.from && to === range.to;
+    };
+
+    const applyPreset = (presetId: "today" | "7d" | "30d" | "month") => {
+        const range = getPresetRange(presetId);
+        setFrom(range.from);
+        setTo(range.to);
+    };
+
     return (
         <DashboardLayout
             title="Analíticas · Ventas"
@@ -75,9 +133,50 @@ export default function SalesAnalyticsPage() {
             backUrl="/management/analytics"
         >
             <div className="space-y-6">
+                {error && (
+                    <div className="mgmt-surface rounded-2xl p-4 border border-red-500/30 text-sm text-red-400">
+                        {error}
+                    </div>
+                )}
 
-                {/* Filtros de período y agrupación */}
-                <div className="mgmt-surface rounded-2xl p-4 flex flex-wrap items-end justify-between gap-4">
+                {/* Contenedor unificado de KPIs + filtro de rango de fechas */}
+                <section
+                    aria-label="KPIs de ventas"
+                    className="mgmt-surface rounded-2xl p-6 space-y-5"
+                >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                                KPIs
+                            </h2>
+                            <p className="text-xs text-[var(--text-muted)]">
+                                Métricas del período · {activeRangeLabel}
+                            </p>
+                        </div>
+
+                        {/* Atajos rápidos de rango de fechas */}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            {DATE_PRESETS.map((preset) => {
+                                const active = isPresetActive(preset.id);
+                                return (
+                                    <button
+                                        key={preset.id}
+                                        type="button"
+                                        onClick={() => applyPreset(preset.id)}
+                                        className={`px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors ${
+                                            active
+                                                ? "bg-indigo-600 text-white border-indigo-600"
+                                                : "bg-[var(--bg-subtle)] text-[var(--text-muted)] border-transparent hover:text-[var(--text-primary)]"
+                                        }`}
+                                    >
+                                        {preset.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Selector manual de fechas */}
                     <div className="flex flex-wrap items-end gap-3">
                         <div>
                             <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
@@ -86,6 +185,7 @@ export default function SalesAnalyticsPage() {
                             <input
                                 type="date"
                                 value={from}
+                                max={to || undefined}
                                 onChange={(e) => setFrom(e.target.value)}
                                 className="input input-sm"
                             />
@@ -97,6 +197,7 @@ export default function SalesAnalyticsPage() {
                             <input
                                 type="date"
                                 value={to}
+                                min={from || undefined}
                                 onChange={(e) => setTo(e.target.value)}
                                 className="input input-sm"
                             />
@@ -115,35 +216,10 @@ export default function SalesAnalyticsPage() {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1 rounded-xl bg-[var(--bg-subtle)] p-1">
-                        {GROUP_BY_OPTIONS.map((opt) => (
-                            <button
-                                key={opt.value}
-                                type="button"
-                                onClick={() => setGroupBy(opt.value)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                                    groupBy === opt.value
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                                }`}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {error && (
-                    <div className="mgmt-surface rounded-2xl p-4 border border-red-500/30 text-sm text-red-400">
-                        {error}
-                    </div>
-                )}
-
-                {/* 4 KPIs principales + Crecimiento */}
-                <section aria-label="KPIs de ventas" className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* 1. Ventas totales + 5. Crecimiento */}
-                        <div className="mgmt-surface rounded-2xl p-5">
+                    {/* 4 KPIs principales en una sola grilla con separadores */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 lg:divide-x divide-[var(--border-subtle)] pt-4 border-t border-[var(--border-subtle)]">
+                        {/* 1. Ventas totales + Crecimiento */}
+                        <div className="py-3 lg:py-0 lg:pr-5">
                             <div className="flex items-center justify-between">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                                     Ventas totales
@@ -177,7 +253,7 @@ export default function SalesAnalyticsPage() {
                         </div>
 
                         {/* 2. Ticket promedio */}
-                        <div className="mgmt-surface rounded-2xl p-5">
+                        <div className="py-3 lg:py-0 lg:px-5">
                             <div className="flex items-center justify-between">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                                     Ticket promedio
@@ -193,7 +269,7 @@ export default function SalesAnalyticsPage() {
                         </div>
 
                         {/* 3. Cantidad de transacciones */}
-                        <div className="mgmt-surface rounded-2xl p-5">
+                        <div className="py-3 lg:py-0 lg:px-5">
                             <div className="flex items-center justify-between">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                                     Transacciones
@@ -209,7 +285,7 @@ export default function SalesAnalyticsPage() {
                         </div>
 
                         {/* 4. Unidades por transacción */}
-                        <div className="mgmt-surface rounded-2xl p-5">
+                        <div className="py-3 lg:py-0 lg:pl-5">
                             <div className="flex items-center justify-between">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                                     Unidades / transacción
@@ -224,10 +300,11 @@ export default function SalesAnalyticsPage() {
                             </p>
                         </div>
                     </div>
+                </section>
 
-                    {/* Serie de transacciones por período + menú de reportes */}
-                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                        <div className="w-full md:flex-1 min-w-0 mgmt-surface rounded-2xl p-6 space-y-4">
+                {/* Serie de transacciones por período + menú de reportes */}
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                    <div className="w-full md:flex-1 min-w-0 mgmt-surface rounded-2xl p-6 space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5">
                                 <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
@@ -243,13 +320,28 @@ export default function SalesAnalyticsPage() {
                                 </div>
                             </div>
 
-                            <Link
-                                to="/management/analytics/sales/reports"
-                                className="btn btn-sm btn-primary"
-                            >
-                                <FileSpreadsheet className="w-4 h-4" />
-                                <span>Ir a reportes de ventas</span>
-                            </Link>
+                            {/* Selector de agrupación del gráfico */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-[var(--text-muted)] hidden sm:inline">
+                                    Agrupar:
+                                </span>
+                                <div className="flex items-center gap-1 rounded-xl bg-[var(--bg-subtle)] p-1">
+                                    {GROUP_BY_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setGroupBy(opt.value)}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                                                groupBy === opt.value
+                                                    ? "bg-indigo-600 text-white"
+                                                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
 
                         {loading ? (
@@ -289,13 +381,12 @@ export default function SalesAnalyticsPage() {
                                 })}
                             </div>
                         )}
-                        </div>
-
-                        <div className="w-full md:w-64 shrink-0">
-                            <ReportTabs variant="menu" />
-                        </div>
                     </div>
-                </section>
+
+                    <div className="w-full md:w-64 shrink-0">
+                        <ReportTabs variant="menu" />
+                    </div>
+                </div>
             </div>
         </DashboardLayout>
     );
