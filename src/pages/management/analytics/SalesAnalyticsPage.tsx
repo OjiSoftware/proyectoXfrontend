@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileSpreadsheet, BarChart3 } from "lucide-react";
+import { FileSpreadsheet, BarChart3 } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import { ReportTabs } from "./reports/ReportTabs";
 
 const placeholderKpis = [
     "KPI de ventas 1",
@@ -15,22 +16,12 @@ export default function SalesAnalyticsPage() {
             title="Analíticas · Ventas"
             subtitle="Indicadores de desempeño comercial y acceso al reporte de ventas."
             backUrl="/management/analytics"
-            actions={
-                <div className="flex items-center gap-2">
-                    <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
-                        <FileSpreadsheet className="w-4 h-4" />
-                        <span>Reportes de ventas</span>
-                    </Link>
-                </div>
-            }
+            actions={<ReportTabs />}
         >
             <div className="space-y-6">
-                {/* Acciones visibles también en mobile */}
+                {/* Botonera de reportes visible también en mobile */}
                 <div className="flex flex-wrap items-center gap-2 md:hidden">
-                    <Link to="/management/analytics/sales/reports" className="btn btn-sm btn-primary">
-                        <FileSpreadsheet className="w-4 h-4" />
-                        <span>Reportes de ventas</span>
-                    </Link>
+                    <ReportTabs />
                 </div>
 
                 {/* Espacio reservado para KPIs futuras */}
