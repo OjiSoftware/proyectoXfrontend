@@ -463,28 +463,28 @@ export default function ReportsPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs text-left text-slate-300 management-table">
                             <thead className="border-b border-white/10">
-                                <tr>
+                                <tr className="border-l-2 border-l-transparent">
                                     {showProductColumns ? (
                                         <>
-                                            <th className="!bg-[#131317] px-4 py-3 text-slate-400">
-                                                <div className="flex items-center justify-between">
-                                                    <span>Venta</span>
-                                                    <span className="pr-2">Producto</span>
+                                            <th className="!bg-[#131317] pl-4 pr-6 py-3 text-slate-400">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <span className="pl-5">Venta</span>
+                                                    <span>Producto</span>
                                                 </div>
                                             </th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-center text-slate-400">Cant.</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">P. costo</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">Ganancia</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">P. venta</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">Subtotal</th>
+                                            <th className="!bg-[#131317] w-24 px-4 py-3 text-center text-slate-400">Cant.</th>
+                                            <th className="!bg-[#131317] w-32 px-4 py-3 text-right text-slate-400 whitespace-nowrap">P. costo</th>
+                                            <th className="!bg-[#131317] w-32 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Ganancia</th>
+                                            <th className="!bg-[#131317] w-32 px-4 py-3 text-right text-slate-400 whitespace-nowrap">P. venta</th>
+                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Subtotal</th>
                                         </>
                                     ) : (
                                         <>
-                                            <th className="!bg-[#131317] px-4 py-3 text-slate-400">Venta</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-center text-slate-400">Unidades</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">Costo total</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">Ganancia</th>
-                                            <th className="!bg-[#131317] px-4 py-3 text-right text-slate-400">Total</th>
+                                            <th className="!bg-[#131317] pl-9 pr-4 py-3 text-slate-400">Venta</th>
+                                            <th className="!bg-[#131317] w-28 px-4 py-3 text-center text-slate-400">Unidades</th>
+                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Costo total</th>
+                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Ganancia</th>
+                                            <th className="!bg-[#131317] w-36 px-4 py-3 text-right text-slate-400 whitespace-nowrap">Total</th>
                                         </>
                                     )}
                                 </tr>
@@ -541,21 +541,21 @@ export default function ReportsPage() {
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 text-center font-semibold text-white">
+                                                    <td className="px-4 py-3 text-center font-semibold text-white tabular-nums">
                                                         {sale.totalUnits}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-slate-200">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-slate-200 tabular-nums">
                                                         {money(sale.totalCost)}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-emerald-400">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-emerald-400 tabular-nums">
                                                         {sale.totalMargin != null ? money(sale.totalMargin) : "-"}
                                                     </td>
                                                     {showProductColumns && (
-                                                        <td className="px-4 py-3 text-right text-slate-600">
+                                                        <td className="px-4 py-3 text-right text-slate-600 tabular-nums">
                                                             —
                                                         </td>
                                                     )}
-                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-white">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-white tabular-nums">
                                                         {money(sale.total)}
                                                     </td>
                                                 </tr>
@@ -572,19 +572,19 @@ export default function ReportsPage() {
                                                             <td className="py-2.5 pl-9 pr-6 text-right text-slate-300">
                                                                 {item.productName}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-center text-slate-400">
+                                                            <td className="px-4 py-2.5 text-center text-slate-400 tabular-nums">
                                                                 {item.quantity}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-500">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-500 tabular-nums">
                                                                 {money(item.costPrice)}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-emerald-400/65">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-emerald-400/65 tabular-nums">
                                                                 {item.margin != null ? money(item.margin) : "-"}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-400">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap text-slate-400 tabular-nums">
                                                                 {money(item.unitaryPrice)}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap font-medium text-slate-200">
+                                                            <td className="px-4 py-2.5 text-right whitespace-nowrap font-medium text-slate-200 tabular-nums">
                                                                 {money(item.subtotal)}
                                                             </td>
                                                         </tr>
@@ -605,26 +605,26 @@ export default function ReportsPage() {
                             {/* Nivel 1: Fila de Total General del período filtrado */}
                             {groupedSales.length > 0 && (
                                 <tfoot>
-                                    <tr className="!bg-[#22222a] border-t-2 border-white/20 font-bold text-white">
-                                        <td className="px-4 py-3.5 text-xs uppercase tracking-wider text-slate-200">
+                                    <tr className="!bg-[#22222a] border-t-2 border-white/20 border-l-2 border-l-transparent font-bold text-white">
+                                        <td className="pl-9 pr-4 py-3.5 text-xs uppercase tracking-wider text-slate-200">
                                             Total general ({groupedSales.length}{" "}
                                             {groupedSales.length === 1 ? "venta" : "ventas"})
                                         </td>
-                                        <td className="px-4 py-3.5 text-center text-white">
+                                        <td className="px-4 py-3.5 text-center text-white tabular-nums">
                                             {grandTotals.units}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-slate-200">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-slate-200 tabular-nums">
                                             {money(grandTotals.cost)}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-emerald-300">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-emerald-300 tabular-nums">
                                             {grandTotals.margin != null ? money(grandTotals.margin) : "-"}
                                         </td>
                                         {showProductColumns && (
-                                            <td className="px-4 py-3.5 text-right text-slate-600">
+                                            <td className="px-4 py-3.5 text-right text-slate-600 tabular-nums">
                                                 —
                                             </td>
                                         )}
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-white">
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-white tabular-nums">
                                             {money(grandTotals.total)}
                                         </td>
                                     </tr>
