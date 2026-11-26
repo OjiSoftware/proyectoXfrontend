@@ -10,6 +10,7 @@ import { productApi } from "@/services/ProductService";
 import { exportExcel } from "@/helpers/excelExport";
 import { buildSalesReportSheets } from "@/helpers/reportExport";
 import type { SalesReportItem, SalesReportResult } from "@/types/report.types";
+import { ReportTabs } from "./ReportTabs";
 
 interface Option {
     id: number;
@@ -326,7 +327,9 @@ export default function ReportsPage() {
                 </div>
             }
         >
-            <div className="space-y-6">
+            <div className="space-y-5">
+                <ReportTabs />
+
                 {/* Panel de filtros desplegable o toggle desde el botón de arriba */}
                 {filtersOpen && (
                     <div className="bg-[#151519] border border-white/10 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
