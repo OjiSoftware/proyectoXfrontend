@@ -17,7 +17,7 @@ import {
     formatDisplayDate,
     getPresetRange,
 } from "@/helpers/dateRange.helper";
-import type { ProductMarginItem, ProfitabilityResult } from "@/types/report.types";
+import type { ProfitabilityResult } from "@/types/report.types";
 
 const formatCurrency = (value: number) =>
     new Intl.NumberFormat("es-AR", {
@@ -31,19 +31,6 @@ const formatPercent = (value: number | null) =>
 
 const fieldClass =
     "report-filter-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none";
-
-const getProductStatus = (product: ProductMarginItem) => {
-    if (!product.hasCost) {
-        return { label: "Sin costo", className: "bg-amber-500/10 text-amber-400 border-amber-500/30" };
-    }
-    if (product.profit > 0) {
-        return { label: "Ganancia", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" };
-    }
-    if (product.profit < 0) {
-        return { label: "Pérdida", className: "bg-rose-500/10 text-rose-400 border-rose-500/30" };
-    }
-    return { label: "Sin ganancia", className: "bg-slate-500/10 text-slate-400 border-slate-500/30" };
-};
 
 export default function ProfitabilityAnalyticsPage() {
     const itemsPerPage = useItemsPerpage();
@@ -333,25 +320,24 @@ export default function ProfitabilityAnalyticsPage() {
                                     <th className="hidden md:table-cell w-32 px-4 py-3 text-right whitespace-nowrap">Costo</th>
                                     <th className="w-32 px-4 py-3 text-right whitespace-nowrap">Ganancia</th>
                                     <th className="w-24 px-4 py-3 text-right whitespace-nowrap">Margen</th>
-                                    <th className="w-28 px-4 py-3 text-center">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading && !data ? (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                                             Cargando rentabilidad...
                                         </td>
                                     </tr>
                                 ) : products.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
+                                        <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                                             No hay ventas completadas en el período seleccionado.
                                         </td>
                                     </tr>
                                 ) : (
                                     currentProducts.map((product) => {
-                                        const status = getProductStatus(product);
+                                        const isLoss = product.profit < 0;
                                         return (
                                             <tr
                                                 key={product.productId}
@@ -374,18 +360,19 @@ export default function ProfitabilityAnalyticsPage() {
                                                 <td className="hidden md:table-cell px-4 py-3 text-right whitespace-nowrap text-[var(--text-muted)] tabular-nums">
                                                     {formatCurrency(product.cost)}
                                                 </td>
-                                                <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-[var(--text-primary)] tabular-nums">
+                                                <td
+                                                    className={`px-4 py-3 text-right whitespace-nowrap font-semibold tabular-nums ${
+                                                        isLoss ? "text-rose-400" : "text-[var(--text-primary)]"
+                                                    }`}
+                                                >
                                                     {formatCurrency(product.profit)}
                                                 </td>
-                                                <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
+                                                <td
+                                                    className={`px-4 py-3 text-right whitespace-nowrap tabular-nums ${
+                                                        isLoss ? "text-rose-400" : ""
+                                                    }`}
+                                                >
                                                     {formatPercent(product.marginPercentage)}
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span
-                                                        className={`inline-block px-2 py-0.5 rounded-md border text-[11px] font-medium ${status.className}`}
-                                                    >
-                                                        {status.label}
-                                                    </span>
                                                 </td>
                                             </tr>
                                         );
