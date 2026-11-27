@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Pagination from "@/components/PaginationManagement";
+import GrowthIndicator from "@/components/GrowthIndicator";
 import { useItemsPerpage } from "@/hooks/useItemsPerpage";
 import { reportApi } from "@/services/ReportService";
 import {
@@ -220,7 +221,8 @@ export default function ProfitabilityAnalyticsPage() {
                                 <p className="mt-3 text-2xl font-bold text-[var(--text-primary)]">
                                     {loading ? "..." : formatPercent(kpis?.grossMarginPercentage ?? 0)}
                                 </p>
-                                <p className="mt-2 text-xs text-[var(--text-muted)]">
+                                <GrowthIndicator value={kpis?.grossMarginChange ?? null} suffix=" pp" />
+                                <p className="mt-1 text-xs text-[var(--text-muted)]">
                                     {loading
                                         ? "..."
                                         : `Ganancia bruta: ${formatCurrency(kpis?.grossProfit ?? 0)}`}

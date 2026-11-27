@@ -105,6 +105,8 @@ export interface ProfitabilityKpis {
     totalCost: number;
     grossProfit: number;
     grossMarginPercentage: number;
+    previousPeriodGrossMarginPercentage: number | null;
+    grossMarginChange: number | null;
     expenses: number;
     expensesLoaded: boolean;
     netProfit: number;
@@ -115,6 +117,8 @@ export interface ProfitabilityResult {
     period: {
         from: string;
         to: string;
+        previousFrom: string;
+        previousTo: string;
     };
     kpis: ProfitabilityKpis;
     products: ProductMarginItem[];
