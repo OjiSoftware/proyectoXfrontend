@@ -1,4 +1,6 @@
 import type {
+    ProfitabilityFilters,
+    ProfitabilityResult,
     SalesKpiFilters,
     SalesKpisResult,
     SalesReportFilters,
@@ -41,6 +43,24 @@ export const reportApi = {
             signal,
         });
         if (!response.ok) throw new Error("Error al obtener las KPIs de ventas");
+        return response.json();
+    },
+
+    getProfitability: async (
+        filters: ProfitabilityFilters = {},
+        signal?: AbortSignal,
+    ): Promise<ProfitabilityResult> => {
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== "") {
+                params.set(key, String(value));
+            }
+        });
+        const response = await fetch(`${BASE_URL}/reports/profitability?${params.toString()}`, {
+            credentials: "include",
+            signal,
+        });
+        if (!response.ok) throw new Error("Error al obtener la rentabilidad");
         return response.json();
     },
 };
