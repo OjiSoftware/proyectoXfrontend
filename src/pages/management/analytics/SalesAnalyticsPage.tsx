@@ -142,11 +142,11 @@ export default function SalesAnalyticsPage() {
                 {/* Contenedor unificado de KPIs + filtro de rango de fechas */}
                 <section
                     aria-label="KPIs de ventas"
-                    className="mgmt-surface rounded-2xl p-6 space-y-5"
+                    className="management-table-container rounded-2xl overflow-hidden"
                 >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="report-topbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                         <div>
-                            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
                                 KPIs
                             </h2>
                             <p className="text-xs text-[var(--text-muted)]">
@@ -163,10 +163,8 @@ export default function SalesAnalyticsPage() {
                                         key={preset.id}
                                         type="button"
                                         onClick={() => applyPreset(preset.id)}
-                                        className={`px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors ${
-                                            active
-                                                ? "bg-indigo-600 text-white border-indigo-600"
-                                                : "bg-[var(--bg-subtle)] text-[var(--text-muted)] border-transparent hover:text-[var(--text-primary)]"
+                                        className={`btn btn-sm ${
+                                            active ? "btn-primary" : "btn-subtle"
                                         }`}
                                     >
                                         {preset.label}
@@ -176,6 +174,7 @@ export default function SalesAnalyticsPage() {
                         </div>
                     </div>
 
+                    <div className="p-4 space-y-4">
                     {/* Selector manual de fechas */}
                     <div className="flex flex-wrap items-end gap-3">
                         <div>
@@ -187,7 +186,7 @@ export default function SalesAnalyticsPage() {
                                 value={from}
                                 max={to || undefined}
                                 onChange={(e) => setFrom(e.target.value)}
-                                className="input input-sm"
+                                className="report-filter-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                             />
                         </div>
                         <div>
@@ -199,7 +198,7 @@ export default function SalesAnalyticsPage() {
                                 value={to}
                                 min={from || undefined}
                                 onChange={(e) => setTo(e.target.value)}
-                                className="input input-sm"
+                                className="report-filter-input text-xs rounded-xl h-9 px-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                             />
                         </div>
                         {(from || to) && (
@@ -300,91 +299,101 @@ export default function SalesAnalyticsPage() {
                             </p>
                         </div>
                     </div>
+                    </div>
                 </section>
 
-                {/* Serie de transacciones por período + menú de reportes */}
-                <div className="flex flex-col md:flex-row gap-6 items-start">
-                    <div className="w-full md:flex-1 min-w-0 mgmt-surface rounded-2xl p-6 space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex items-center gap-2.5">
-                                <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                                    <BarChart3 className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h2 className="text-base font-semibold text-[var(--text-primary)]">
-                                        Transacciones por período
-                                    </h2>
-                                    <p className="text-xs text-[var(--text-muted)]">
-                                        Cantidad de ventas cerradas y facturación agrupada
-                                    </p>
-                                </div>
-                            </div>
+                {/* Panel de reportes (ancho completo) */}
+                <ReportTabs variant="menu" />
 
-                            {/* Selector de agrupación del gráfico */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-[var(--text-muted)] hidden sm:inline">
-                                    Agrupar:
-                                </span>
-                                <div className="flex items-center gap-1 rounded-xl bg-[var(--bg-subtle)] p-1">
-                                    {GROUP_BY_OPTIONS.map((opt) => (
-                                        <button
-                                            key={opt.value}
-                                            type="button"
-                                            onClick={() => setGroupBy(opt.value)}
-                                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                                                groupBy === opt.value
-                                                    ? "bg-indigo-600 text-white"
-                                                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                                            }`}
-                                        >
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
+                {/* Transacciones por período (tabla, mismo estilo que Productos y Reporte de ventas) */}
+                <div className="management-table-container rounded-2xl overflow-hidden">
+                    <div className="report-topbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                            <BarChart3 className="w-4 h-4 text-indigo-400" />
+                            <div>
+                                <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                                    Transacciones por período
+                                </h2>
+                                <p className="text-xs text-[var(--text-muted)]">
+                                    Cantidad de ventas cerradas y facturación agrupada
+                                </p>
                             </div>
                         </div>
 
-                        {loading ? (
-                            <p className="text-sm text-[var(--text-muted)] py-6 text-center">
-                                Cargando métricas...
-                            </p>
-                        ) : !data?.transactionsByPeriod.length ? (
-                            <p className="text-sm text-[var(--text-muted)] py-6 text-center">
-                                No hay transacciones registradas en el período seleccionado.
-                            </p>
-                        ) : (
-                            <div className="space-y-2.5">
-                                {data.transactionsByPeriod.map((point) => {
-                                    const widthPct = Math.max(
-                                        Math.round((point.totalSales / maxPeriodSales) * 100),
-                                        2,
-                                    );
-                                    return (
-                                        <div
-                                            key={point.period}
-                                            className="grid grid-cols-12 items-center gap-3 text-xs"
-                                        >
-                                            <span className="col-span-3 sm:col-span-2 font-medium text-[var(--text-primary)]">
-                                                {point.period}
-                                            </span>
-                                            <div className="col-span-5 sm:col-span-7 h-2.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full bg-indigo-500"
-                                                    style={{ width: `${widthPct}%` }}
-                                                />
-                                            </div>
-                                            <span className="col-span-4 sm:col-span-3 text-right text-[var(--text-muted)]">
-                                                {point.count} tx · {formatCurrency(point.totalSales)}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        {/* Selector de agrupación */}
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-[var(--text-muted)] hidden sm:inline mr-1">
+                                Agrupar:
+                            </span>
+                            {GROUP_BY_OPTIONS.map((opt) => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setGroupBy(opt.value)}
+                                    className={`btn btn-sm ${
+                                        groupBy === opt.value ? "btn-primary" : "btn-subtle"
+                                    }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="w-full md:w-64 shrink-0">
-                        <ReportTabs variant="menu" />
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left text-[var(--text-secondary)] management-table report-table">
+                            <thead className="border-b border-[var(--border-subtle)]">
+                                <tr>
+                                    <th className="px-4 py-3">Período</th>
+                                    <th className="w-32 px-4 py-3 text-center">Transacciones</th>
+                                    <th className="w-44 px-4 py-3 text-right whitespace-nowrap">Facturación</th>
+                                    <th className="hidden sm:table-cell w-1/3 px-4 py-3">Distribución</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-10 text-center text-slate-500">
+                                            Cargando métricas...
+                                        </td>
+                                    </tr>
+                                ) : !data?.transactionsByPeriod.length ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-10 text-center text-slate-500">
+                                            No hay transacciones registradas en el período seleccionado.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    data.transactionsByPeriod.map((point) => {
+                                        const widthPct = Math.max(
+                                            Math.round((point.totalSales / maxPeriodSales) * 100),
+                                            2,
+                                        );
+                                        return (
+                                            <tr key={point.period} className="report-row transition-colors">
+                                                <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
+                                                    {point.period}
+                                                </td>
+                                                <td className="px-4 py-3 text-center tabular-nums">
+                                                    {point.count}
+                                                </td>
+                                                <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-[var(--text-primary)] tabular-nums">
+                                                    {formatCurrency(point.totalSales)}
+                                                </td>
+                                                <td className="hidden sm:table-cell px-4 py-3">
+                                                    <div className="h-2 rounded-full bg-[var(--border-subtle)] overflow-hidden">
+                                                        <div
+                                                            className="h-full rounded-full bg-indigo-500"
+                                                            style={{ width: `${widthPct}%` }}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
