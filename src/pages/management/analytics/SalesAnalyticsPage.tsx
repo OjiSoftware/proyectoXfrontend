@@ -27,6 +27,33 @@ const GROUP_BY_OPTIONS: { value: KpiGroupBy; label: string }[] = [
     { value: "month", label: "Por mes" },
 ];
 
+/** Variación porcentual contra el período anterior (null = sin período anterior). */
+function GrowthIndicator({ value }: { value: number | null }) {
+    return (
+        <div className="mt-2 flex items-center gap-1.5 text-xs">
+            {value === null ? (
+                <span className="text-[var(--text-muted)]">
+                    Sin período anterior para comparar
+                </span>
+            ) : (
+                <span
+                    className={`inline-flex items-center gap-1 font-medium ${
+                        value >= 0 ? "text-emerald-400" : "text-red-400"
+                    }`}
+                >
+                    {value >= 0 ? (
+                        <TrendingUp className="w-3.5 h-3.5" />
+                    ) : (
+                        <TrendingDown className="w-3.5 h-3.5" />
+                    )}
+                    {value >= 0 ? "+" : ""}
+                    {value}% vs período anterior
+                </span>
+            )}
+        </div>
+    );
+}
+
 export default function SalesAnalyticsPage() {
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
@@ -191,27 +218,7 @@ export default function SalesAnalyticsPage() {
                             <p className="mt-3 text-2xl font-bold text-[var(--text-primary)]">
                                 {loading ? "..." : formatCurrency(data?.totalSales ?? 0)}
                             </p>
-                            <div className="mt-2 flex items-center gap-1.5 text-xs">
-                                {growth === null ? (
-                                    <span className="text-[var(--text-muted)]">
-                                        Sin período anterior para comparar
-                                    </span>
-                                ) : (
-                                    <span
-                                        className={`inline-flex items-center gap-1 font-medium ${
-                                            growth >= 0 ? "text-emerald-400" : "text-red-400"
-                                        }`}
-                                    >
-                                        {growth >= 0 ? (
-                                            <TrendingUp className="w-3.5 h-3.5" />
-                                        ) : (
-                                            <TrendingDown className="w-3.5 h-3.5" />
-                                        )}
-                                        {growth >= 0 ? "+" : ""}
-                                        {growth}% vs período anterior
-                                    </span>
-                                )}
-                            </div>
+                            <GrowthIndicator value={growth} />
                         </div>
 
                         {/* 2. Ticket promedio */}
@@ -225,7 +232,8 @@ export default function SalesAnalyticsPage() {
                             <p className="mt-3 text-2xl font-bold text-[var(--text-primary)]">
                                 {loading ? "..." : formatCurrency(data?.averageTicket ?? 0)}
                             </p>
-                            <p className="mt-2 text-xs text-[var(--text-muted)]">
+                            <GrowthIndicator value={data?.ticketGrowthPercentage ?? null} />
+                            <p className="mt-1 text-xs text-[var(--text-muted)]">
                                 Ventas ÷ transacciones
                             </p>
                         </div>
@@ -241,7 +249,8 @@ export default function SalesAnalyticsPage() {
                             <p className="mt-3 text-2xl font-bold text-[var(--text-primary)]">
                                 {loading ? "..." : (data?.transactionsCount ?? 0)}
                             </p>
-                            <p className="mt-2 text-xs text-[var(--text-muted)]">
+                            <GrowthIndicator value={data?.transactionsGrowthPercentage ?? null} />
+                            <p className="mt-1 text-xs text-[var(--text-muted)]">
                                 Ventas cerradas en el período
                             </p>
                         </div>
@@ -257,7 +266,8 @@ export default function SalesAnalyticsPage() {
                             <p className="mt-3 text-2xl font-bold text-[var(--text-primary)]">
                                 {loading ? "..." : (data?.unitsPerTransaction ?? 0)}
                             </p>
-                            <p className="mt-2 text-xs text-[var(--text-muted)]">
+                            <GrowthIndicator value={data?.unitsPerTransactionGrowthPercentage ?? null} />
+                            <p className="mt-1 text-xs text-[var(--text-muted)]">
                                 {loading ? "..." : `${data?.unitsSold ?? 0} unidades vendidas`}
                             </p>
                         </div>

@@ -74,6 +74,12 @@ export interface SalesKpisResult {
     unitsPerTransaction: number;
     previousPeriodTotalSales: number;
     salesGrowthPercentage: number | null;
+    previousPeriodAverageTicket: number;
+    ticketGrowthPercentage: number | null;
+    previousPeriodTransactionsCount: number;
+    transactionsGrowthPercentage: number | null;
+    previousPeriodUnitsPerTransaction: number;
+    unitsPerTransactionGrowthPercentage: number | null;
     transactionsByPeriod: TransactionPeriodPoint[];
 }
 
