@@ -76,3 +76,40 @@ export interface SalesKpisResult {
     salesGrowthPercentage: number | null;
     transactionsByPeriod: TransactionPeriodPoint[];
 }
+
+export interface ProfitabilityFilters {
+    from?: string;
+    to?: string;
+}
+
+export interface ProductMarginItem {
+    productId: number;
+    productName: string;
+    categoryName: string;
+    unitsSold: number;
+    revenue: number;
+    cost: number;
+    profit: number;
+    marginPercentage: number | null;
+    hasCost: boolean;
+}
+
+export interface ProfitabilityKpis {
+    totalSales: number;
+    totalCost: number;
+    grossProfit: number;
+    grossMarginPercentage: number;
+    expenses: number;
+    expensesLoaded: boolean;
+    netProfit: number;
+    productsWithoutCost: number;
+}
+
+export interface ProfitabilityResult {
+    period: {
+        from: string;
+        to: string;
+    };
+    kpis: ProfitabilityKpis;
+    products: ProductMarginItem[];
+}

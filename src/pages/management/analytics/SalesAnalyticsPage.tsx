@@ -12,6 +12,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import { ReportTabs } from "./reports/ReportTabs";
 import { reportApi } from "@/services/ReportService";
 import type { KpiGroupBy, SalesKpisResult } from "@/types/report.types";
+import { DATE_PRESETS, formatDisplayDate, getPresetRange } from "@/helpers/dateRange.helper";
 
 const formatCurrency = (value: number) =>
     new Intl.NumberFormat("es-AR", {
@@ -19,44 +20,6 @@ const formatCurrency = (value: number) =>
         currency: "ARS",
         maximumFractionDigits: 2,
     }).format(value);
-
-const toInputDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-};
-
-const formatDisplayDate = (isoDate: string) => {
-    const [year, month, day] = isoDate.split("-");
-    return `${day}/${month}/${year}`;
-};
-
-const getPresetRange = (preset: "today" | "7d" | "30d" | "month") => {
-    const now = new Date();
-    const today = toInputDate(now);
-
-    if (preset === "today") return { from: today, to: today };
-    if (preset === "7d") {
-        const start = new Date(now);
-        start.setDate(start.getDate() - 6);
-        return { from: toInputDate(start), to: today };
-    }
-    if (preset === "30d") {
-        const start = new Date(now);
-        start.setDate(start.getDate() - 29);
-        return { from: toInputDate(start), to: today };
-    }
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    return { from: toInputDate(startOfMonth), to: today };
-};
-
-const DATE_PRESETS: { id: "today" | "7d" | "30d" | "month"; label: string }[] = [
-    { id: "today", label: "Hoy" },
-    { id: "7d", label: "7 días" },
-    { id: "30d", label: "30 días" },
-    { id: "month", label: "Este mes" },
-];
 
 const GROUP_BY_OPTIONS: { value: KpiGroupBy; label: string }[] = [
     { value: "day", label: "Por día" },
